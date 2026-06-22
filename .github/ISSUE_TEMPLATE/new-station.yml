@@ -1,0 +1,41 @@
+name: 新增中转站
+description: 提交一个新的中转站线索或候选收录对象
+title: "[新增站点] "
+labels:
+  - new-station
+body:
+  - type: input
+    id: station_name
+    attributes:
+      label: 站点名称
+      placeholder: 例如 PackyCode
+    validations:
+      required: true
+  - type: input
+    id: source_link
+    attributes:
+      label: 原始来源链接
+      placeholder: 官网、文档、公告或说明链接
+    validations:
+      required: true
+  - type: textarea
+    id: summary
+    attributes:
+      label: 一句话结论
+      placeholder: 这个站点为什么值得收录？
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: 你掌握的关键信息
+      placeholder: 例如价格、倍率、模型支持、稳定性、优惠活动
+    validations:
+      required: true
+  - type: textarea
+    id: time_sensitive
+    attributes:
+      label: 时效性说明
+      placeholder: 是否容易过期？你是什么时候看到的？
+    validations:
+      required: true
