@@ -1,0 +1,34 @@
+name: 信息更正
+description: 更正已收录站点的错误、过期或有争议信息
+title: "[信息更正] "
+labels:
+  - correction
+body:
+  - type: input
+    id: target
+    attributes:
+      label: 对应站点或页面
+      placeholder: 例如 GreenRoute / 首页专题
+    validations:
+      required: true
+  - type: textarea
+    id: wrong_info
+    attributes:
+      label: 现在有什么问题
+      placeholder: 哪条信息错了、过期了，或描述不准确
+    validations:
+      required: true
+  - type: textarea
+    id: proposed_fix
+    attributes:
+      label: 建议改成什么
+      placeholder: 请尽量给出准确的新表述
+    validations:
+      required: true
+  - type: input
+    id: proof
+    attributes:
+      label: 证明链接
+      placeholder: 原始来源链接
+    validations:
+      required: true

@@ -1,36 +1,125 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Timin观察站
 
-## Getting Started
+一个由社区共建的 AI 中转站观察站。我们用公开、可修正、可持续补充的方式，持续整理中转站的价格、倍率、套餐口径、试用入口和真实体验。
 
-First, run the development server:
+- 先看价格口径，再看社区备注
+- 结论尽量可追踪，也允许后续修正
+- 不会写代码，也能补充线索、截图和反馈
+
+如果你也长期在用各类中转站，欢迎一起把它做成一个真正有用、能长期维护的公共项目。
+
+## 页面预览
+
+### 首页榜单入口
+
+![首页榜单入口](./public/previews/home-ranking-v1.png)
+
+### 中转站榜单页
+
+![中转站榜单页](./public/previews/stations-featured-v1.png)
+
+### 社区讨论页
+
+![社区讨论页](./public/previews/community-feed-v1.png)
+
+## 这版已经有的内容
+
+- 默认 `白蓝` 主主题，保留 `白绿` 备用主题
+- 首页聚焦主入口，先看榜单，再进讨论和指南
+- 榜单页支持首屏重点站点、搜索、筛选、更多中转站展开和补充提交
+- 已补入提交补充流程，方便后续由管理员审核
+- 论坛入口页支持站内发帖、回复、点赞、收藏与 GitHub Discussions 分流
+
+## 项目想解决什么问题
+
+很多中转站信息现在都散落在群聊、私聊和零碎截图里：
+
+- 有的只写倍率，不写模型口径
+- 有的有试用额度，但入口不固定
+- 有的同一站不同套餐差异很大，容易被写成一个误导数字
+- 有的“稳定”或“便宜”只是口头经验，没有统一整理
+
+这个项目不想做一个空壳导航页，而是想做一个能被社区共同维护、能不断纠错和补充的观察站。
+
+## 当前页面结构
+
+- `/`
+  首页，负责主榜单入口、资源速报、讨论入口和常见问题
+- `/stations`
+  核心榜单页，负责中转站价格、倍率、收费方式、备注、筛选搜索和补充提交
+- `/community`
+  论坛入口页，负责发帖、报料、避坑、讨论和协作引导
+- `/admin`
+  管理员审核原型页，支持通过、修改后通过和驳回
+
+## 当前已录入的中转站
+
+- Aether
+- 虎虎
+- 杂货铺
+- viptoken站
+- ai8.my
+- Primdream
+- WayX
+- Liary
+- dasuAPI
+- dazes.cc
+- 五条悟api
+- xiaoya-api
+- 星见雅公益
+
+## 当前资源入口
+
+- 虎虎 API 试用单
+- API 中转站集合统计表
+- 社区协作入口
+- QQ 群免费额度提醒
+
+## 加入 QQ 群
+
+群号：`602190132`
+
+如果你想一起补中转站信息、提交试用入口、反馈价格变化，或者帮忙一起维护这个项目，欢迎加入 QQ 群。
+
+![Timin观察站 QQ群二维码](./public/qq-group-qrcode.jpg)
+
+## 你可以怎么参与
+
+1. 发现线索：新站点、价格变化、邀请码、试用入口、踩坑反馈
+2. 补充证据：原始链接、截图、价格口径、出现时间、模型分组
+3. 发起协作：`Discussion / Issue / PR`
+
+不会写代码也没关系，先补一条准确信息就很有价值。
+
+## 推荐协作方式
+
+1. 新线索先进 `Discussions` 或 `Issue`
+2. 需要正式收录时再开 `Issue`
+3. 真正进入站点内容的改动统一走 `PR`
+
+一句话版本：`讨论先进 Discussions，确定要做再进 Issues，最终入站只认 PR。`
+
+## 本地运行
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+打开 `http://localhost:3000`
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 当前关键文件
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `src/app/page.tsx`：首页
+- `src/app/stations/page.tsx`：榜单页
+- `src/app/community/page.tsx`：论坛入口页
+- `src/app/admin/page.tsx`：审核原型页
+- `src/lib/site-data.ts`：站点数据、资源入口和页面文案
 
-## Learn More
+## 下一步最值得继续补的内容
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- 各站高峰期稳定性反馈
+- 模型分组和真实可用性
+- 更多试用入口与注册送额信息
+- 管理员审核接入真正可共享的后台
+- 打开 GitHub Discussions 后把群里高质量讨论慢慢沉淀进来

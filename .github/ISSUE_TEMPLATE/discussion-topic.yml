@@ -1,0 +1,32 @@
+name: 经验讨论 / 专题候选
+description: 提交一个适合首页或详情页沉淀的讨论主题
+title: "[讨论主题] "
+labels:
+  - discussion
+body:
+  - type: input
+    id: title
+    attributes:
+      label: 主题标题
+      placeholder: 例如 低倍率不等于真便宜
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: 为什么值得讨论
+      placeholder: 这个主题解决什么问题？
+    validations:
+      required: true
+  - type: textarea
+    id: points
+    attributes:
+      label: 建议讨论点
+      placeholder: 请列出 3 到 5 个关键点
+    validations:
+      required: true
+  - type: textarea
+    id: references
+    attributes:
+      label: 相关链接或截图说明
+      placeholder: 群聊截图、官方公告、历史帖子等
