@@ -1,0 +1,41 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+
+const navItems = [
+  { label: "首页", href: "/" },
+  { label: "榜单", href: "/stations" },
+  { label: "讨论", href: "/community" },
+  { label: "指南", href: "/guides" },
+];
+
+export function MobileDock() {
+  const pathname = usePathname();
+
+  return (
+    <nav
+      className="fixed inset-x-3 bottom-3 z-40 grid grid-cols-4 rounded-[20px] border border-[var(--color-line)] bg-white/94 p-1 shadow-[0_18px_60px_rgba(15,23,42,0.14)] backdrop-blur lg:hidden"
+      data-selection-comments="off"
+    >
+      {navItems.map((item) => {
+        const active =
+          item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+
+        return (
+          <Link
+            key={item.href}
+            className={`rounded-[16px] px-2 py-2.5 text-center text-sm font-bold transition ${
+              active
+                ? "bg-[var(--color-brand)] text-white"
+                : "text-[var(--color-muted)] hover:bg-[var(--color-soft)] hover:text-[var(--color-ink)]"
+            }`}
+            href={item.href}
+          >
+            {item.label}
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}

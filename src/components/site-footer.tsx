@@ -2,10 +2,17 @@
 
 import Link from "next/link";
 
+import { siteLinks } from "@/lib/site-links";
+
 const footerLinks = [
   {
     label: "GitHub Discussions",
-    href: "https://github.com/hfeng620-cmd/timin_api_test_and_forum/discussions",
+    href: siteLinks.discussions,
+    external: true,
+  },
+  {
+    label: "GitHub 仓库",
+    href: siteLinks.repo,
     external: true,
   },
   {
@@ -76,9 +83,16 @@ export function SiteFooter() {
               共建方式
             </p>
             <div className="mt-4 space-y-2 text-sm leading-7 text-[var(--color-muted)]">
-              <p>QQ群：`602190132`</p>
+              <p>QQ群：602190132</p>
               <p>适合先报价格变化、试用线索、失效活动和高峰期表现。</p>
-              <p>站内发帖适合轻量同步，GitHub 更适合沉淀长期结论。</p>
+              <a
+                className="inline-flex font-semibold text-[var(--color-brand-deep)] transition hover:text-[var(--color-brand)]"
+                href={siteLinks.pages}
+                rel="noreferrer"
+                target="_blank"
+              >
+                打开线上站点
+              </a>
             </div>
           </div>
         </div>

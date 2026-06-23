@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 import { ThemeToggleInline } from "@/components/theme-toggle";
+import { siteLinks } from "@/lib/site-links";
 
 export function FloatingQuickPanel() {
   const [open, setOpen] = useState(false);
@@ -33,11 +34,27 @@ export function FloatingQuickPanel() {
           <div className="mt-4 grid gap-2">
             <a
               className="rounded-2xl border border-[var(--color-line)] bg-[var(--color-soft)] px-3 py-3 text-sm font-semibold text-[var(--color-ink)] transition hover:border-[var(--color-brand)] hover:text-[var(--color-brand-deep)]"
-              href="https://github.com/hfeng620-cmd/timin_api_test_and_forum/discussions"
+              href={siteLinks.pages}
+              rel="noreferrer"
+              target="_blank"
+            >
+              打开线上站点
+            </a>
+            <a
+              className="rounded-2xl border border-[var(--color-line)] bg-[var(--color-soft)] px-3 py-3 text-sm font-semibold text-[var(--color-ink)] transition hover:border-[var(--color-brand)] hover:text-[var(--color-brand-deep)]"
+              href={siteLinks.discussions}
               rel="noreferrer"
               target="_blank"
             >
               打开 GitHub Discussions
+            </a>
+            <a
+              className="rounded-2xl border border-[var(--color-line)] bg-[var(--color-soft)] px-3 py-3 text-sm font-semibold text-[var(--color-ink)] transition hover:border-[var(--color-brand)] hover:text-[var(--color-brand-deep)]"
+              href={siteLinks.repo}
+              rel="noreferrer"
+              target="_blank"
+            >
+              打开 GitHub 仓库
             </a>
             <Link
               className="rounded-2xl border border-[var(--color-line)] bg-[var(--color-soft)] px-3 py-3 text-sm font-semibold text-[var(--color-ink)] transition hover:border-[var(--color-brand)] hover:text-[var(--color-brand-deep)]"

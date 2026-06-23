@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
 import { FloatingQuickPanel } from "@/components/floating-quick-panel";
+import { MobileDock } from "@/components/mobile-dock";
 import { MouseGlowLayer } from "@/components/mouse-glow-layer";
 import { SelectionCommentLayer } from "@/components/selection-comment-layer";
 import { SiteFooter } from "@/components/site-footer";
@@ -40,6 +41,7 @@ export default function RootLayout({
           {children}
           <SiteFooter />
           <FloatingQuickPanel />
+          <MobileDock />
           <SelectionCommentLayer />
         </div>
       </body>

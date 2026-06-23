@@ -214,10 +214,10 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="mt-12 overflow-hidden rounded-[34px] border border-[var(--color-line)] bg-[linear-gradient(180deg,rgba(255,255,255,0.9),rgba(244,248,255,0.92))] shadow-[var(--shadow-card)]">
+          <div className="mt-12 overflow-hidden rounded-[8px] border border-[var(--color-line)] bg-[linear-gradient(180deg,rgba(255,255,255,0.9),rgba(244,248,255,0.92))] shadow-[var(--shadow-card)]">
             <div className="grid gap-0 lg:grid-cols-[1.35fr_0.65fr]">
               <div className="px-6 py-6 lg:px-8 lg:py-7">
-                <div className="grid grid-cols-[0.55fr_1fr_0.95fr_0.75fr_1.35fr] border-b border-[var(--color-line)] pb-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--color-muted)]">
+                <div className="hidden grid-cols-[0.55fr_1fr_0.95fr_0.75fr_1.35fr] border-b border-[var(--color-line)] pb-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--color-muted)] md:grid">
                   <span>排名</span>
                   <span>站点</span>
                   <span>价格</span>
@@ -229,15 +229,20 @@ export default function Home() {
                   {topRows.map((row, index) => (
                     <article
                       key={`${row.name}-${index}`}
-                      className="grid grid-cols-[0.55fr_1fr_0.95fr_0.75fr_1.35fr] items-start gap-4 border-b border-[var(--color-line)] py-5 transition hover:bg-white/70"
+                      className="grid gap-4 border-b border-[var(--color-line)] py-5 transition hover:bg-white/70 md:grid-cols-[0.55fr_1fr_0.95fr_0.75fr_1.35fr] md:items-start"
                     >
-                      <span className="pt-1 text-sm font-bold text-[var(--color-muted)]">
-                        {(index + 1).toString().padStart(2, "0")}
-                      </span>
+                      <div className="flex items-center justify-between gap-3 md:block">
+                        <span className="text-sm font-bold text-[var(--color-muted)] md:pt-1">
+                          {(index + 1).toString().padStart(2, "0")}
+                        </span>
+                        <span className="rounded-full bg-[var(--color-brand-soft)] px-3 py-1 text-xs font-bold text-[var(--color-brand-deep)] md:hidden">
+                          {row.badge}
+                        </span>
+                      </div>
                       <div>
                         <div className="flex items-center gap-3">
                           <h3 className="text-lg font-black">{row.name}</h3>
-                          <span className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--color-brand-deep)]">
+                          <span className="hidden text-xs font-bold uppercase tracking-[0.18em] text-[var(--color-brand-deep)] md:inline">
                             {row.badge}
                           </span>
                         </div>

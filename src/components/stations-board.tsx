@@ -152,7 +152,7 @@ export function StationsBoard() {
                   href={stationLinkMap[row.name]}
                   rel="noreferrer"
                   target="_blank"
-                  className="group min-h-[258px] rounded-[28px] border border-[var(--color-line)] bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(245,249,255,0.98))] p-5 shadow-[var(--shadow-card)] transition hover:-translate-y-[2px] hover:border-[var(--color-brand)]"
+                  className="group min-h-[258px] rounded-[8px] border border-[var(--color-line)] bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(245,249,255,0.98))] p-5 shadow-[var(--shadow-card)] transition hover:-translate-y-[2px] hover:border-[var(--color-brand)]"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
@@ -187,7 +187,7 @@ export function StationsBoard() {
               ))}
             </div>
 
-            <div className="mt-8 rounded-[30px] border border-[var(--color-line)] bg-white/92 p-5 shadow-[var(--shadow-card)] backdrop-blur">
+            <div className="mt-8 rounded-[8px] border border-[var(--color-line)] bg-white/92 p-5 shadow-[var(--shadow-card)] backdrop-blur">
               <div className="flex flex-wrap items-end justify-between gap-4">
                 <div>
                   <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
@@ -317,7 +317,7 @@ export function StationsBoard() {
       </section>
 
       <section className="mx-auto max-w-7xl px-6 pb-14 lg:px-10">
-        <div className="overflow-hidden rounded-[34px] border border-[var(--color-line)] bg-white shadow-[var(--shadow-card)]">
+        <div className="overflow-hidden rounded-[8px] border border-[var(--color-line)] bg-white shadow-[var(--shadow-card)]">
           <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--color-line)] px-6 py-5">
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
