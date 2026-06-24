@@ -178,7 +178,7 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
                     setPasswordValue(event.target.value);
                     setError("");
                   }}
-                  placeholder="设置密码，至少 8 位"
+                  placeholder="设置密码，8位以上，含大写字母和数字"
                   type="password"
                   value={password}
                 />
@@ -325,7 +325,7 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
                       setPasswordValue(event.target.value);
                       setError("");
                     }}
-                    placeholder="密码"
+                    placeholder="输入密码"
                     type="password"
                     value={password}
                   />

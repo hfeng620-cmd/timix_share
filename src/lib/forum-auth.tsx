@@ -200,6 +200,12 @@ export function ForumAuthProvider({ children }: { children: React.ReactNode }) {
       if (password.length < 8) {
         return { ok: false, error: "密码至少需要 8 位。" };
       }
+      if (!/[A-Z]/.test(password)) {
+        return { ok: false, error: "密码需包含至少一个大写字母。" };
+      }
+      if (!/[0-9]/.test(password)) {
+        return { ok: false, error: "密码需包含至少一个数字。" };
+      }
 
       const name = (displayName ?? "").trim() || "群友补充";
 
