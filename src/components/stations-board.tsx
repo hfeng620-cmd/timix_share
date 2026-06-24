@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { stationComparisonRows, stationLinkMap } from "@/lib/site-data";
 import { StationDetailModal } from "@/components/station-detail-modal";
 import { SubmissionPanel } from "@/components/submission-panel";
 import { useForumAuth } from "@/lib/forum-auth";
@@ -243,7 +244,36 @@ export function StationsBoard() {
     loadStations()
       .then((data) => {
         clearTimeout(timeout);
-        if (!cancelled) { setStations(data); setLoading(false); }
+        if (!cancelled) {
+          if (data.length === 0) {
+            // Fallback to static data when Supabase has no stations yet
+            const staticStations: Station[] = stationComparisonRows.map((row, i) => ({
+              id: `static-${i}`,
+              name: row.name,
+              url: stationLinkMap[row.name] ?? "",
+              price: row.price,
+              multiplier: row.multiplier,
+              entry: row.entry ?? "",
+              packageType: row.packageType ?? "",
+              status: row.status ?? "",
+              models: row.models ?? "",
+              uptime: row.uptime ?? "",
+              latency: row.latency ?? "",
+              source: row.source ?? "",
+              verdict: row.verdict ?? "",
+              note: row.note ?? "",
+              advantage: row.advantage ?? "",
+              risk: row.risk ?? "",
+              badge: row.badge ?? "",
+              groupName: row.group ?? "",
+              sortOrder: i + 1,
+            }));
+            setStations(staticStations);
+          } else {
+            setStations(data);
+          }
+          setLoading(false);
+        }
       })
       .catch(() => {
         clearTimeout(timeout);
