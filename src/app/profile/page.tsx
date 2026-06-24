@@ -1,10 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
-
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { AuthButton } from "@/components/auth-button";
