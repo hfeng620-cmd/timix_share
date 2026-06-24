@@ -1534,7 +1534,7 @@ export default function AdminPage() {
                       <p className="font-bold text-[var(--color-ink)]">{user.display_name}</p>
                       <p className="text-xs text-[var(--color-muted)]">{new Date(user.created_at).toLocaleDateString("zh-CN")} 加入</p>
                     </div>
-                    {adminUserIds.has(user.id) && (
+                    {adminList.some((a) => a.user_id === user.id) && (
                       <span className="rounded-full bg-[#fef3c7] px-2 py-0.5 text-[10px] font-bold text-[#b45309]">管理员</span>
                     )}
                   </div>
