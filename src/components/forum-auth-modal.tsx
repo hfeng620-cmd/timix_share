@@ -28,6 +28,7 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
   const [email, setEmail] = useState("");
   const [password, setPasswordValue] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [displayNameInput, setDisplayNameInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -92,7 +93,7 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
     setError("");
     setNotice("");
 
-    const result = await setPassword(password);
+    const result = await setPassword(password, displayNameInput.trim() || undefined);
     setLoading(false);
 
     if (!result.ok) {
@@ -102,7 +103,8 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
 
     setPasswordValue("");
     setConfirmPassword("");
-    setNotice("密码已设置，下次可以直接用邮箱和密码登录。");
+    setDisplayNameInput("");
+    setNotice("密码和昵称已设置，下次可以直接用邮箱和密码登录。");
   }
 
   return (
@@ -155,8 +157,19 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
             {needsPassword ? (
               <div className="space-y-3">
                 <p className="text-sm text-[var(--color-muted)]">
-                  请设置密码以便下次直接登录。
+                  请设置密码和昵称。
                 </p>
+                <input
+                  className="w-full rounded-[8px] border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 text-sm outline-none transition focus:border-[var(--color-brand)]"
+                  onChange={(event) => {
+                    setDisplayNameInput(event.target.value);
+                    setError("");
+                  }}
+                  placeholder="你的昵称（会显示在帖子旁边）"
+                  type="text"
+                  value={displayNameInput}
+                  maxLength={80}
+                />
                 <input
                   className="w-full rounded-[8px] border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 text-sm outline-none transition focus:border-[var(--color-brand)]"
                   onChange={(event) => {

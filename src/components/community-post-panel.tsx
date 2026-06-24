@@ -18,7 +18,7 @@ export function CommunityPostPanel({ onPostCreated }: CommunityPostPanelProps) {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  const { isConnected } = useForumAuth();
+  const { isConnected, displayName } = useForumAuth();
 
   async function handleSubmit() {
     if (!isConnected) {
@@ -41,8 +41,8 @@ export function CommunityPostPanel({ onPostCreated }: CommunityPostPanelProps) {
     setSubmitting(true);
     try {
       await createDiscussionPost({
-        author: "群友补充",
-        handle: "@group_note",
+        author: displayName || "群友补充",
+        handle: "@forum",
         body: body.trim(),
         station: station.trim(),
         tags,

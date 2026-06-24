@@ -22,13 +22,15 @@ interface ForumAuthState {
   user: User | null;
   email: string | null;
   token: string | null;
+  displayName: string | null;
   isConnected: boolean;
   isConfigured: boolean;
   isLoading: boolean;
   needsPassword: boolean;
   sendEmailCode: (email: string) => Promise<AuthResult>;
   signInWithPassword: (email: string, password: string) => Promise<AuthResult>;
-  setPassword: (password: string) => Promise<AuthResult>;
+  setPassword: (password: string, displayName?: string) => Promise<AuthResult>;
+  setDisplayName: (name: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -37,6 +39,7 @@ const defaultState: ForumAuthState = {
   user: null,
   email: null,
   token: null,
+  displayName: null,
   isConnected: false,
   isConfigured: false,
   isLoading: true,
@@ -44,6 +47,7 @@ const defaultState: ForumAuthState = {
   sendEmailCode: async () => ({ ok: false, error: "认证服务未配置。" }),
   signInWithPassword: async () => ({ ok: false, error: "认证服务未配置。" }),
   setPassword: async () => ({ ok: false, error: "认证服务未配置。" }),
+  setDisplayName: async () => {},
   signOut: async () => {},
 };
 
@@ -79,6 +83,22 @@ export function ForumAuthProvider({ children }: { children: React.ReactNode }) {
   const configured = isSupabaseConfigured();
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(configured);
+  const [displayName, setDisplayNameState] = useState<string | null>(null);
+
+  async function loadDisplayName(userId: string) {
+    try {
+      const { data } = await getSupabaseClient()
+        .from("forum_profiles")
+        .select("display_name")
+        .eq("id", userId)
+        .single();
+      if (data?.display_name) {
+        setDisplayNameState(data.display_name);
+      }
+    } catch {
+      // profile may not exist yet
+    }
+  }
 
   useEffect(() => {
     if (!configured) return;
@@ -90,6 +110,9 @@ export function ForumAuthProvider({ children }: { children: React.ReactNode }) {
       .then(({ data }) => {
         if (!mounted) return;
         setSession(data.session);
+        if (data.session?.user?.id) {
+          loadDisplayName(data.session.user.id);
+        }
         setIsLoading(false);
       })
       .catch(() => {
@@ -101,6 +124,11 @@ export function ForumAuthProvider({ children }: { children: React.ReactNode }) {
     const { data: listener } = supabase.auth.onAuthStateChange(
       (_event, nextSession) => {
         setSession(nextSession);
+        if (nextSession?.user?.id) {
+          loadDisplayName(nextSession.user.id);
+        } else {
+          setDisplayNameState(null);
+        }
         setIsLoading(false);
       },
     );
@@ -156,24 +184,52 @@ export function ForumAuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const setPassword = useCallback(
-    async (password: string): Promise<AuthResult> => {
+    async (password: string, displayName?: string): Promise<AuthResult> => {
       if (!configured) return { ok: false, error: "认证服务未配置。" };
       if (password.length < 8) {
         return { ok: false, error: "密码至少需要 8 位。" };
       }
 
+      const name = (displayName ?? "").trim() || "群友补充";
+
       const { error } = await getSupabaseClient().auth.updateUser({
         password,
-        data: { password_set: true },
+        data: { password_set: true, full_name: name },
       });
 
       if (error) {
         return { ok: false, error: getAuthErrorMessage(error.message) };
       }
 
-      const { data } = await getSupabaseClient().auth.getSession();
-      setSession(data.session);
+      // Upsert profile with display name
+      const { data: userData } = await getSupabaseClient().auth.getUser();
+      if (userData.user) {
+        await getSupabaseClient()
+          .from("forum_profiles")
+          .upsert({ id: userData.user.id, display_name: name }, { onConflict: "id" });
+        setDisplayNameState(name);
+      }
+
+      const { data: sessionData } = await getSupabaseClient().auth.getSession();
+      setSession(sessionData.session);
       return { ok: true };
+    },
+    [configured],
+  );
+
+  const setDisplayName = useCallback(
+    async (name: string) => {
+      if (!configured) return;
+      const trimmed = name.trim();
+      if (!trimmed || trimmed.length > 80) return;
+
+      const { data: userData } = await getSupabaseClient().auth.getUser();
+      if (!userData.user) return;
+
+      await getSupabaseClient()
+        .from("forum_profiles")
+        .upsert({ id: userData.user.id, display_name: trimmed }, { onConflict: "id" });
+      setDisplayNameState(trimmed);
     },
     [configured],
   );
@@ -182,6 +238,7 @@ export function ForumAuthProvider({ children }: { children: React.ReactNode }) {
     if (!configured) return;
     await getSupabaseClient().auth.signOut();
     setSession(null);
+    setDisplayNameState(null);
   }, [configured]);
 
   const value = useMemo<ForumAuthState>(() => {
@@ -192,6 +249,7 @@ export function ForumAuthProvider({ children }: { children: React.ReactNode }) {
       user,
       email: user?.email ?? null,
       token: session?.access_token ?? null,
+      displayName,
       isConnected: Boolean(session?.access_token),
       isConfigured: configured,
       isLoading,
@@ -199,9 +257,10 @@ export function ForumAuthProvider({ children }: { children: React.ReactNode }) {
       sendEmailCode,
       signInWithPassword,
       setPassword,
+      setDisplayName,
       signOut,
     };
-  }, [configured, isLoading, sendEmailCode, session, setPassword, signInWithPassword, signOut]);
+  }, [configured, displayName, isLoading, sendEmailCode, session, setDisplayName, setPassword, signInWithPassword, signOut]);
 
   return (
     <ForumAuthContext.Provider value={value}>

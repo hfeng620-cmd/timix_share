@@ -99,7 +99,7 @@ export function DiscussionFeed({
   hideComposer = false,
   limit,
 }: DiscussionFeedProps) {
-  const { isConnected } = useForumAuth();
+  const { isConnected, displayName } = useForumAuth();
 
   const [posts, setPosts] = useState<DiscussionPost[]>([]);
   const [commentsMap, setCommentsMap] = useState<Record<string, DiscussionReply[]>>({});
@@ -171,8 +171,8 @@ export function DiscussionFeed({
     setStatus("发布中...");
     try {
       await createDiscussionPost({
-        author: "群友补充",
-        handle: "@group_note",
+        author: displayName || "群友补充",
+        handle: "@forum",
         body: body.trim(),
         station: station.trim(),
         tags,
