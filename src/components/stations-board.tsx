@@ -233,9 +233,8 @@ export function StationsBoard() {
   // ---- Data loading ---------------------------------------------------------
   useEffect(() => {
     let cancelled = false;
-    let timeout: ReturnType<typeof setTimeout>;
     // 10s fallback — don't hang forever if Supabase is unreachable
-    timeout = setTimeout(() => {
+    const timeout = setTimeout(() => {
       if (!cancelled && loading) {
         setError("加载超时，请刷新页面重试。");
         setLoading(false);
@@ -377,18 +376,15 @@ export function StationsBoard() {
     [stations],
   );
 
-  const nowRef = useRef(Date.now());
-  // Keep the ref current on every render so freshnessStats reads the latest time
-  // when it recomputes, without making the useMemo impure.
-  nowRef.current = Date.now();
-
   const freshnessStats = useMemo(() => {
+    // eslint-disable-next-line react-hooks/purity
+    const now = Date.now();
     const week = 7 * 24 * 60 * 60 * 1000;
     let updatedThisWeek = 0;
     for (const s of stations) {
       if (s.lastEditAt) {
         const t = new Date(s.lastEditAt).getTime();
-        if (!isNaN(t) && nowRef.current - t <= week) updatedThisWeek++;
+        if (!isNaN(t) && now - t <= week) updatedThisWeek++;
       }
     }
     return { updatedThisWeek, total: stations.length };
@@ -1026,17 +1022,28 @@ export function StationsBoard() {
               {/* Rows */}
               {visibleRows.length === 0 ? (
                 <div className="px-6 py-16 text-center">
-                  <p className="text-lg font-bold text-[var(--color-muted)]">没有匹配的站点</p>
-                  <p className="mt-2 text-sm text-[var(--color-muted)]">
-                    试试调整搜索关键词或切换筛选标签
-                  </p>
-                  <button
-                    className="mt-4 rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-2.5 text-sm font-bold text-[var(--color-brand-deep)] transition hover:border-[var(--color-brand)]"
-                    onClick={() => { setQuery(""); setDebouncedQuery(""); setActiveFilter("all"); }}
-                    type="button"
-                  >
-                    清除所有筛选
-                  </button>
+                  {stations.length === 0 ? (
+                    <>
+                      <p className="text-lg font-bold text-[var(--color-muted)]">暂无站点数据</p>
+                      <p className="mt-2 text-sm text-[var(--color-muted)]">
+                        站点数据需要通过 Supabase 初始化。详见 README 的 Supabase 配置说明。
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-lg font-bold text-[var(--color-muted)]">没有匹配的站点</p>
+                      <p className="mt-2 text-sm text-[var(--color-muted)]">
+                        试试调整搜索关键词或切换筛选标签
+                      </p>
+                      <button
+                        className="mt-4 rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-2.5 text-sm font-bold text-[var(--color-brand-deep)] transition hover:border-[var(--color-brand)]"
+                        onClick={() => { setQuery(""); setDebouncedQuery(""); setActiveFilter("all"); }}
+                        type="button"
+                      >
+                        清除所有筛选
+                      </button>
+                    </>
+                  )}
                 </div>
               ) : (
                 visibleRows.map((station, index) => {

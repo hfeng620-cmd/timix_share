@@ -499,6 +499,10 @@ export default function AdminPage() {
                     <div className="rounded-[24px] bg-[var(--color-soft)] px-4 py-5 text-sm leading-7 text-[var(--color-muted)]">
                       管理员登录后可查看已审核论坛帖子
                     </div>
+                  ) : forumHistoryError ? (
+                    <div className="rounded-[24px] bg-red-50 px-4 py-5 text-sm leading-7 text-red-600">
+                      论坛数据加载失败，请确认管理员权限后刷新重试。
+                    </div>
                   ) : !forumHistoryLoaded ? (
                     <div className="rounded-[24px] bg-[var(--color-soft)] px-4 py-5 text-sm leading-7 text-[var(--color-muted)]">
                       加载中...

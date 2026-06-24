@@ -97,6 +97,7 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
     if (isConnected && needsPassword && !displayName && signedInEmail) {
       const at = signedInEmail.indexOf("@");
       if (at > 0) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setDisplayNameInput(signedInEmail.slice(0, at));
       }
     }

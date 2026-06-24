@@ -20,11 +20,11 @@ function isThemeId(value: string | null): value is ThemeId {
 
 function readSavedTheme(): ThemeId {
   if (typeof window === "undefined") {
-    return "midnight";
+    return "blue";
   }
 
   const savedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
-  return isThemeId(savedTheme) ? savedTheme : "midnight";
+  return isThemeId(savedTheme) ? savedTheme : "blue";
 }
 
 function syncTheme(theme: ThemeId) {
@@ -49,14 +49,18 @@ export function ThemeToggle() {
       {THEMES.map((item) => (
         <button
           key={item.id}
-          className={`rounded-full px-3 py-2 text-sm font-semibold transition ${
+          className={`inline-flex items-center gap-1 rounded-full px-3 py-2 text-sm font-semibold transition ${
             theme === item.id
               ? "bg-[var(--color-brand)] text-[var(--color-on-brand)] shadow-[0_8px_24px_var(--color-panel-glow)]"
               : "text-[var(--color-muted)] hover:bg-[var(--color-soft)] hover:text-[var(--color-ink)]"
           }`}
           onClick={() => setTheme(item.id)}
           type="button"
+          title={item.label}
         >
+          {theme === item.id && (
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-[var(--color-on-brand)] opacity-90" aria-hidden="true" />
+          )}
           {item.label}
         </button>
       ))}
@@ -71,23 +75,34 @@ export function ThemeToggleInline() {
     syncTheme(theme);
   }, [theme]);
 
+  const currentLabel = THEMES.find((t) => t.id === theme)?.label ?? theme;
+
   return (
     <div className="grid gap-2">
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
-        配色方案
-      </p>
+      <div className="flex items-center gap-2">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
+          配色方案
+        </p>
+        <span className="rounded-full bg-[var(--color-brand-soft)] px-2 py-0.5 text-[11px] font-bold text-[var(--color-brand-deep)]">
+          当前：{currentLabel}
+        </span>
+      </div>
       <div className="inline-flex flex-wrap items-center gap-1 rounded-[18px] border border-[var(--color-line)] bg-[var(--color-panel)] p-1">
         {THEMES.map((item) => (
           <button
             key={item.id}
-            className={`rounded-full px-3 py-2 text-xs font-semibold transition ${
+            className={`inline-flex items-center gap-1 rounded-full px-3 py-2 text-xs font-semibold transition ${
               theme === item.id
                 ? "bg-[var(--color-brand)] text-[var(--color-on-brand)] shadow-[0_8px_24px_var(--color-panel-glow)]"
                 : "text-[var(--color-muted)] hover:bg-[var(--color-soft)] hover:text-[var(--color-ink)]"
             }`}
             onClick={() => setTheme(item.id)}
             type="button"
+            title={item.label}
           >
+            {theme === item.id && (
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-[var(--color-on-brand)] opacity-90" aria-hidden="true" />
+            )}
             {item.label}
           </button>
         ))}
