@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { GithubIssueReviewPanel } from "@/components/github-issue-review-panel";
 import { useForumAuth } from "@/lib/forum-auth";
@@ -25,7 +25,7 @@ import {
   type ForumStats,
 } from "@/lib/discussion-storage";
 
-type AdminTab = "posts" | "stations" | "import" | "news" | "admins";
+type AdminTab = "posts" | "stations" | "import" | "news" | "admins" | "users";
 
 async function isForumAdmin(): Promise<boolean> {
   try {
@@ -101,6 +101,31 @@ export default function AdminPage() {
   const [newAdminEmail, setNewAdminEmail] = useState("");
   const [addAdminLoading, setAddAdminLoading] = useState(false);
   const [addAdminStatus, setAddAdminStatus] = useState("");
+
+  // ---- User management state ----
+  const [userList, setUserList] = useState<
+    { id: string; display_name: string; avatar_url: string | null; created_at: string }[]
+  >([]);
+  const [userListLoading, setUserListLoading] = useState(false);
+  const [userSearch, setUserSearch] = useState("");
+
+  // Load users for admin management
+  const loadUsers = useCallback(async () => {
+    setUserListLoading(true);
+    try {
+      const { data } = await getSupabaseClient()
+        .from("forum_profiles")
+        .select("id, display_name, avatar_url, created_at")
+        .order("created_at", { ascending: false })
+        .limit(100);
+      setUserList((data as any[]) ?? []);
+    } catch { /* ignore */ }
+    setUserListLoading(false);
+  }, []);
+
+  useEffect(() => {
+    if (adminOk && activeTab === "users") loadUsers();
+  }, [adminOk, activeTab, loadUsers]);
 
   // ---- Admin check (context-driven; fall back to RPC for belt-and-suspenders) ----
   useEffect(() => {
@@ -667,6 +692,7 @@ export default function AdminPage() {
               ["stations", "站点管理"],
               ["import", "数据导入导出"],
               ...(isOwner ? [["admins", "管理员管理"] as const] : []),
+              ["users", "用户管理"],
             ] as readonly (readonly [string, string])[]
           ).map(([key, label]) => (
             <button
@@ -1467,6 +1493,57 @@ export default function AdminPage() {
           </div>
         )}
       </div>
+
+      {/* ── Users tab ── */}
+      {activeTab === "users" && (
+        <div className="rounded-[24px] border border-[var(--color-line)] bg-white p-6 shadow-[0_18px_60px_rgba(13,25,48,0.07)]">
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">用户管理</p>
+          <h2 className="mt-2 text-2xl font-black">社区用户</h2>
+
+          <div className="mt-4 flex items-center gap-3">
+            <input
+              className="rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-2 text-sm outline-none transition focus:border-[var(--color-brand)]"
+              onChange={(e) => setUserSearch(e.target.value)}
+              placeholder="搜索用户..."
+              value={userSearch}
+            />
+            <button
+              className="rounded-full bg-[var(--color-soft)] px-4 py-2 text-sm font-bold text-[var(--color-brand-deep)] transition hover:bg-[var(--color-brand-soft)]"
+              onClick={loadUsers}
+              type="button"
+            >
+              刷新
+            </button>
+            <span className="text-sm text-[var(--color-muted)]">{userList.length} 位用户</span>
+          </div>
+
+          <div className="mt-5 divide-y divide-[var(--color-line)]">
+            {userListLoading ? (
+              <p className="py-10 text-center text-sm text-[var(--color-muted)]">加载中...</p>
+            ) : userList.filter((u) => !userSearch || u.display_name.includes(userSearch)).length === 0 ? (
+              <p className="py-10 text-center text-sm text-[var(--color-muted)]">暂无匹配用户</p>
+            ) : (
+              userList
+                .filter((u) => !userSearch || u.display_name.includes(userSearch))
+                .map((user) => (
+                  <div key={user.id} className="flex items-center gap-4 py-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--color-soft)] text-sm font-bold text-[var(--color-muted)]">
+                      {user.avatar_url ? <img alt="" className="h-full w-full rounded-full object-cover" src={user.avatar_url} /> : user.display_name.charAt(0)}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-bold text-[var(--color-ink)]">{user.display_name}</p>
+                      <p className="text-xs text-[var(--color-muted)]">{new Date(user.created_at).toLocaleDateString("zh-CN")} 加入</p>
+                    </div>
+                    {adminUserIds.has(user.id) && (
+                      <span className="rounded-full bg-[#fef3c7] px-2 py-0.5 text-[10px] font-bold text-[#b45309]">管理员</span>
+                    )}
+                  </div>
+                ))
+            )}
+          </div>
+        </div>
+      )}
+
     </main>
   );
 }
