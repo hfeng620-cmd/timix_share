@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://hfeng620-cmd.github.io/timin_api_test_and_forum/sitemap.xml

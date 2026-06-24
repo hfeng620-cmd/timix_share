@@ -71,6 +71,9 @@ export default function Home() {
               <Link className="link-underline transition hover:text-[var(--color-ink)]" href="/community">
                 论坛入口
               </Link>
+              <Link className="link-underline transition hover:text-[var(--color-ink)]" href="/models">
+                模型择优
+              </Link>
               <Link className="link-underline transition hover:text-[var(--color-ink)]" href="/guides">
                 更多指南
               </Link>

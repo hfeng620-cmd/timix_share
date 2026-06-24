@@ -134,7 +134,7 @@ drop policy if exists "Users submit posts for review" on public.forum_posts;
 create policy "Users submit posts for review" on public.forum_posts for insert
 with check (
   auth.uid() = author_id
-  and is_pinned = false
+  and (is_pinned = false or public.is_forum_admin())
 );
 
 drop policy if exists "Authors update posts" on public.forum_posts;

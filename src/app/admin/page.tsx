@@ -62,7 +62,7 @@ export default function AdminPage() {
   const [importText, setImportText] = useState(() =>
     JSON.stringify(loadFeaturedStationDrafts() ?? homeFeaturedStations, null, 2),
   );
-  const [status, setStatus] = useState("这里先做成管理员文案面板原型，后面可以接真实后台。");
+  const [status, setStatus] = useState("管理员面板就绪。可在此审核帖子、管理站点数据和导入导出配置。");
   const [submissions, setSubmissions] = useState<StationSubmission[]>(() =>
     loadStationSubmissions(),
   );
