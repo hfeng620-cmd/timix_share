@@ -176,7 +176,7 @@ export function NotificationBell({
       {/* Dropdown panel */}
       {open && (
         <div
-          className={`absolute right-0 z-50 w-[320px] overflow-hidden rounded-[18px] border border-[var(--color-line)] bg-[var(--color-panel)] shadow-[0_20px_60px_rgba(15,23,42,0.15)] backdrop-blur ${
+          className={`absolute right-0 z-[80] w-[320px] overflow-hidden rounded-[18px] border border-[var(--color-line)] bg-[var(--color-panel)] shadow-[0_20px_60px_rgba(15,23,42,0.15)] backdrop-blur ${
             dropdownAbove ? "bottom-full mb-2" : "top-full mt-2"
           }`}
         >

@@ -140,8 +140,7 @@ begin
 end;
 $$;
 
--- Bootstrap — replace the email with yours, then uncomment and run:
---
--- insert into public.site_owners (user_id)
--- select id from auth.users where lower(email) = lower('owner@example.com')
--- on conflict (user_id) do nothing;
+-- Bootstrap — 站主邮箱 1938355142@qq.com，在 Supabase SQL Editor 运行下面这条：
+insert into public.site_owners (user_id)
+select id from auth.users where lower(email) = lower('1938355142@qq.com')
+on conflict (user_id) do nothing;

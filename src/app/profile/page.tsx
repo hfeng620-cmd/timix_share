@@ -9,9 +9,12 @@ import { getUserPosts, type DiscussionPost } from "@/lib/discussion-storage";
 import { useForumAuth } from "@/lib/forum-auth";
 
 export default function ProfilePage() {
-  const { isConnected, user, email, displayName, showAuthModal } = useForumAuth();
+  const { isConnected, user, email, displayName, showAuthModal, setDisplayName } = useForumAuth();
   const [posts, setPosts] = useState<DiscussionPost[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingName, setEditingName] = useState(false);
+  const [newName, setNewName] = useState(displayName ?? "");
+  const [nameSaving, setNameSaving] = useState(false);
 
   const loadPosts = useCallback(async () => {
     if (!isConnected || !user) return;
@@ -128,7 +131,47 @@ export default function ProfilePage() {
 
                 {/* Info */}
                 <div className="min-w-0 flex-1 text-center sm:text-left">
-                  <h1 className="text-2xl font-black tracking-tight">{name}</h1>
+                  <div className="flex items-center gap-2 justify-center sm:justify-start">
+                    <h1 className="text-2xl font-black tracking-tight">{name}</h1>
+                    <button
+                      className="rounded-full border border-[var(--color-line)] px-3 py-1 text-xs font-semibold text-[var(--color-muted)] transition hover:bg-[var(--color-soft)] hover:text-[var(--color-ink)]"
+                      onClick={() => { setEditingName(true); setNewName(name); }}
+                      type="button"
+                    >
+                      编辑
+                    </button>
+                  </div>
+                  {editingName && (
+                    <div className="mt-2 flex items-center gap-2 justify-center sm:justify-start">
+                      <input
+                        className="rounded-full border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-2 text-sm outline-none transition focus:border-[var(--color-brand)]"
+                        maxLength={80}
+                        onChange={(e) => setNewName(e.target.value)}
+                        value={newName}
+                      />
+                      <button
+                        className="rounded-full bg-[var(--color-brand)] px-4 py-2 text-xs font-bold text-[var(--color-on-brand)] transition hover:bg-[var(--color-brand-deep)] disabled:opacity-50"
+                        disabled={!newName.trim() || newName === name || nameSaving}
+                        onClick={async () => {
+                          if (!newName.trim() || newName === name) return;
+                          setNameSaving(true);
+                          await setDisplayName(newName.trim());
+                          setNameSaving(false);
+                          setEditingName(false);
+                        }}
+                        type="button"
+                      >
+                        {nameSaving ? "保存中..." : "保存"}
+                      </button>
+                      <button
+                        className="rounded-full border border-[var(--color-line)] px-3 py-2 text-xs font-semibold text-[var(--color-muted)] transition hover:bg-[var(--color-soft)]"
+                        onClick={() => setEditingName(false)}
+                        type="button"
+                      >
+                        取消
+                      </button>
+                    </div>
+                  )}
                   {email ? (
                     <p className="mt-1 text-sm text-[var(--color-muted)]">{email}</p>
                   ) : null}
