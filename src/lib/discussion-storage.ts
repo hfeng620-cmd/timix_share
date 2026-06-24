@@ -16,6 +16,7 @@ export type DiscussionPost = {
   station?: string;
   likes: number;
   replyCount: number;
+  is_pinned?: boolean;
 };
 
 export type DiscussionReply = {
@@ -44,6 +45,7 @@ type ForumPostRow = {
   body: string;
   station?: string | null;
   tags?: string[] | null;
+  is_pinned?: boolean | null;
   created_at?: string | null;
   updated_at?: string | null;
   posted_at?: string | null;
@@ -98,6 +100,7 @@ function postFromRow(row: ForumPostRow): DiscussionPost {
     tags: Array.isArray(row.tags) ? row.tags : [],
     likes: Number(row.like_count ?? row.likes ?? 0),
     replyCount: Number(row.reply_count ?? 0),
+    is_pinned: row.is_pinned ?? false,
   };
 }
 
@@ -149,6 +152,28 @@ export async function getUserPosts(userId: string): Promise<DiscussionPost[]> {
   }
 }
 
+export async function loadAllTags(): Promise<string[]> {
+  if (!isSupabaseConfigured()) return [];
+  try {
+    const { data, error } = await getSupabaseClient()
+      .from("forum_posts_public")
+      .select("tags")
+      .limit(100);
+
+    if (error) throw error;
+    const tagSet = new Set<string>();
+    for (const row of data ?? []) {
+      const tags = Array.isArray(row.tags) ? row.tags : [];
+      for (const tag of tags) {
+        if (tag) tagSet.add(tag);
+      }
+    }
+    return Array.from(tagSet).sort((a, b) => a.localeCompare(b, "zh-CN"));
+  } catch {
+    return [];
+  }
+}
+
 export async function loadDiscussionPosts(): Promise<DiscussionPost[]> {
   if (!isSupabaseConfigured()) return [];
   try {
@@ -170,6 +195,9 @@ export async function createDiscussionPost(
   input: CreateDiscussionPostInput,
 ): Promise<DiscussionPost> {
   const authorId = await ensureProfile(input.author || "群友补充");
+
+  await checkRateLimit(authorId, "forum_posts");
+
   const station = input.station?.trim() ?? "";
   const titleSource = station || input.body.trim();
   const title = titleSource.length > 80 ? titleSource.slice(0, 80) : titleSource;
@@ -389,6 +417,19 @@ export async function deleteDiscussionPost(postId: string): Promise<void> {
   if (error) throw error;
 }
 
+export async function pinDiscussionPost(
+  postId: string,
+  isPinned: boolean,
+): Promise<void> {
+  assertConfigured();
+  const { error } = await getSupabaseClient()
+    .from("forum_posts")
+    .update({ is_pinned: isPinned })
+    .eq("id", postId);
+
+  if (error) throw error;
+}
+
 export type HotTopic = {
   id: string;
   title: string;
@@ -445,4 +486,29 @@ export async function checkSpam(body: string): Promise<boolean> {
 
   if (error) return false;
   return Boolean(data);
+}
+
+const RATE_LIMIT_SECONDS = 60;
+const RATE_LIMIT_MESSAGE = "请稍后再提交（每分钟限1条）";
+
+export async function checkRateLimit(
+  userId: string,
+  table: "forum_posts" | "station_reviews",
+): Promise<void> {
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase
+    .from(table)
+    .select("created_at")
+    .eq("author_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(1);
+
+  if (error) return;
+
+  if (data && data.length > 0) {
+    const lastPostTime = new Date(data[0].created_at).getTime();
+    if (Date.now() - lastPostTime < RATE_LIMIT_SECONDS * 1000) {
+      throw new Error(RATE_LIMIT_MESSAGE);
+    }
+  }
 }

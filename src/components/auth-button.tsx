@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import { useForumAuth } from "@/lib/forum-auth";
 
 export function AuthButton() {
@@ -18,16 +20,14 @@ export function AuthButton() {
           >
             !
           </button>
-        ) : (
-          <button
-            className="flex min-h-11 min-w-[3rem] items-center justify-center rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-3 text-xs font-bold text-[var(--color-brand-deep)] transition hover:bg-[var(--color-soft)]"
-            onClick={showAuthModal}
-            title={email ?? undefined}
-            type="button"
-          >
-            {label.slice(0, 4)}
-          </button>
-        )}
+        ) : null}
+        <Link
+          className="flex min-h-11 min-w-[3rem] items-center justify-center rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-3 text-xs font-bold text-[var(--color-brand-deep)] transition hover:bg-[var(--color-soft)]"
+          href="/profile"
+          title={email ?? undefined}
+        >
+          {label.slice(0, 4)}
+        </Link>
         {isAdmin ? (
           <span className="rounded-full bg-[#fef3c7] px-2 py-0.5 text-[10px] font-bold text-[#b45309] ring-1 ring-[#f59e0b]/30" title="管理员">
             管理员

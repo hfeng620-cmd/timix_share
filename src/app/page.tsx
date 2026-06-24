@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { AiNewsPanel } from "@/components/ai-news-panel";
 import { AuthButton } from "@/components/auth-button";
 import { NotificationBell } from "@/components/notification-bell";
 import { QqGroupModalButton } from "@/components/qq-group-modal-button";
@@ -249,6 +250,12 @@ export default function Home() {
               </aside>
             </div>
           </div>
+        </div>
+      </section>
+
+      <section className="border-t border-[var(--color-line)]">
+        <div className="mx-auto max-w-7xl px-6 py-10 lg:px-10 lg:py-6">
+          <AiNewsPanel />
         </div>
       </section>
 

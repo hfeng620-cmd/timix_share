@@ -16,6 +16,7 @@ import { siteLinks } from "@/lib/site-links";
 export default function CommunityPage() {
   const { isAdmin } = useForumAuth();
   const [feedRefreshKey, setFeedRefreshKey] = useState(0);
+  const [mobilePanel, setMobilePanel] = useState<"hot" | "rank" | null>(null);
 
   const handleTopicClick = useCallback((postId: string) => {
     const el = document.getElementById(postId);
@@ -74,7 +75,7 @@ export default function CommunityPage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-5 sm:px-6 lg:px-10">
+      <section className="mx-auto max-w-6xl px-3 py-4 sm:px-6 lg:px-10">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-[var(--color-line)] pb-3 text-sm text-[var(--color-muted)]">
           <span>站点反馈、价格变化、试用线索。</span>
           <a
@@ -85,6 +86,32 @@ export default function CommunityPage() {
           >
             GitHub Discussions
           </a>
+        </div>
+
+        {/* Mobile: toggle buttons for sidebar panels */}
+        <div className="mb-4 flex gap-2 xl:hidden">
+          <button
+            className={`flex-1 rounded-full px-4 py-2.5 text-sm font-bold transition ${
+              mobilePanel === "hot"
+                ? "bg-[var(--color-brand)] text-[var(--color-on-brand)]"
+                : "border border-[var(--color-line)] bg-[var(--color-panel)] text-[var(--color-muted)]"
+            }`}
+            onClick={() => setMobilePanel(mobilePanel === "hot" ? null : "hot")}
+            type="button"
+          >
+            热门
+          </button>
+          <button
+            className={`flex-1 rounded-full px-4 py-2.5 text-sm font-bold transition ${
+              mobilePanel === "rank"
+                ? "bg-[var(--color-brand)] text-[var(--color-on-brand)]"
+                : "border border-[var(--color-line)] bg-[var(--color-panel)] text-[var(--color-muted)]"
+            }`}
+            onClick={() => setMobilePanel(mobilePanel === "rank" ? null : "rank")}
+            type="button"
+          >
+            排行
+          </button>
         </div>
 
         {/* Two-column layout: single column on mobile, sidebar appears at xl */}
@@ -122,10 +149,26 @@ export default function CommunityPage() {
           </aside>
         </div>
 
-        {/* Mobile: UserRankPanel visible below main content on screens smaller than xl */}
-        <div className="mt-5 xl:hidden">
-          <UserRankPanel />
-        </div>
+        {/* Mobile: sidebar panels appear below main content based on toggle */}
+        {mobilePanel === "hot" && (
+          <div className="mt-5 space-y-5 xl:hidden">
+            <HotTopicsPanel onTopicClick={handleTopicClick} />
+            <div className="rounded-[20px] border border-[var(--color-line)] bg-[var(--color-panel)] p-5 shadow-[var(--shadow-card)]">
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
+                QQ群入口
+              </p>
+              <p className="mt-3 text-lg font-black tracking-tight">群号 602190132</p>
+              <p className="mt-1 text-sm text-[var(--color-muted)]">
+                扫码或搜索群号加入，一起交流讨论
+              </p>
+            </div>
+          </div>
+        )}
+        {mobilePanel === "rank" && (
+          <div className="mt-5 xl:hidden">
+            <UserRankPanel />
+          </div>
+        )}
       </section>
 
     </main>

@@ -14,10 +14,28 @@ export function SubmissionPanel() {
   const [note, setNote] = useState("");
   const [contact, setContact] = useState("");
   const [status, setStatus] = useState("提交后进入审核区。");
+  const NOTE_MIN = 10;
+  const NOTE_MAX = 2000;
 
   function handleSubmit() {
-    if (!stationName.trim() || !note.trim()) {
-      setStatus("请至少填写站点名和备注说明。");
+    if (!stationName.trim()) {
+      setStatus("请填写站点名。");
+      return;
+    }
+
+    const trimmedNote = note.trim();
+    if (!trimmedNote) {
+      setStatus("请填写备注说明。");
+      return;
+    }
+
+    if (trimmedNote.length < NOTE_MIN) {
+      setStatus(`备注说明至少需要 ${NOTE_MIN} 个字符（当前 ${trimmedNote.length} 个）。`);
+      return;
+    }
+
+    if (trimmedNote.length > NOTE_MAX) {
+      setStatus(`备注说明不能超过 ${NOTE_MAX} 个字符（当前 ${trimmedNote.length} 个）。`);
       return;
     }
 

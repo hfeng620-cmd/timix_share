@@ -4,15 +4,19 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
   createDiscussionPost,
+  deleteDiscussionPost,
   likeDiscussionPost,
   loadComments,
   loadDiscussionPosts,
+  pinDiscussionPost,
   replyDiscussionPost,
+  updatePostBody,
   uploadForumImage,
   type DiscussionPost,
   type DiscussionReply,
 } from "@/lib/discussion-storage";
 import { useForumAuth } from "@/lib/forum-auth";
+import { CATEGORIES, isCategoryTag, parseCategoryFromTags, getCategoryBorderColor } from "@/lib/categories";
 
 type DiscussionFeedProps = {
   compact?: boolean;
@@ -107,7 +111,7 @@ function ActionButton({
 
   return (
     <button
-      className="inline-flex items-center gap-2 text-[15px] text-[var(--color-muted)] transition hover:text-[var(--color-ink)]"
+      className="inline-flex items-center gap-2 text-[15px] text-[var(--color-muted)] transition hover:text-[var(--color-ink)] min-h-[44px] min-w-[44px]"
       onClick={onClick}
       type="button"
     >
@@ -122,7 +126,7 @@ export function DiscussionFeed({
   hideComposer = false,
   limit,
 }: DiscussionFeedProps) {
-  const { isConnected, displayName, adminUserIds, showAuthModal } = useForumAuth();
+  const { isConnected, displayName, adminUserIds, showAuthModal, user, isAdmin } = useForumAuth();
 
   const [posts, setPosts] = useState<DiscussionPost[]>([]);
   const [commentsMap, setCommentsMap] = useState<Record<string, DiscussionReply[]>>({});
@@ -138,6 +142,13 @@ export function DiscussionFeed({
   const [submitting, setSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [editingPostId, setEditingPostId] = useState<string | null>(null);
+  const [editBody, setEditBody] = useState("");
+  const [editSaving, setEditSaving] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortOption, setSortOption] = useState<"latest" | "mostReplies" | "mostLikes">("latest");
 
   const loadPosts = useCallback(async (setLoadingState: boolean) => {
     if (setLoadingState) setLoading(true);
@@ -173,10 +184,59 @@ export function DiscussionFeed({
     };
   }, []);
 
+  const topTags = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const post of posts) {
+      for (const tag of post.tags) {
+        if (isCategoryTag(tag)) continue;
+        counts.set(tag, (counts.get(tag) ?? 0) + 1);
+      }
+    }
+    return Array.from(counts.entries())
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "zh-CN"))
+      .slice(0, 8);
+  }, [posts]);
+
+  const categoryCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const post of posts) {
+      const cat = parseCategoryFromTags(post.tags);
+      if (cat) {
+        counts.set(cat.key, (counts.get(cat.key) ?? 0) + 1);
+      }
+    }
+    return CATEGORIES.map((cat) => ({
+      ...cat,
+      count: counts.get(cat.key) ?? 0,
+    }));
+  }, [posts]);
+
   const visiblePosts = useMemo(() => {
-    const base = compact ? posts.slice(0, 4) : posts;
+    let base = compact ? posts.slice(0, 4) : [...posts];
+    if (selectedCategory) {
+      base = base.filter((p) => p.tags.includes(`cat:${selectedCategory}`));
+    }
+    if (selectedTag) {
+      base = base.filter((p) => p.tags.includes(selectedTag));
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      base = base.filter((p) => {
+        return (
+          p.body.toLowerCase().includes(q) ||
+          (p.station ?? "").toLowerCase().includes(q) ||
+          p.tags.some((t) => t.toLowerCase().includes(q))
+        );
+      });
+    }
+    if (sortOption === "mostReplies") {
+      base.sort((a, b) => b.replyCount - a.replyCount);
+    } else if (sortOption === "mostLikes") {
+      base.sort((a, b) => b.likes - a.likes);
+    }
+    // "latest" uses default load order
     return typeof limit === "number" ? base.slice(0, limit) : base;
-  }, [compact, limit, posts]);
+  }, [compact, limit, posts, selectedCategory, selectedTag, searchQuery, sortOption]);
 
   async function handleSubmitPost() {
     if (!isConnected) {
@@ -298,6 +358,54 @@ export function DiscussionFeed({
     }
   }
 
+  function handleStartEdit(post: DiscussionPost) {
+    setEditingPostId(post.issueNumber);
+    setEditBody(post.body);
+  }
+
+  function handleCancelEdit() {
+    setEditingPostId(null);
+    setEditBody("");
+  }
+
+  async function handleSaveEdit(postId: string) {
+    if (editSaving) return;
+    const trimmed = editBody.trim();
+    if (!trimmed) {
+      setStatus("内容不能为空。");
+      return;
+    }
+    setEditSaving(true);
+    setStatus("保存中...");
+    try {
+      await updatePostBody(postId, trimmed);
+      setPosts((current) =>
+        current.map((p) =>
+          p.issueNumber === postId ? { ...p, body: trimmed, updatedAt: new Date().toISOString() } : p,
+        ),
+      );
+      setEditingPostId(null);
+      setEditBody("");
+      setStatus("已保存。");
+    } catch {
+      setStatus("保存失败，请检查网络后重试。");
+    } finally {
+      setEditSaving(false);
+    }
+  }
+
+  async function handleDeletePost(postId: string) {
+    if (!window.confirm("确定要删除这条帖子吗？")) return;
+    setStatus("删除中...");
+    try {
+      await deleteDiscussionPost(postId);
+      setPosts((current) => current.filter((p) => p.issueNumber !== postId));
+      setStatus("已删除。");
+    } catch {
+      setStatus("删除失败，请检查网络后重试。");
+    }
+  }
+
   if (loading) {
     return (
       <section className="overflow-hidden rounded-[20px] border border-[var(--color-line)] bg-[var(--color-panel)] shadow-[var(--shadow-card)]">
@@ -333,7 +441,32 @@ export function DiscussionFeed({
       <div className="border-b border-[var(--color-line)] px-5 py-4">
         <div className="flex items-center justify-between gap-4">
           <h2 className="text-2xl font-black tracking-tight">{title}</h2>
-          <span className="text-sm text-[var(--color-muted)]">{visiblePosts.length} 条</span>
+          <span className="text-sm text-[var(--color-muted)]">找到 {visiblePosts.length} 条讨论</span>
+        </div>
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <div className="relative flex-1 min-w-[240px]">
+            <input
+              className="w-full rounded-full border border-[var(--color-line)] bg-[var(--color-soft)] pl-5 pr-4 py-3 text-sm outline-none transition focus:border-[var(--color-brand)] focus:bg-white"
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder="搜索帖子内容、站点名或标签..."
+              value={searchQuery}
+            />
+          </div>
+          <select
+            className="rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-3 text-sm outline-none transition focus:border-[var(--color-brand)] cursor-pointer appearance-none text-[var(--color-ink)]"
+            value={sortOption}
+            onChange={(e) => setSortOption(e.target.value as "latest" | "mostReplies" | "mostLikes")}
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
+              backgroundRepeat: "no-repeat",
+              backgroundPosition: "right 14px center",
+              paddingRight: "36px",
+            }}
+          >
+            <option value="latest">最新发布</option>
+            <option value="mostReplies">最多回复</option>
+            <option value="mostLikes">最多点赞</option>
+          </select>
         </div>
       </div>
 
@@ -396,11 +529,62 @@ export function DiscussionFeed({
         </div>
       ) : null}
 
+      {topTags.length > 0 ? (
+        <div className="border-b border-[var(--color-line)] px-5 py-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              className={`min-h-[44px] rounded-full px-3.5 py-2.5 text-xs font-semibold transition ${
+                selectedTag === null
+                  ? "bg-[var(--color-brand)] text-[var(--color-on-brand)]"
+                  : "bg-[var(--color-soft)] text-[var(--color-muted)] hover:bg-[var(--color-hover)] hover:text-[var(--color-ink)]"
+              }`}
+              onClick={() => setSelectedTag(null)}
+              type="button"
+            >
+              全部
+            </button>
+            {topTags.map(([tag, count]) => (
+              <button
+                key={tag}
+                className={`min-h-[44px] rounded-full px-3.5 py-2.5 text-xs font-semibold transition ${
+                  selectedTag === tag
+                    ? "bg-[var(--color-brand)] text-[var(--color-on-brand)]"
+                    : "bg-[var(--color-soft)] text-[var(--color-muted)] hover:bg-[var(--color-hover)] hover:text-[var(--color-ink)]"
+                }`}
+                onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
+                type="button"
+              >
+                {tag} ({count})
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
       <div className="divide-y divide-[var(--color-line)]">
         {visiblePosts.length === 0 ? (
           <div className="px-5 py-10 text-center sm:px-6">
-            <p className="text-base font-bold text-[var(--color-ink)]">还没有讨论。</p>
-            <p className="mt-2 text-sm text-[var(--color-muted)]">在上面发第一条帖子，发布后即显示在讨论区。</p>
+            {searchQuery.trim() ? (
+              <>
+                <p className="text-base font-bold text-[var(--color-ink)]">没有匹配的讨论，试试其他关键词</p>
+              </>
+            ) : selectedTag ? (
+              <>
+                <p className="text-base font-bold text-[var(--color-ink)]">没有带「{selectedTag}」标签的帖子。</p>
+                <button
+                  className="mt-3 rounded-full bg-[var(--color-brand)] px-4 py-2 text-sm font-bold text-[var(--color-on-brand)] transition hover:bg-[var(--color-brand-deep)]"
+                  onClick={() => setSelectedTag(null)}
+                  type="button"
+                >
+                  查看全部
+                </button>
+              </>
+            ) : (
+              <>
+                <p className="text-base font-bold text-[var(--color-ink)]">还没有讨论。</p>
+                <p className="mt-2 text-sm text-[var(--color-muted)]">在上面发第一条帖子，发布后即显示在讨论区。</p>
+              </>
+            )}
           </div>
         ) : null}
 
@@ -430,9 +614,48 @@ export function DiscussionFeed({
                         管理员
                       </span>
                     ) : null}
+                    {isConnected && user?.id === post.authorId && editingPostId !== post.issueNumber ? (
+                      <>
+                        <button
+                          className="inline-flex items-center gap-1 rounded px-2 py-1.5 text-xs font-semibold text-[#8b7355] transition hover:bg-[#f5f0e8] hover:text-[#6b5a45] min-h-[44px] min-w-[44px]"
+                          onClick={() => handleStartEdit(post)}
+                          title="编辑"
+                          type="button"
+                        >
+                          <svg aria-hidden="true" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
+                            <path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+                          </svg>
+                          编辑
+                        </button>
+                        <button
+                          className="inline-flex items-center gap-1 rounded px-2 py-1.5 text-xs font-semibold text-[#8b7355] transition hover:bg-[#f5f0e8] hover:text-[#6b5a45] min-h-[44px] min-w-[44px]"
+                          onClick={() => handleDeletePost(post.issueNumber)}
+                          title="删除"
+                          type="button"
+                        >
+                          <svg aria-hidden="true" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
+                            <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14Z" />
+                          </svg>
+                          删除
+                        </button>
+                      </>
+                    ) : null}
                     <span className="text-sm text-[var(--color-muted)]">{post.handle}</span>
                     <span className="text-sm text-[var(--color-muted)]">·</span>
                     <span className="text-sm text-[var(--color-muted)]">{formatRelativeTime(post.postedAt)}</span>
+                    {post.createdAt && post.updatedAt && post.updatedAt !== post.createdAt ? (
+                      (() => {
+                        const created = new Date(post.createdAt).getTime();
+                        const updated = new Date(post.updatedAt).getTime();
+                        const diffMs = updated - created;
+                        if (diffMs > 60000) {
+                          return (
+                            <span className="text-[11px] font-semibold text-[#8b7355]">(已编辑)</span>
+                          );
+                        }
+                        return null;
+                      })()
+                    ) : null}
                     {post.station ? (
                       <span className="rounded-full bg-[var(--color-soft)] px-2.5 py-1 text-xs font-bold text-[var(--color-brand-deep)]">
                         {post.station}
@@ -440,15 +663,41 @@ export function DiscussionFeed({
                     ) : null}
                   </div>
                   <hr className="mt-2 border-t border-[var(--color-line)]" />
-                  {post.body.length > 500 ? (
+                  {editingPostId === post.issueNumber ? (
+                    <div className="mt-3">
+                      <textarea
+                        className="min-h-32 w-full resize-none rounded-lg border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 text-base leading-7 outline-none transition focus:border-[#8b7355]"
+                        onChange={(event) => setEditBody(event.target.value)}
+                        value={editBody}
+                      />
+                      <div className="mt-2 flex items-center gap-3">
+                        <button
+                          className="rounded-full bg-[#8b7355] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#6b5a45] disabled:opacity-50"
+                          disabled={editSaving}
+                          onClick={() => handleSaveEdit(post.issueNumber)}
+                          type="button"
+                        >
+                          {editSaving ? "保存中..." : "保存"}
+                        </button>
+                        <button
+                          className="rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-2 text-xs font-semibold text-[var(--color-muted)] transition hover:bg-[var(--color-soft)] hover:text-[var(--color-ink)]"
+                          disabled={editSaving}
+                          onClick={handleCancelEdit}
+                          type="button"
+                        >
+                          取消
+                        </button>
+                      </div>
+                    </div>
+                  ) : post.body.length > 500 ? (
                     <>
-                      <p className="mt-3 max-w-4xl text-base leading-8 text-[var(--color-ink)]">
+                      <p className="mt-3 max-w-4xl text-[15px] leading-7 sm:text-base sm:leading-8 text-[var(--color-ink)]">
                         {expandedBodies.has(post.issueNumber)
                           ? post.body
                           : `${post.body.slice(0, 500)}...`}
                       </p>
                       <button
-                        className="mt-1 text-xs font-semibold text-[var(--color-brand-deep)] transition hover:text-[var(--color-brand)]"
+                        className="mt-1 min-h-[44px] rounded-lg px-3 py-2 text-xs font-semibold text-[var(--color-brand-deep)] transition hover:bg-[var(--color-soft)] hover:text-[var(--color-brand)]"
                         onClick={() => {
                           setExpandedBodies((prev) => {
                             const next = new Set(prev);
@@ -462,28 +711,37 @@ export function DiscussionFeed({
                         }}
                         type="button"
                       >
-                        {expandedBodies.has(post.issueNumber) ? "收起" : "展开全文"}
+                        {expandedBodies.has(post.issueNumber) ? "收起 ▲" : "展开全文 ▼"}
                       </button>
                     </>
                   ) : (
-                    <p className="mt-3 max-w-4xl text-base leading-8 text-[var(--color-ink)]">{post.body}</p>
+                    <p className="mt-3 max-w-4xl text-[15px] leading-7 sm:text-base sm:leading-8 text-[var(--color-ink)]">{post.body}</p>
                   )}
                   <div className="mt-3 flex flex-wrap gap-2">
                     {post.tags.map((tag) => (
-                      <span key={`${post.issueNumber}-${tag}`} className="text-xs font-semibold text-[var(--color-muted)]">
+                      <button
+                        key={`${post.issueNumber}-${tag}`}
+                        className={`min-h-[44px] rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                          selectedTag === tag
+                            ? "bg-[var(--color-brand)] text-[var(--color-on-brand)]"
+                            : "bg-[var(--color-soft)] text-[var(--color-muted)] hover:bg-[var(--color-hover)] hover:text-[var(--color-ink)]"
+                        }`}
+                        onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
+                        type="button"
+                      >
                         #{tag}
-                      </span>
+                      </button>
                     ))}
                   </div>
-                  <div className="mt-4 flex flex-wrap items-center gap-7">
+                  <div className="mt-4 flex items-center justify-between sm:justify-start sm:gap-7">
                     <ActionButton count={post.replyCount} icon="comment" onClick={() => openReplyBox(post.issueNumber)} />
                     <ActionButton count={post.likes} icon="like" onClick={() => handleLike(post.issueNumber)} />
                     <button
-                      className="text-xs font-bold text-[var(--color-muted)] transition hover:text-[var(--color-brand-deep)]"
+                      className="min-h-[44px] min-w-[44px] rounded-lg px-3 py-2 text-xs font-bold text-[var(--color-muted)] transition hover:bg-[var(--color-soft)] hover:text-[var(--color-brand-deep)]"
                       onClick={() => togglePost(post.issueNumber, expanded)}
                       type="button"
                     >
-                      {expanded ? "收起" : "展开"}
+                      {expanded ? "收起 ▲" : "展开 ▼"}
                     </button>
                   </div>
                 </div>
@@ -524,7 +782,7 @@ export function DiscussionFeed({
                               </div>
                               <p className="mt-1 text-sm leading-7 text-[var(--color-ink)]">{reply.body}</p>
                               <button
-                                className="mt-1 text-xs font-semibold text-[var(--color-muted)] transition hover:text-[var(--color-brand-deep)]"
+                                className="mt-1 min-h-[44px] min-w-[44px] rounded-lg px-2 py-1.5 text-xs font-semibold text-[var(--color-muted)] transition hover:bg-[var(--color-soft)] hover:text-[var(--color-brand-deep)]"
                                 onClick={() => openReplyBox(post.issueNumber, reply.author)}
                                 type="button"
                               >
@@ -539,7 +797,7 @@ export function DiscussionFeed({
 
                   <div className="mt-4 flex flex-col gap-3 border-t border-[var(--color-line)] pt-4 sm:flex-row">
                     <input
-                      className="min-w-0 flex-1 rounded-full border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 text-sm outline-none transition focus:border-[var(--color-brand)]"
+                      className="min-w-0 flex-1 rounded-full border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3.5 text-sm outline-none transition focus:border-[var(--color-brand)]"
                       onChange={(event) =>
                         setReplyDrafts((current) => ({ ...current, [post.issueNumber]: event.target.value }))
                       }
@@ -547,7 +805,7 @@ export function DiscussionFeed({
                       value={replyDrafts[post.issueNumber] ?? ""}
                     />
                     <button
-                      className="rounded-full bg-[var(--color-brand)] px-4 py-3 text-sm font-bold text-[var(--color-on-brand)] transition hover:bg-[var(--color-brand-deep)] sm:w-auto"
+                      className="w-full rounded-full bg-[var(--color-brand)] px-4 py-3.5 text-sm font-bold text-[var(--color-on-brand)] transition hover:bg-[var(--color-brand-deep)] sm:w-auto"
                       onClick={() => handleReply(post.issueNumber)}
                       type="button"
                     >

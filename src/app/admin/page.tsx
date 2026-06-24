@@ -25,7 +25,7 @@ import {
   type ForumStats,
 } from "@/lib/discussion-storage";
 
-type AdminTab = "posts" | "stations" | "import";
+type AdminTab = "posts" | "stations" | "import" | "news";
 
 async function isForumAdmin(): Promise<boolean> {
   try {
@@ -81,6 +81,19 @@ export default function AdminPage() {
   const [announceStation, setAnnounceStation] = useState("");
   const [announceSending, setAnnounceSending] = useState(false);
   const [announceStatus, setAnnounceStatus] = useState("");
+
+  // ---- News state ----
+  const [pendingNews, setPendingNews] = useState<
+    { id: string; title: string; summary: string; source: string; author: string; body?: string; created_at: string }[]
+  >([]);
+  const [pendingNewsLoading, setPendingNewsLoading] = useState(false);
+  const [approvedNews, setApprovedNews] = useState<
+    { id: string; title: string; summary: string; source: string; author: string; body?: string; created_at: string; is_hidden: boolean }[]
+  >([]);
+  const [approvedNewsLoading, setApprovedNewsLoading] = useState(false);
+  const [newsForm, setNewsForm] = useState({ title: "", summary: "", source: "", author: "", body: "" });
+  const [newsFormSending, setNewsFormSending] = useState(false);
+  const [newsFormStatus, setNewsFormStatus] = useState("");
 
   // ---- Admin check ----
   useEffect(() => {
@@ -156,6 +169,53 @@ export default function AdminPage() {
       cancelled = true;
     };
   }, [isConnected, adminOk, forumHistoryLoaded]);
+
+  // ---- Load pending news ----
+  useEffect(() => {
+    if (!adminOk) return;
+    let cancelled = false;
+    setPendingNewsLoading(true);
+    (async () => {
+      try {
+        const { data } = await getSupabaseClient()
+          .from("ai_news")
+          .select("id, title, summary, source, author, body, created_at")
+          .eq("is_approved", false)
+          .order("created_at", { ascending: false });
+        if (cancelled) return;
+        setPendingNews((data as any[]) ?? []);
+      } catch {
+        // silently ignore
+      } finally {
+        if (!cancelled) setPendingNewsLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [adminOk]);
+
+  // ---- Load approved news ----
+  useEffect(() => {
+    if (!adminOk) return;
+    let cancelled = false;
+    setApprovedNewsLoading(true);
+    (async () => {
+      try {
+        const { data } = await getSupabaseClient()
+          .from("ai_news")
+          .select("id, title, summary, source, author, body, created_at, is_hidden")
+          .eq("is_approved", true)
+          .order("created_at", { ascending: false })
+          .limit(50);
+        if (cancelled) return;
+        setApprovedNews((data as any[]) ?? []);
+      } catch {
+        // silently ignore
+      } finally {
+        if (!cancelled) setApprovedNewsLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [adminOk]);
 
   function addAudit(action: string, target: string) {
     setAuditLog((prev) => [
@@ -288,6 +348,113 @@ export default function AdminPage() {
     }
   }
 
+  // ---- News handlers ----
+  async function handleApproveNews(newsId: string) {
+    try {
+      await getSupabaseClient()
+        .from("ai_news")
+        .update({ is_approved: true })
+        .eq("id", newsId);
+      const item = pendingNews.find((n) => n.id === newsId);
+      setPendingNews((prev) => prev.filter((n) => n.id !== newsId));
+      addAudit("通过新闻", item?.title ?? newsId);
+    } catch {
+      setStatus("操作失败，请重试。");
+    }
+    // Refresh approved list
+    setApprovedNewsLoading(true);
+    try {
+      const { data } = await getSupabaseClient()
+        .from("ai_news")
+        .select("id, title, summary, source, author, body, created_at, is_hidden")
+        .eq("is_approved", true)
+        .order("created_at", { ascending: false })
+        .limit(50);
+      setApprovedNews((data as any[]) ?? []);
+    } catch {
+      // ignore
+    } finally {
+      setApprovedNewsLoading(false);
+    }
+  }
+
+  async function handleRejectNews(newsId: string) {
+    try {
+      await getSupabaseClient()
+        .from("ai_news")
+        .delete()
+        .eq("id", newsId);
+      const item = pendingNews.find((n) => n.id === newsId);
+      setPendingNews((prev) => prev.filter((n) => n.id !== newsId));
+      addAudit("驳回新闻", item?.title ?? newsId);
+    } catch {
+      setStatus("操作失败，请重试。");
+    }
+  }
+
+  async function handleToggleHideNews(newsId: string, currentHidden: boolean) {
+    try {
+      const newHidden = !currentHidden;
+      await getSupabaseClient()
+        .from("ai_news")
+        .update({ is_hidden: newHidden })
+        .eq("id", newsId);
+      setApprovedNews((prev) =>
+        prev.map((n) => (n.id === newsId ? { ...n, is_hidden: newHidden } : n)),
+      );
+      const item = approvedNews.find((n) => n.id === newsId);
+      addAudit(newHidden ? "隐藏新闻" : "显示新闻", item?.title ?? newsId);
+    } catch {
+      setStatus("操作失败，请重试。");
+    }
+  }
+
+  async function handlePublishNews() {
+    if (!newsForm.title.trim() || !newsForm.summary.trim()) {
+      setNewsFormStatus("标题和摘要不能为空。");
+      return;
+    }
+    setNewsFormSending(true);
+    setNewsFormStatus("");
+    try {
+      const authorId = (await getSupabaseClient().auth.getUser()).data.user?.id;
+      await getSupabaseClient()
+        .from("ai_news")
+        .insert({
+          title: newsForm.title.trim(),
+          summary: newsForm.summary.trim(),
+          source: newsForm.source.trim() || null,
+          author: newsForm.author.trim() || email ?? "管理员",
+          body: newsForm.body.trim() || null,
+          author_id: authorId,
+          is_approved: true,
+          is_hidden: false,
+        });
+      setNewsForm({ title: "", summary: "", source: "", author: "", body: "" });
+      setNewsFormStatus("新闻已发布。");
+      addAudit("发布新闻", newsForm.title.trim());
+      // Refresh approved list
+      setApprovedNewsLoading(true);
+      try {
+        const { data } = await getSupabaseClient()
+          .from("ai_news")
+          .select("id, title, summary, source, author, body, created_at, is_hidden")
+          .eq("is_approved", true)
+          .order("created_at", { ascending: false })
+          .limit(50);
+        setApprovedNews((data as any[]) ?? []);
+      } catch {
+        // ignore
+      } finally {
+        setApprovedNewsLoading(false);
+      }
+    } catch {
+      setNewsFormStatus("发布失败，请重试。");
+    } finally {
+      setNewsFormSending(false);
+    }
+  }
+
   const pendingSubmissions = submissions.filter((item) => item.status === "pending");
   const reviewedSubmissions = submissions.filter((item) => item.status !== "pending");
   const totalStations = 14; // from stationLinkMap
@@ -409,6 +576,7 @@ export default function AdminPage() {
           {(
             [
               ["posts", `帖子审核${stats && stats.pending_posts > 0 ? ` (${stats.pending_posts})` : ""}`],
+              ["news", `新闻审核${pendingNews.length > 0 ? ` (${pendingNews.length})` : ""}`],
               ["stations", "站点管理"],
               ["import", "数据导入导出"],
             ] as const
@@ -601,6 +769,246 @@ export default function AdminPage() {
                     </button>
                   </div>
                 )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ---- Tab: 新闻审核 ---- */}
+        {activeTab === "news" && (
+          <div className="grid gap-6 xl:grid-cols-[1fr_0.95fr]">
+            {/* Left: pending news review + publish form */}
+            <div className="space-y-6">
+              {/* Pending news review */}
+              <div className="rounded-[24px] border border-[var(--color-line)] bg-white p-6 shadow-[0_18px_60px_rgba(13,25,48,0.07)]">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div>
+                    <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
+                      待审核新闻
+                    </p>
+                    <h2 className="mt-2 text-2xl font-black">审核 AI 新闻投稿</h2>
+                  </div>
+                  <button
+                    className="rounded-full bg-[var(--color-soft)] px-4 py-2 text-sm font-bold text-[var(--color-brand-deep)] transition hover:bg-[var(--color-brand-soft)]"
+                    onClick={() => {
+                      setPendingNewsLoading(true);
+                      setApprovedNewsLoading(true);
+                      // Re-trigger fetches by forcing state
+                      getSupabaseClient()
+                        .from("ai_news")
+                        .select("id, title, summary, source, author, body, created_at")
+                        .eq("is_approved", false)
+                        .order("created_at", { ascending: false })
+                        .then(({ data }) => {
+                          setPendingNews((data as any[]) ?? []);
+                          setPendingNewsLoading(false);
+                        })
+                        .catch(() => setPendingNewsLoading(false));
+                      getSupabaseClient()
+                        .from("ai_news")
+                        .select("id, title, summary, source, author, body, created_at, is_hidden")
+                        .eq("is_approved", true)
+                        .order("created_at", { ascending: false })
+                        .limit(50)
+                        .then(({ data }) => {
+                          setApprovedNews((data as any[]) ?? []);
+                          setApprovedNewsLoading(false);
+                        })
+                        .catch(() => setApprovedNewsLoading(false));
+                    }}
+                    type="button"
+                  >
+                    刷新
+                  </button>
+                </div>
+                <div className="mt-5 space-y-4">
+                  {pendingNewsLoading ? (
+                    <div className="rounded-[24px] bg-[var(--color-soft)] px-4 py-5 text-sm leading-7 text-[var(--color-muted)]">
+                      加载中...
+                    </div>
+                  ) : pendingNews.length === 0 ? (
+                    <div className="rounded-[24px] bg-[var(--color-soft)] px-4 py-5 text-sm leading-7 text-[var(--color-muted)]">
+                      暂无待审核新闻投稿
+                    </div>
+                  ) : (
+                    pendingNews.map((item) => (
+                      <article
+                        key={item.id}
+                        className="rounded-[26px] border border-[var(--color-line)] bg-[var(--color-soft)] p-5"
+                      >
+                        <h3 className="text-lg font-black">{item.title}</h3>
+                        <p className="mt-2 text-sm leading-6 text-[var(--color-muted)]">
+                          {item.summary}
+                        </p>
+                        {item.body && (
+                          <p className="mt-2 rounded-2xl bg-white p-3 text-sm leading-6 text-[var(--color-muted)]">
+                            {item.body.length > 200 ? item.body.slice(0, 200) + "..." : item.body}
+                          </p>
+                        )}
+                        <div className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-1 text-xs text-[var(--color-muted)]">
+                          {item.source && <span>来源：{item.source}</span>}
+                          {item.author && <span>作者：{item.author}</span>}
+                          <span>提交时间：{new Date(item.created_at).toLocaleString("zh-CN")}</span>
+                        </div>
+                        <div className="mt-4 flex flex-wrap gap-3">
+                          <button
+                            className="rounded-full bg-[var(--color-brand)] px-5 py-3 text-sm font-bold text-[var(--color-on-brand)] transition hover:bg-[var(--color-brand-deep)]"
+                            onClick={() => void handleApproveNews(item.id)}
+                            type="button"
+                          >
+                            通过
+                          </button>
+                          <button
+                            className="rounded-full bg-[#fff1f2] px-5 py-3 text-sm font-bold text-[#be123c] transition hover:bg-[#ffe4e6]"
+                            onClick={() => {
+                              if (window.confirm("确定要驳回这条新闻吗？它将从数据库中删除。")) {
+                                void handleRejectNews(item.id);
+                              }
+                            }}
+                            type="button"
+                          >
+                            驳回
+                          </button>
+                        </div>
+                      </article>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              {/* Publish news form */}
+              <div className="rounded-[24px] border border-[var(--color-line)] bg-white p-6 shadow-[0_18px_60px_rgba(13,25,48,0.07)]">
+                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
+                  发布新闻
+                </p>
+                <h2 className="mt-2 text-2xl font-black">管理员直接发布（免审核）</h2>
+                <label className="mt-4 block space-y-2">
+                  <span className="text-sm font-semibold text-[var(--color-muted)]">标题 *</span>
+                  <input
+                    className="w-full rounded-2xl border border-[var(--color-line)] bg-white px-4 py-3 outline-none transition focus:border-[var(--color-brand)]"
+                    onChange={(e) => setNewsForm((prev) => ({ ...prev, title: e.target.value }))}
+                    placeholder="新闻标题"
+                    value={newsForm.title}
+                  />
+                </label>
+                <label className="mt-4 block space-y-2">
+                  <span className="text-sm font-semibold text-[var(--color-muted)]">摘要 *</span>
+                  <textarea
+                    className="min-h-20 w-full rounded-2xl border border-[var(--color-line)] bg-white px-4 py-3 outline-none transition focus:border-[var(--color-brand)]"
+                    onChange={(e) => setNewsForm((prev) => ({ ...prev, summary: e.target.value }))}
+                    placeholder="新闻摘要"
+                    value={newsForm.summary}
+                  />
+                </label>
+                <div className="mt-4 grid gap-4 md:grid-cols-2">
+                  <label className="space-y-2">
+                    <span className="text-sm font-semibold text-[var(--color-muted)]">来源</span>
+                    <input
+                      className="w-full rounded-2xl border border-[var(--color-line)] bg-white px-4 py-3 outline-none transition focus:border-[var(--color-brand)]"
+                      onChange={(e) => setNewsForm((prev) => ({ ...prev, source: e.target.value }))}
+                      placeholder="例如：TechCrunch"
+                      value={newsForm.source}
+                    />
+                  </label>
+                  <label className="space-y-2">
+                    <span className="text-sm font-semibold text-[var(--color-muted)]">作者</span>
+                    <input
+                      className="w-full rounded-2xl border border-[var(--color-line)] bg-white px-4 py-3 outline-none transition focus:border-[var(--color-brand)]"
+                      onChange={(e) => setNewsForm((prev) => ({ ...prev, author: e.target.value }))}
+                      placeholder="作者名"
+                      value={newsForm.author}
+                    />
+                  </label>
+                </div>
+                <label className="mt-4 block space-y-2">
+                  <span className="text-sm font-semibold text-[var(--color-muted)]">正文 (可选)</span>
+                  <textarea
+                    className="min-h-32 w-full rounded-2xl border border-[var(--color-line)] bg-white px-4 py-3 outline-none transition focus:border-[var(--color-brand)]"
+                    onChange={(e) => setNewsForm((prev) => ({ ...prev, body: e.target.value }))}
+                    placeholder="新闻正文内容..."
+                    value={newsForm.body}
+                  />
+                </label>
+                <div className="mt-4 flex flex-wrap items-center gap-4">
+                  <button
+                    className="rounded-full bg-[var(--color-brand)] px-5 py-3 text-sm font-bold text-[var(--color-on-brand)] transition hover:bg-[var(--color-brand-deep)] disabled:opacity-50"
+                    disabled={newsFormSending}
+                    onClick={() => void handlePublishNews()}
+                    type="button"
+                  >
+                    {newsFormSending ? "发布中..." : "发布新闻"}
+                  </button>
+                  {newsFormStatus && (
+                    <span className="text-sm text-[var(--color-muted)]">{newsFormStatus}</span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Right: approved news list */}
+            <div className="space-y-6">
+              <div className="rounded-[24px] border border-[var(--color-line)] bg-white p-6 shadow-[0_18px_60px_rgba(13,25,48,0.07)]">
+                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
+                  已审核新闻
+                </p>
+                <h2 className="mt-2 text-2xl font-black">管理已发布的新闻</h2>
+                <div className="mt-5 space-y-3">
+                  {approvedNewsLoading ? (
+                    <div className="rounded-[24px] bg-[var(--color-soft)] px-4 py-5 text-sm leading-7 text-[var(--color-muted)]">
+                      加载中...
+                    </div>
+                  ) : approvedNews.length === 0 ? (
+                    <div className="rounded-[24px] bg-[var(--color-soft)] px-4 py-5 text-sm leading-7 text-[var(--color-muted)]">
+                      暂无已审核的新闻。
+                    </div>
+                  ) : (
+                    approvedNews.map((item) => (
+                      <article
+                        key={item.id}
+                        className={`rounded-[24px] border p-4 transition ${
+                          item.is_hidden
+                            ? "border-[var(--color-line)] bg-[var(--color-soft)] opacity-60"
+                            : "border-[var(--color-line)] bg-[var(--color-soft)]"
+                        }`}
+                      >
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                          <h3 className="font-bold">{item.title}</h3>
+                          <div className="flex flex-wrap items-center gap-2">
+                            {item.is_hidden && (
+                              <span className="rounded-full bg-[#fff1f2] px-3 py-1 text-xs font-bold text-[#be123c]">
+                                已隐藏
+                              </span>
+                            )}
+                            <span className="rounded-full bg-[#ecfdf3] px-3 py-1 text-xs font-bold text-[#15803d]">
+                              已通过
+                            </span>
+                          </div>
+                        </div>
+                        <p className="mt-2 text-sm leading-6 text-[var(--color-muted)] line-clamp-2">
+                          {item.summary}
+                        </p>
+                        <div className="mt-2 flex flex-wrap items-center gap-x-6 gap-y-1 text-xs text-[var(--color-muted)]">
+                          {item.source && <span>来源：{item.source}</span>}
+                          {item.author && <span>作者：{item.author}</span>}
+                          <span>{new Date(item.created_at).toLocaleString("zh-CN")}</span>
+                        </div>
+                        <div className="mt-3">
+                          <button
+                            className={`rounded-full px-4 py-2 text-xs font-bold transition ${
+                              item.is_hidden
+                                ? "bg-[var(--color-soft)] text-[var(--color-brand-deep)] hover:bg-[var(--color-brand-soft)]"
+                                : "bg-[#fff1f2] text-[#be123c] hover:bg-[#ffe4e6]"
+                            }`}
+                            onClick={() => void handleToggleHideNews(item.id, item.is_hidden)}
+                            type="button"
+                          >
+                            {item.is_hidden ? "取消隐藏" : "隐藏"}
+                          </button>
+                        </div>
+                      </article>
+                    ))
+                  )}
+                </div>
               </div>
             </div>
           </div>

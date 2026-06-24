@@ -11,6 +11,7 @@ const navItems = [
   { label: "讨论", href: "/community" },
   { label: "模型", href: "/models" },
   { label: "指南", href: "/guides" },
+  { label: "我的", href: "/profile" },
 ];
 
 export function MobileDock() {
@@ -19,7 +20,7 @@ export function MobileDock() {
   return (
     <>
       <nav
-        className="fixed inset-x-3 bottom-3 z-40 grid grid-cols-5 rounded-[20px] border border-[var(--color-line)] bg-[var(--color-panel)] p-1 shadow-[0_18px_60px_rgba(15,23,42,0.14)] backdrop-blur lg:hidden"
+        className="fixed inset-x-3 bottom-3 z-40 grid grid-cols-6 rounded-[20px] border border-[var(--color-line)] bg-[var(--color-panel)] p-1 shadow-[0_18px_60px_rgba(15,23,42,0.14)] backdrop-blur lg:hidden"
         data-selection-comments="off"
       >
         {navItems.map((item) => {
