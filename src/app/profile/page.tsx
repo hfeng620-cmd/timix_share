@@ -3,18 +3,27 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useCallback, useEffect, useRef, useState } from "react";
+
 import { AuthButton } from "@/components/auth-button";
 import { NotificationBell } from "@/components/notification-bell";
-import { getUserPosts, type DiscussionPost } from "@/lib/discussion-storage";
+import { getUserPosts, uploadAvatar, updateProfileAvatar, type DiscussionPost } from "@/lib/discussion-storage";
+import { getSupabaseClient } from "@/lib/supabase";
 import { useForumAuth } from "@/lib/forum-auth";
 
 export default function ProfilePage() {
   const { isConnected, user, email, displayName, showAuthModal, setDisplayName } = useForumAuth();
+  const router = useRouter();
+  const avatarInputRef = useRef<HTMLInputElement>(null);
   const [posts, setPosts] = useState<DiscussionPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingName, setEditingName] = useState(false);
   const [newName, setNewName] = useState(displayName ?? "");
   const [nameSaving, setNameSaving] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
 
   const loadPosts = useCallback(async () => {
     if (!isConnected || !user) return;
@@ -32,6 +41,31 @@ export default function ProfilePage() {
   useEffect(() => {
     loadPosts();
   }, [loadPosts]);
+
+  // Load avatar from forum_profiles
+  useEffect(() => {
+    if (!isConnected || !user) return;
+    getSupabaseClient()
+      .from("forum_profiles")
+      .select("avatar_url")
+      .eq("id", user.id)
+      .single()
+      .then(({ data }) => {
+        if (data?.avatar_url) setAvatarUrl(data.avatar_url);
+      })
+      .catch(() => {});
+  }, [isConnected, user]);
+
+  async function handleAvatarUpload(file: File) {
+    if (file.size > 2 * 1024 * 1024) return;
+    setAvatarUploading(true);
+    try {
+      const url = await uploadAvatar(file);
+      await updateProfileAvatar(url);
+      setAvatarUrl(url);
+    } catch { /* ignore */ }
+    finally { setAvatarUploading(false); }
+  }
 
   // Derived stats
   const postCount = posts.length;
@@ -124,10 +158,33 @@ export default function ProfilePage() {
             {/* User info card */}
             <div className="rounded-[20px] border border-[var(--color-line)] bg-[var(--color-panel)] p-6 shadow-[var(--shadow-card)] sm:p-8">
               <div className="flex flex-col items-center gap-5 sm:flex-row sm:items-start">
-                {/* Avatar */}
-                <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-[var(--color-soft)] text-3xl font-black text-[var(--color-muted)] ring-1 ring-[var(--color-line)]">
-                  {initial}
-                </div>
+                {/* Avatar — clickable to upload */}
+                <button
+                  className="group relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[var(--color-soft)] ring-1 ring-[var(--color-line)] transition hover:ring-[var(--color-brand)]"
+                  onClick={() => avatarInputRef.current?.click()}
+                  type="button"
+                  title="点击更换头像"
+                >
+                  {avatarUrl ? (
+                    <img alt={name} className="h-full w-full object-cover" src={avatarUrl} />
+                  ) : (
+                    <span className="text-3xl font-black text-[var(--color-muted)]">{initial}</span>
+                  )}
+                  <span className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 text-xs font-bold text-white opacity-0 transition group-hover:opacity-100">
+                    {avatarUploading ? "上传中..." : "换头像"}
+                  </span>
+                  <input
+                    ref={avatarInputRef}
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleAvatarUpload(file);
+                      if (avatarInputRef.current) avatarInputRef.current.value = "";
+                    }}
+                    type="file"
+                  />
+                </button>
 
                 {/* Info */}
                 <div className="min-w-0 flex-1 text-center sm:text-left">
@@ -231,9 +288,10 @@ export default function ProfilePage() {
               ) : (
                 <div className="divide-y divide-[var(--color-line)]">
                   {posts.slice(0, 10).map((post) => (
-                    <article
+                    <Link
                       key={post.issueNumber}
-                      className="px-6 py-4 transition hover:bg-[var(--color-hover)]"
+                      href={`/community`}
+                      className="block px-6 py-4 transition hover:bg-[var(--color-hover)] cursor-pointer"
                     >
                       <div className="flex items-center gap-2 text-xs text-[var(--color-muted)]">
                         {post.station ? (
@@ -262,7 +320,7 @@ export default function ProfilePage() {
                           ))}
                         </div>
                       ) : null}
-                    </article>
+                    </Link>
                   ))}
                 </div>
               )}
