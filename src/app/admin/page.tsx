@@ -120,7 +120,7 @@ export default function AdminPage() {
       ]);
       const adminIds = new Set(((adminsRes.data ?? []) as { user_id: string }[]).map((a) => a.user_id));
       // Try to get emails via RPC
-      let emailMap: Record<string, string> = {};
+      const emailMap: Record<string, string> = {};
       try {
         const { data: emailData } = await supabase.rpc("get_admin_list");
         if (emailData) {
@@ -626,7 +626,7 @@ export default function AdminPage() {
               在 Supabase 仪表盘 → SQL Editor 中运行下面这条 SQL，刷新页面即可获得管理员权限：
             </p>
             <code className="mt-3 block rounded-[12px] bg-[var(--color-panel)] p-3 text-xs leading-relaxed text-[var(--color-brand-deep)] break-all select-all">
-              insert into public.site_owners (user_id) select id from auth.users where lower(email) = lower('{email ?? "your@email.com"}') on conflict (user_id) do nothing;
+              {`insert into public.site_owners (user_id) select id from auth.users where lower(email) = lower('${email ?? "your@email.com"}') on conflict (user_id) do nothing;`}
             </code>
           </div>
         </div>
