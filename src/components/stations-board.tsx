@@ -205,6 +205,7 @@ export function StationsBoard() {
   const [editForm, setEditForm] = useState<Partial<Station>>({});
   const [saving, setSaving] = useState(false);
   const [addingNew, setAddingNew] = useState(false);
+  const [quickMenuOpen, setQuickMenuOpen] = useState(false);
 
   // ---- detail modal -------------------------------------------------------
   const [detailStation, setDetailStation] = useState<Station | null>(null);
@@ -843,6 +844,7 @@ export function StationsBoard() {
               <div className="mt-5 flex flex-wrap items-center gap-3">
                 <div className="relative flex-1 min-w-[280px]">
                   <input
+                    id="station-search"
                     ref={searchInputRef}
                     className="w-full rounded-full border border-[var(--color-line)] bg-[var(--color-soft)] pl-5 pr-[88px] py-3.5 text-sm outline-none transition focus:border-[var(--color-brand)] focus:bg-white"
                     onChange={(event) => setQuery(event.target.value)}
@@ -1419,6 +1421,38 @@ export function StationsBoard() {
         open={detailStation !== null}
         onClose={() => setDetailStation(null)}
       />
+
+      {/* Quick action FAB — bottom-right */}
+      {isConnected && (
+        <div className="fixed bottom-20 right-4 z-[60] lg:bottom-6">
+          {quickMenuOpen && (
+            <div className="surface-in mb-3 flex flex-col gap-2 rounded-[16px] border border-[var(--color-line)] bg-[var(--color-panel)] p-3 shadow-[0_12px_40px_rgba(15,23,42,0.14)]">
+              <button
+                className="whitespace-nowrap rounded-[12px] px-4 py-2.5 text-left text-sm font-semibold text-[var(--color-ink)] transition hover:bg-[var(--color-soft)]"
+                onClick={() => { setQuickMenuOpen(false); setAddingNew(true); }}
+                type="button"
+              >
+                ＋ 添加中转站
+              </button>
+              <button
+                className="whitespace-nowrap rounded-[12px] px-4 py-2.5 text-left text-sm font-semibold text-[var(--color-ink)] transition hover:bg-[var(--color-soft)]"
+                onClick={() => { setQuickMenuOpen(false); document.getElementById("station-search")?.focus(); }}
+                type="button"
+              >
+                ✎ 编辑已有站点
+              </button>
+            </div>
+          )}
+          <button
+            aria-label="站点操作"
+            className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-brand)] text-xl font-bold text-[var(--color-on-brand)] shadow-[0_8px_28px_var(--color-panel-glow)] transition hover:bg-[var(--color-brand-deep)]"
+            onClick={() => setQuickMenuOpen((v) => !v)}
+            type="button"
+          >
+            {quickMenuOpen ? "✕" : "＋"}
+          </button>
+        </div>
+      )}
     </>
   );
 }
