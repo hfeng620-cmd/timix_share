@@ -390,11 +390,13 @@ export function DiscussionFeed({
 
     try {
       if (!alreadyLiked) {
-        await likeDiscussionPost(postId, currentPost.likes);
-      setPosts((current) =>
-        current.map((p) => (p.issueNumber === postId ? { ...p, likes: confirmedLikes } : p)),
-      );
+        const confirmedLikes = await likeDiscussionPost(postId, currentPost.likes);
+        setPosts((current) =>
+          current.map((p) => (p.issueNumber === postId ? { ...p, likes: confirmedLikes } : p)),
+        );
+      }
     } catch {
+      setLikedPosts((prev) => { const next = new Set(prev); if (alreadyLiked) next.add(postId); else next.delete(postId); return next; });
       setPosts((current) =>
         current.map((p) => (p.issueNumber === postId ? { ...p, likes: currentPost.likes } : p)),
       );
