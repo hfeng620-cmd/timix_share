@@ -9,12 +9,15 @@ import {
   likeReply,
   loadComments,
   loadDiscussionPosts,
+  loadDiscussionPostsPaginated,
   pinDiscussionPost,
   replyDiscussionPost,
+  searchDiscussionPosts,
   updatePostBody,
   uploadForumImage,
   type DiscussionPost,
   type DiscussionReply,
+  type SearchResult,
 } from "@/lib/discussion-storage";
 import { useForumAuth } from "@/lib/forum-auth";
 
@@ -192,6 +195,83 @@ export function DiscussionFeed({
   const [bookmarksOnly, setBookmarksOnly] = useState(false);
   const [pinSaving, setPinSaving] = useState(false);
 
+  // ── Server-side search + pagination state ──
+  const [searchResult, setSearchResult] = useState<SearchResult | null>(null);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchCursor, setSearchCursor] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [totalCount, setTotalCount] = useState(0);
+
+  // Execute server-side search with debounce
+  const executeSearch = useCallback(
+    async (query: string, tag: string | null, sort: string, cursor: string | null = null, append = false) => {
+      if (!query.trim() && !tag) {
+        // No search active — use regular paginated load
+        return;
+      }
+      if (!append) {
+        setSearchLoading(true);
+        setSearchResult(null);
+      } else {
+        setLoadingMore(true);
+      }
+      try {
+        const result = await searchDiscussionPosts({
+          query: query.trim() || undefined,
+          tag: tag ?? undefined,
+          sort: sort as "latest" | "mostReplies" | "mostLikes",
+          limit: 20,
+          cursor,
+        });
+        if (append && searchResult) {
+          setSearchResult({
+            ...result,
+            posts: [...searchResult.posts, ...result.posts],
+          });
+        } else {
+          setSearchResult(result);
+          setTotalCount(result.totalCount);
+        }
+        setSearchCursor(result.nextCursor);
+        setHasMore(result.hasMore);
+      } catch {
+        // fallback handled in searchDiscussionPosts
+      } finally {
+        setSearchLoading(false);
+        setLoadingMore(false);
+      }
+    },
+    [searchResult],
+  );
+
+  // Debounced search effect
+  useEffect(() => {
+    if (searchDebounceRef.current) {
+      clearTimeout(searchDebounceRef.current);
+    }
+    searchDebounceRef.current = setTimeout(() => {
+      if (searchQuery.trim() || selectedTag) {
+        executeSearch(searchQuery, selectedTag, sortOption);
+      } else {
+        setSearchResult(null);
+      }
+    }, 300);
+    return () => {
+      if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    };
+  }, [searchQuery, selectedTag, sortOption]);
+
+  // ═══ Load more (pagination) ═══
+  async function handleLoadMore() {
+    if (loadingMore) return;
+    if (searchQuery.trim() || selectedTag) {
+      // Server-side search pagination
+      await executeSearch(searchQuery, selectedTag, sortOption, searchCursor, true);
+    }
+  }
+
   // --- bookmark localStorage helpers ---
   function getBookmarkKey(uid: string) {
     return `timin-bookmarks-${uid}`;
@@ -302,6 +382,18 @@ export function DiscussionFeed({
   }, [posts]);
 
   const visiblePosts = useMemo(() => {
+    // Use server-side search results when available
+    if (searchResult) {
+      let result = searchResult.posts;
+      if (bookmarksOnly) {
+        result = result.filter((p) => bookmarkedIds.has(p.issueNumber));
+      }
+      if (typeof limit === "number") return result.slice(0, limit);
+      if (compact) return result.slice(0, 4);
+      return result;
+    }
+
+    // Fallback: client-side filtering (no search active)
     let base = compact ? posts.slice(0, 4) : [...posts];
     if (selectedTag) {
       base = base.filter((p) => p.tags.includes(selectedTag));
@@ -331,7 +423,7 @@ export function DiscussionFeed({
     }
     const sorted = [...pinned, ...unpinned];
     return typeof limit === "number" ? sorted.slice(0, limit) : sorted;
-  }, [compact, limit, posts, selectedTag, searchQuery, sortOption, bookmarksOnly, bookmarkedIds]);
+  }, [compact, limit, posts, selectedTag, searchQuery, sortOption, bookmarksOnly, bookmarkedIds, searchResult]);
 
   async function handleSubmitPost() {
     if (!isConnected) {
@@ -582,7 +674,10 @@ export function DiscussionFeed({
       <div className="border-b border-[var(--color-line)] px-5 py-4">
         <div className="flex items-center justify-between gap-4">
           <h2 className="text-2xl font-black tracking-tight">{title}</h2>
-          <span className="text-sm text-[var(--color-muted)]">找到 {visiblePosts.length} 条讨论</span>
+          <span className="text-sm text-[var(--color-muted)]">
+            找到 {searchResult ? totalCount : visiblePosts.length} 条讨论
+            {searchLoading ? " — 搜索中..." : ""}
+          </span>
         </div>
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <div className="relative flex-1 min-w-[240px]">
@@ -719,6 +814,13 @@ export function DiscussionFeed({
           ) : null}
         </div>
       </div>
+
+      {/* Search loading indicator */}
+      {searchLoading && !loadingMore ? (
+        <div className="border-b border-[var(--color-line)] px-5 py-8 text-center">
+          <p className="text-sm text-[var(--color-muted)]">搜索中...</p>
+        </div>
+      ) : null}
 
       <div className="divide-y divide-[var(--color-line)]">
         {visiblePosts.length === 0 ? (
@@ -1058,6 +1160,20 @@ export function DiscussionFeed({
           );
         })}
       </div>
+
+      {/* Load more button (for server-side search results) */}
+      {searchResult && hasMore && !compact ? (
+        <div className="border-t border-[var(--color-line)] px-5 py-4 text-center">
+          <button
+            className="rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-6 py-3 text-sm font-bold text-[var(--color-brand-deep)] transition hover:bg-[var(--color-brand-soft)] hover:border-[var(--color-brand)] disabled:opacity-50"
+            disabled={loadingMore}
+            onClick={handleLoadMore}
+            type="button"
+          >
+            {loadingMore ? "加载中..." : `加载更多 (${visiblePosts.length} / ${totalCount})`}
+          </button>
+        </div>
+      ) : null}
 
     </section>
   );

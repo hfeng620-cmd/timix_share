@@ -194,6 +194,147 @@ export async function loadDiscussionPosts(): Promise<DiscussionPost[]> {
   }
 }
 
+// ── Server-side search ───────────────────────────────
+
+export type SearchOptions = {
+  query?: string;
+  tag?: string;
+  sort?: "latest" | "mostReplies" | "mostLikes";
+  limit?: number;
+  cursor?: string | null; // ISO timestamp
+};
+
+export type SearchResult = {
+  posts: DiscussionPost[];
+  totalCount: number;
+  nextCursor: string | null;
+  hasMore: boolean;
+};
+
+/** Execute a server-side full-text search with cursor-based pagination. */
+export async function searchDiscussionPosts(
+  options: SearchOptions = {},
+): Promise<SearchResult> {
+  if (!isSupabaseConfigured()) {
+    return { posts: [], totalCount: 0, nextCursor: null, hasMore: false };
+  }
+
+  const pageSize = options.limit ?? 20;
+
+  try {
+    // Try the RPC first (requires search-migration.sql to be run)
+    const { data, error } = await getSupabaseClient()
+      .rpc("search_forum_posts", {
+        query: options.query ?? null,
+        tag_filter: options.tag ?? null,
+        sort_by: options.sort ?? "latest",
+        page_size: pageSize,
+        page_cursor: options.cursor ?? null,
+      });
+
+    if (error) throw error;
+
+    const rows = (data ?? []) as (ForumPostRow & { rank: number; total_count: number })[];
+    const posts = rows.map((row) => postFromRow(row));
+    const totalCount = rows.length > 0 ? Number(rows[0].total_count) : 0;
+    const hasMore = rows.length === pageSize;
+    const nextCursor = hasMore && rows.length > 0
+      ? rows[rows.length - 1].created_at ?? null
+      : null;
+
+    return { posts, totalCount, nextCursor, hasMore };
+  } catch {
+    // Fallback: client-side filtering (for when migration hasn't been run yet)
+    const allPosts = await loadDiscussionPosts();
+
+    let filtered = [...allPosts];
+
+    if (options.query?.trim()) {
+      const q = options.query.trim().toLowerCase();
+      filtered = filtered.filter(
+        (p) =>
+          p.body.toLowerCase().includes(q) ||
+          p.station?.toLowerCase().includes(q) ||
+          p.tags.some((t) => t.toLowerCase().includes(q)),
+      );
+    }
+
+    if (options.tag) {
+      filtered = filtered.filter((p) => p.tags.includes(options.tag!));
+    }
+
+    if (options.sort === "mostReplies") {
+      filtered.sort((a, b) => b.replyCount - a.replyCount);
+    } else if (options.sort === "mostLikes") {
+      filtered.sort((a, b) => b.likes - a.likes);
+    }
+
+    // Pinned always on top
+    const pinned = filtered.filter((p) => p.is_pinned);
+    const unpinned = filtered.filter((p) => !p.is_pinned);
+    const sorted = [...pinned, ...unpinned];
+
+    const totalCount = sorted.length;
+    const sliced = sorted.slice(0, pageSize);
+    const hasMore = sliced.length < totalCount;
+    const nextCursor = hasMore && sliced.length > 0
+      ? sliced[sliced.length - 1].createdAt
+      : null;
+
+    return { posts: sliced, totalCount, nextCursor, hasMore };
+  }
+}
+
+// ── Cursor-based pagination ──────────────────────────
+
+export type PaginatedPostsResult = {
+  posts: DiscussionPost[];
+  nextCursor: string | null;
+  hasMore: boolean;
+};
+
+/** Load posts with cursor-based pagination (for "load more" / infinite scroll). */
+export async function loadDiscussionPostsPaginated(
+  limit: number = 20,
+  cursor?: string | null,
+): Promise<PaginatedPostsResult> {
+  if (!isSupabaseConfigured()) {
+    return { posts: [], nextCursor: null, hasMore: false };
+  }
+
+  try {
+    let query = getSupabaseClient()
+      .from("forum_posts_public")
+      .select("*")
+      .order("is_pinned", { ascending: false })
+      .order("created_at", { ascending: false })
+      .limit(limit + 1); // Fetch one extra to know if there are more
+
+    if (cursor) {
+      query = query.lt("created_at", cursor);
+    }
+
+    const { data, error } = await query;
+
+    if (error) throw error;
+
+    const rows = (data ?? []) as ForumPostRow[];
+    const hasMore = rows.length > limit;
+    const page = hasMore ? rows.slice(0, limit) : rows;
+    const nextCursor = hasMore && page.length > 0
+      ? page[page.length - 1].created_at ?? null
+      : null;
+
+    return {
+      posts: page.map(postFromRow),
+      nextCursor,
+      hasMore,
+    };
+  } catch {
+    return { posts: [], nextCursor: null, hasMore: false };
+  }
+}
+
 export async function createDiscussionPost(
   input: CreateDiscussionPostInput,
 ): Promise<DiscussionPost> {
