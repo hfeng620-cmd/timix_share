@@ -82,12 +82,6 @@ export function OnlineIndicator() {
   }, [isConnected, user]);
 
   // Always show, even when no one's online
-  if (!isConnected || !user) {
-    return (
-      <span className="text-[11px] font-semibold text-[var(--color-muted)]">— 人在线</span>
-    );
-  }
-
   return (
     <div className="flex items-center gap-2">
       {/* Avatar flow */}
