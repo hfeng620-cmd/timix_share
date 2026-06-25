@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 
+import { useForumAuth } from "@/lib/forum-auth";
 import { siteLinks } from "@/lib/site-links";
 
-const footerLinks = [
+const baseLinks = [
   {
     label: "GitHub Discussions",
     href: siteLinks.discussions,
@@ -43,6 +44,13 @@ const footerLinks = [
 ];
 
 export function SiteFooter() {
+  const { isAdmin } = useForumAuth();
+
+  const footerLinks = baseLinks.filter((link) => {
+    if (link.href === "/admin" && !isAdmin) return false;
+    return true;
+  });
+
   return (
     <footer className="mt-auto border-t border-[var(--color-line)] bg-[var(--color-panel)] backdrop-blur">
       <div className="mx-auto grid max-w-7xl gap-8 px-6 py-8 lg:grid-cols-[1fr_1fr] lg:px-10">
