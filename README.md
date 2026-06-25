@@ -18,11 +18,26 @@
 
 ### 访问地址怎么选
 
-- 正式给别人访问，优先使用 GitHub Pages 地址，地址稳定，不依赖本机开机。
-- `http://127.0.0.1:3001` 只代表当前这台电脑，适合本机调试。
+- **正式给别人访问**：优先用 VPS 地址 `http://38.76.162.40:3000`，速度快，功能全。
+- **备用地址**：GitHub Pages `https://hfeng620-cmd.github.io/timin_api_test_and_forum/`，VPS 挂了也能访问。
+- `http://127.0.0.1:3001` 只适合本机调试。
 - 同一局域网内访问，可以启动 `npm run dev -- -H 0.0.0.0 -p 3001`，再让对方打开 `http://本机IP:3001`。
-- `trycloudflare.com` 可以作为临时公网预览入口，只要本机和 `cloudflared` 进程在线就能用；电脑重启或隧道重连后，地址可能变化。
-- 如果希望 Cloudflare 地址长期固定，需要使用 Cloudflare 账号创建 named tunnel，并绑定固定 hostname 或自定义域名。
+
+### 数据安全
+
+所有数据（用户、帖子、站点）存储在 **Supabase 云端**，与服务器无关：
+- VPS 关机或重装 → **不影响线上数据**
+- 电脑关机 → **不影响其他人访问**
+- GitHub Pages 上的版本和 VPS 版本用的是**同一个 Supabase 数据库**
+- 换新 VPS：运行 `bash scripts/timin-recover.sh` 一键恢复
+
+## 部署架构
+
+| 组件 | 地址 | 说明 |
+|------|------|------|
+| VPS 主站 | http://38.76.162.40:3000 | 服务器模式，功能完整 |
+| GitHub Pages 备用 | https://hfeng620-cmd.github.io/timin_api_test_and_forum/ | 静态导出，VPS 挂了也能访问 |
+| Supabase 数据库 | svksgdsuquhkwyliavfn.supabase.co | 云端 PostgreSQL，不依赖任何服务器 |
 
 ## 页面预览
 
