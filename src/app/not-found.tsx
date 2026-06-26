@@ -4,7 +4,7 @@ import { siteLinks } from "@/lib/site-links";
 
 export default function NotFound() {
   return (
-    <main className="min-h-screen bg-[var(--color-bg)] px-6 py-12 text-[var(--color-ink)] lg:px-10">
+    <main className="theme-stage min-h-screen bg-transparent px-6 py-12 text-[var(--color-ink)] lg:px-10">
       <section className="mx-auto flex min-h-[70vh] max-w-5xl flex-col justify-center">
         <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[var(--color-brand-deep)]">
           404 / 路径没找到

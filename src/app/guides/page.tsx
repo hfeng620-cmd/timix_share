@@ -34,7 +34,7 @@ const quickGuideRoutes = [
 
 export default function GuidesPage() {
   return (
-    <main className="min-h-screen bg-[var(--color-bg)] text-[var(--color-ink)]">
+    <main className="theme-stage min-h-screen bg-transparent text-[var(--color-ink)]">
       <section className="border-b border-[var(--color-line)] bg-[var(--color-header)] backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4 lg:px-10">
           <div className="flex items-center gap-4">

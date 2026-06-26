@@ -108,7 +108,7 @@ export default function Home() {
   ).length;
 
   return (
-    <main className="min-h-screen bg-[var(--color-bg)] text-[var(--color-ink)]">
+    <main className="theme-stage min-h-screen bg-transparent text-[var(--color-ink)]">
       <style>{`
         @keyframes logo-pulse {
           0%, 100% { box-shadow: 0 10px 30px var(--color-panel-glow); }
