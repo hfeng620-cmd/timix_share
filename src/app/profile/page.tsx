@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 
 import { AuthButton } from "@/components/auth-button";
 import { NotificationBell } from "@/components/notification-bell";
@@ -91,6 +91,61 @@ function normalizeTagList(value: string[]) {
   return Array.from(
     new Set(value.map((item) => item.trim()).filter((item) => item.length > 0)),
   ).slice(0, 5);
+}
+
+function useRevealInView<T extends HTMLElement>(threshold = 0.18) {
+  const ref = useRef<T | null>(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    if (isVisible || typeof window === "undefined") return;
+    const node = ref.current;
+    if (!node) return;
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setIsVisible(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      {
+        threshold,
+        rootMargin: "0px 0px -10% 0px",
+      },
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [isVisible, threshold]);
+
+  return { ref, isVisible };
+}
+
+function createRevealStyle(
+  isVisible: boolean,
+  delayMs = 0,
+  distance = 24,
+  scale = 0.985,
+): CSSProperties {
+  return {
+    opacity: isVisible ? 1 : 0,
+    transform: isVisible
+      ? "translate3d(0, 0, 0) scale(1)"
+      : `translate3d(0, ${distance}px, 0) scale(${scale})`,
+    filter: isVisible ? "blur(0px)" : "blur(10px)",
+    transition: [
+      `opacity 760ms cubic-bezier(0.16, 1, 0.3, 1) ${delayMs}ms`,
+      `transform 760ms cubic-bezier(0.16, 1, 0.3, 1) ${delayMs}ms`,
+      `filter 760ms cubic-bezier(0.16, 1, 0.3, 1) ${delayMs}ms`,
+    ].join(", "),
+    willChange: "opacity, transform, filter",
+  };
 }
 
 function truncateText(value?: string | null, maxLength = 72) {
@@ -484,6 +539,12 @@ export default function ProfilePage() {
       : activeTab === "replies"
         ? `当前展示 ${replies.length} 条回复记录`
         : `当前展示 ${likedPosts.length} 条点赞记录`;
+  const { ref: heroSectionRef, isVisible: heroSectionVisible } = useRevealInView<HTMLDivElement>(0.12);
+  const { ref: quickActionsRef, isVisible: quickActionsVisible } = useRevealInView<HTMLDivElement>(0.2);
+  const { ref: showcaseAsideRef, isVisible: showcaseAsideVisible } = useRevealInView<HTMLDivElement>(0.2);
+  const { ref: overviewRef, isVisible: overviewVisible } = useRevealInView<HTMLDivElement>(0.16);
+  const { ref: footprintRef, isVisible: footprintVisible } = useRevealInView<HTMLDivElement>(0.16);
+  const { ref: archiveRef, isVisible: archiveVisible } = useRevealInView<HTMLDivElement>(0.12);
 
   return (
     <main className="theme-stage min-h-screen bg-transparent text-[var(--color-ink)]">
@@ -537,10 +598,14 @@ export default function ProfilePage() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(37,99,235,0.18),transparent_34%),radial-gradient(circle_at_85%_20%,rgba(125,211,252,0.22),transparent_22%),linear-gradient(180deg,rgba(255,255,255,0.92),rgba(244,247,251,0.84))]" />
         <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-10 lg:py-10">
           {!isConnected ? (
-            <div className="overflow-hidden rounded-[28px] border border-white/70 bg-[var(--color-panel)] shadow-[0_24px_80px_rgba(15,23,42,0.08)]">
+            <div
+              ref={heroSectionRef}
+              className="overflow-hidden rounded-[28px] border border-white/70 bg-[var(--color-panel)] shadow-[0_24px_80px_rgba(15,23,42,0.08)]"
+              style={createRevealStyle(heroSectionVisible, 0, 34, 0.978)}
+            >
               <div className="border-b border-[var(--color-line)] px-6 py-8 sm:px-8">
                 <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-                  <div className="max-w-2xl">
+                  <div className="max-w-2xl" style={createRevealStyle(heroSectionVisible, 90, 18, 0.992)}>
                     <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[var(--color-brand-deep)]">
                       Personal Console
                     </p>
@@ -561,6 +626,7 @@ export default function ProfilePage() {
                       <div
                         key={item.value}
                         className="rounded-[20px] border border-white/70 bg-white/82 px-4 py-4 shadow-[0_16px_34px_rgba(15,23,42,0.06)]"
+                        style={createRevealStyle(heroSectionVisible, 150 + ["资料", "互动", "足迹"].indexOf(item.value) * 70, 20, 0.99)}
                       >
                         <p className="text-lg font-black text-[var(--color-ink)]">{item.value}</p>
                         <p className="mt-2 text-sm leading-6 text-[var(--color-muted)]">{item.label}</p>
@@ -569,7 +635,7 @@ export default function ProfilePage() {
                   </div>
                 </div>
               </div>
-              <div className="px-6 py-8 text-center sm:px-8">
+              <div className="px-6 py-8 text-center sm:px-8" style={createRevealStyle(heroSectionVisible, 260, 18, 0.992)}>
                 <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[var(--color-soft)] text-3xl font-black text-[var(--color-muted)]">
                   ?
                 </div>
@@ -588,7 +654,11 @@ export default function ProfilePage() {
             </div>
           ) : (
             <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-              <div className="overflow-hidden rounded-[28px] border border-white/70 bg-[var(--color-panel)] shadow-[0_24px_80px_rgba(15,23,42,0.08)]">
+              <div
+                ref={heroSectionRef}
+                className="overflow-hidden rounded-[28px] border border-white/70 bg-[var(--color-panel)] shadow-[0_24px_80px_rgba(15,23,42,0.08)] transition-[transform,box-shadow] duration-700 hover:-translate-y-0.5 hover:shadow-[0_28px_92px_rgba(15,23,42,0.12)]"
+                style={createRevealStyle(heroSectionVisible, 0, 34, 0.978)}
+              >
                 <div className="border-b border-[var(--color-line)] bg-[linear-gradient(135deg,rgba(37,99,235,0.08),rgba(255,255,255,0.86)_55%,rgba(191,219,254,0.42))] px-6 py-8 sm:px-8">
                   <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
                     <button
@@ -635,6 +705,7 @@ export default function ProfilePage() {
                               <div
                                 key={item.label}
                                 className="rounded-full border border-white/80 bg-white/74 px-3 py-1.5 text-xs text-[var(--color-muted)] shadow-[0_10px_22px_rgba(15,23,42,0.04)]"
+                                style={createRevealStyle(heroSectionVisible, 120 + identityFacts.indexOf(item) * 45, 12, 0.996)}
                               >
                                 <span className="font-semibold text-[var(--color-muted)]">{item.label}</span>
                                 <span className="mx-1 text-[var(--color-line)]">·</span>
@@ -700,6 +771,7 @@ export default function ProfilePage() {
                               <div
                                 key={row.label}
                                 className="rounded-[16px] border border-[var(--color-line)] bg-white/72 px-3 py-3"
+                                style={createRevealStyle(heroSectionVisible, 200 + showcaseRows.indexOf(row) * 55, 16, 0.994)}
                               >
                                 <div className="flex items-center justify-between gap-3">
                                   <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
@@ -735,6 +807,7 @@ export default function ProfilePage() {
                           <div
                             key={item.label}
                             className="rounded-[20px] border border-white/80 bg-white/72 px-4 py-4 shadow-[0_12px_28px_rgba(15,23,42,0.04)] backdrop-blur"
+                            style={createRevealStyle(heroSectionVisible, 260 + profileMeta.indexOf(item) * 60, 18, 0.992)}
                           >
                             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
                               {item.label}
@@ -777,7 +850,8 @@ export default function ProfilePage() {
                     {profileSignals.map((signal) => (
                       <div
                         key={signal.label}
-                        className="rounded-[20px] border border-[var(--color-line)] bg-white/78 px-4 py-4 shadow-[0_12px_28px_rgba(15,23,42,0.04)]"
+                        className="rounded-[20px] border border-[var(--color-line)] bg-white/78 px-4 py-4 shadow-[0_12px_28px_rgba(15,23,42,0.04)] transition-transform duration-500 hover:-translate-y-0.5"
+                        style={createRevealStyle(heroSectionVisible, 360 + profileSignals.indexOf(signal) * 65, 20, 0.992)}
                       >
                         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
                           {signal.label}
@@ -898,7 +972,11 @@ export default function ProfilePage() {
               </div>
 
               <aside className="space-y-6">
-                <div className="rounded-[28px] border border-white/70 bg-[var(--color-panel)] p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)]">
+                <div
+                  ref={quickActionsRef}
+                  className="rounded-[28px] border border-white/70 bg-[var(--color-panel)] p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)]"
+                  style={createRevealStyle(quickActionsVisible, 80, 28, 0.984)}
+                >
                   <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[var(--color-brand-deep)]">
                     行动入口
                   </p>
@@ -908,6 +986,7 @@ export default function ProfilePage() {
                         key={action.title}
                         className="block rounded-[20px] border border-[var(--color-line)] bg-white/82 px-4 py-4 transition hover:-translate-y-0.5 hover:border-[var(--color-brand)] hover:shadow-[0_12px_28px_rgba(15,23,42,0.06)]"
                         href={action.href}
+                        style={createRevealStyle(quickActionsVisible, 140 + quickActions.indexOf(action) * 65, 18, 0.992)}
                       >
                         <p className="text-sm font-black text-[var(--color-ink)]">{action.title}</p>
                         <p className="mt-2 text-sm leading-6 text-[var(--color-muted)]">{action.description}</p>
@@ -916,12 +995,19 @@ export default function ProfilePage() {
                   </div>
                 </div>
 
-                <div className="rounded-[28px] border border-white/70 bg-[var(--color-panel)] p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)]">
+                <div
+                  ref={showcaseAsideRef}
+                  className="rounded-[28px] border border-white/70 bg-[var(--color-panel)] p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)]"
+                  style={createRevealStyle(showcaseAsideVisible, 150, 28, 0.984)}
+                >
                   <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[var(--color-brand-deep)]">
                     主页展示
                   </p>
                   <div className="mt-4 space-y-4">
-                    <div className="rounded-[20px] border border-[var(--color-line)] bg-white/78 px-4 py-4">
+                    <div
+                      className="rounded-[20px] border border-[var(--color-line)] bg-white/78 px-4 py-4"
+                      style={createRevealStyle(showcaseAsideVisible, 220, 18, 0.992)}
+                    >
                       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
                         简介呈现
                       </p>
@@ -932,7 +1018,10 @@ export default function ProfilePage() {
                         {profilePresentationTone}
                       </p>
                     </div>
-                    <div className="rounded-[20px] border border-[var(--color-line)] bg-white/78 px-4 py-4">
+                    <div
+                      className="rounded-[20px] border border-[var(--color-line)] bg-white/78 px-4 py-4"
+                      style={createRevealStyle(showcaseAsideVisible, 290, 18, 0.992)}
+                    >
                       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
                         身份统一
                       </p>
@@ -955,7 +1044,11 @@ export default function ProfilePage() {
       {isConnected ? (
         <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-10 lg:py-10">
           <div className="grid gap-6 xl:grid-cols-[0.92fr_1.08fr]">
-            <div className="rounded-[28px] border border-[var(--color-line)] bg-[var(--color-panel)] p-6 shadow-[var(--shadow-card)]">
+            <div
+              ref={overviewRef}
+              className="rounded-[28px] border border-[var(--color-line)] bg-[var(--color-panel)] p-6 shadow-[var(--shadow-card)] transition-[transform,box-shadow] duration-700 hover:-translate-y-0.5"
+              style={createRevealStyle(overviewVisible, 0, 32, 0.982)}
+            >
               <div className="flex items-end justify-between gap-4 border-b border-[var(--color-line)] pb-4">
                 <div>
                   <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[var(--color-brand-deep)]">
@@ -969,7 +1062,8 @@ export default function ProfilePage() {
                 {overviewCards.map((card) => (
                   <div
                     key={card.label}
-                    className="rounded-[22px] border border-[var(--color-line)] bg-[var(--color-soft)] px-4 py-4"
+                    className="rounded-[22px] border border-[var(--color-line)] bg-[var(--color-soft)] px-4 py-4 transition-transform duration-500 hover:-translate-y-0.5"
+                    style={createRevealStyle(overviewVisible, 90 + overviewCards.indexOf(card) * 60, 18, 0.992)}
                   >
                     <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
                       {card.label}
@@ -980,7 +1074,10 @@ export default function ProfilePage() {
                 ))}
               </div>
 
-              <div className="mt-5 rounded-[22px] border border-[var(--color-line)] bg-[linear-gradient(135deg,rgba(37,99,235,0.06),rgba(255,255,255,0.72))] px-4 py-4">
+              <div
+                className="mt-5 rounded-[22px] border border-[var(--color-line)] bg-[linear-gradient(135deg,rgba(37,99,235,0.06),rgba(255,255,255,0.72))] px-4 py-4"
+                style={createRevealStyle(overviewVisible, 340, 20, 0.992)}
+              >
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
                   资料补完建议
                 </p>
@@ -1014,7 +1111,11 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            <div className="rounded-[28px] border border-[var(--color-line)] bg-[var(--color-panel)] p-6 shadow-[var(--shadow-card)]">
+            <div
+              ref={footprintRef}
+              className="rounded-[28px] border border-[var(--color-line)] bg-[var(--color-panel)] p-6 shadow-[var(--shadow-card)] transition-[transform,box-shadow] duration-700 hover:-translate-y-0.5"
+              style={createRevealStyle(footprintVisible, 70, 32, 0.982)}
+            >
               <div className="flex items-end justify-between gap-4 border-b border-[var(--color-line)] pb-4">
                 <div>
                   <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[var(--color-brand-deep)]">
@@ -1028,7 +1129,8 @@ export default function ProfilePage() {
                 {footprintItems.map((item) => (
                   <div
                     key={item.title}
-                    className="rounded-[22px] border border-[var(--color-line)] bg-[var(--color-soft)] px-4 py-4"
+                    className="rounded-[22px] border border-[var(--color-line)] bg-[var(--color-soft)] px-4 py-4 transition-transform duration-500 hover:-translate-y-0.5"
+                    style={createRevealStyle(footprintVisible, 150 + footprintItems.indexOf(item) * 65, 18, 0.992)}
                   >
                     <div className="flex items-center justify-between gap-4">
                       <div>
@@ -1044,7 +1146,11 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          <div className="mt-6 rounded-[28px] border border-[var(--color-line)] bg-[var(--color-panel)] shadow-[var(--shadow-card)]">
+          <div
+            ref={archiveRef}
+            className="mt-6 rounded-[28px] border border-[var(--color-line)] bg-[var(--color-panel)] shadow-[var(--shadow-card)] transition-[transform,box-shadow] duration-700 hover:-translate-y-0.5"
+            style={createRevealStyle(archiveVisible, 60, 36, 0.98)}
+          >
             <div className="border-b border-[var(--color-line)] px-6 py-5">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                 <div>
@@ -1098,7 +1204,10 @@ export default function ProfilePage() {
                 {activeTab === "posts" ? (
                   posts.length === 0 ? (
                     <div className="px-6 py-10">
-                      <div className="mx-auto max-w-2xl rounded-[26px] border border-[var(--color-line)] bg-[linear-gradient(135deg,rgba(37,99,235,0.08),rgba(255,255,255,0.92))] px-6 py-8 text-center shadow-[0_18px_48px_rgba(15,23,42,0.05)]">
+                      <div
+                        className="mx-auto max-w-2xl rounded-[26px] border border-[var(--color-line)] bg-[linear-gradient(135deg,rgba(37,99,235,0.08),rgba(255,255,255,0.92))] px-6 py-8 text-center shadow-[0_18px_48px_rgba(15,23,42,0.05)]"
+                        style={createRevealStyle(archiveVisible, 120, 22, 0.992)}
+                      >
                         <span className="inline-flex rounded-full bg-white/86 px-3 py-1 text-xs font-bold text-[var(--color-brand-deep)] ring-1 ring-[var(--color-line)]">
                           {activeEmptyState.eyebrow}
                         </span>
@@ -1149,6 +1258,7 @@ export default function ProfilePage() {
                           key={post.issueNumber}
                           className="block px-6 py-5 transition hover:bg-[var(--color-hover)]"
                           href="/community"
+                          style={createRevealStyle(archiveVisible, 100 + posts.slice(0, 10).indexOf(post) * 45, 18, 0.994)}
                         >
                           <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--color-muted)]">
                             {post.station ? (
@@ -1177,7 +1287,10 @@ export default function ProfilePage() {
                 {activeTab === "replies" ? (
                   replies.length === 0 ? (
                     <div className="px-6 py-10">
-                      <div className="mx-auto max-w-2xl rounded-[26px] border border-[var(--color-line)] bg-[linear-gradient(135deg,rgba(37,99,235,0.08),rgba(255,255,255,0.92))] px-6 py-8 text-center shadow-[0_18px_48px_rgba(15,23,42,0.05)]">
+                      <div
+                        className="mx-auto max-w-2xl rounded-[26px] border border-[var(--color-line)] bg-[linear-gradient(135deg,rgba(37,99,235,0.08),rgba(255,255,255,0.92))] px-6 py-8 text-center shadow-[0_18px_48px_rgba(15,23,42,0.05)]"
+                        style={createRevealStyle(archiveVisible, 120, 22, 0.992)}
+                      >
                         <span className="inline-flex rounded-full bg-white/86 px-3 py-1 text-xs font-bold text-[var(--color-brand-deep)] ring-1 ring-[var(--color-line)]">
                           {activeEmptyState.eyebrow}
                         </span>
@@ -1234,6 +1347,7 @@ export default function ProfilePage() {
                           key={item.reply.id}
                           className="block px-6 py-5 transition hover:bg-[var(--color-hover)]"
                           href="/community"
+                          style={createRevealStyle(archiveVisible, 100 + replies.indexOf(item) * 45, 18, 0.994)}
                         >
                           <p className="text-xs text-[var(--color-muted)]">
                             回复了
@@ -1252,7 +1366,10 @@ export default function ProfilePage() {
                 {activeTab === "likes" ? (
                   likedPosts.length === 0 ? (
                     <div className="px-6 py-10">
-                      <div className="mx-auto max-w-2xl rounded-[26px] border border-[var(--color-line)] bg-[linear-gradient(135deg,rgba(37,99,235,0.08),rgba(255,255,255,0.92))] px-6 py-8 text-center shadow-[0_18px_48px_rgba(15,23,42,0.05)]">
+                      <div
+                        className="mx-auto max-w-2xl rounded-[26px] border border-[var(--color-line)] bg-[linear-gradient(135deg,rgba(37,99,235,0.08),rgba(255,255,255,0.92))] px-6 py-8 text-center shadow-[0_18px_48px_rgba(15,23,42,0.05)]"
+                        style={createRevealStyle(archiveVisible, 120, 22, 0.992)}
+                      >
                         <span className="inline-flex rounded-full bg-white/86 px-3 py-1 text-xs font-bold text-[var(--color-brand-deep)] ring-1 ring-[var(--color-line)]">
                           {activeEmptyState.eyebrow}
                         </span>
@@ -1308,6 +1425,7 @@ export default function ProfilePage() {
                           key={post.issueNumber}
                           className="block px-6 py-5 transition hover:bg-[var(--color-hover)]"
                           href="/community"
+                          style={createRevealStyle(archiveVisible, 100 + likedPosts.indexOf(post) * 45, 18, 0.994)}
                         >
                           <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--color-muted)]">
                             {post.station ? (

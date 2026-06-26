@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import { getSupabaseClient } from "@/lib/supabase";
 
 type UserProfileRow = {
@@ -65,15 +65,40 @@ function createArchiveId(userId: string) {
   return `PF-${userId.slice(0, 8).toUpperCase()}`;
 }
 
+function createCardMotionStyle(
+  isVisible: boolean,
+  delayMs = 0,
+  distance = 16,
+  scale = 0.992,
+): CSSProperties {
+  return {
+    opacity: isVisible ? 1 : 0,
+    transform: isVisible
+      ? "translate3d(0, 0, 0) scale(1)"
+      : `translate3d(0, ${distance}px, 0) scale(${scale})`,
+    filter: isVisible ? "blur(0px)" : "blur(8px)",
+    transition: [
+      `opacity 520ms cubic-bezier(0.16, 1, 0.3, 1) ${delayMs}ms`,
+      `transform 520ms cubic-bezier(0.16, 1, 0.3, 1) ${delayMs}ms`,
+      `filter 520ms cubic-bezier(0.16, 1, 0.3, 1) ${delayMs}ms`,
+    ].join(", "),
+    willChange: "opacity, transform, filter",
+  };
+}
+
 export function UserProfileCard({ userId, position, onClose }: UserProfileCardProps) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [cardPosition, setCardPosition] = useState(position);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
   // Smooth entrance animation
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      setPrefersReducedMotion(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+    }
     const timer = setTimeout(() => {
       setIsAnimating(true);
     }, 10);
@@ -200,9 +225,14 @@ export function UserProfileCard({ userId, position, onClose }: UserProfileCardPr
         position: "fixed",
         left: cardPosition.x,
         top: cardPosition.y,
-        transform: isAnimating ? "scale(1) translateY(0)" : "scale(0.95) translateY(-8px)",
+        transform: isAnimating ? "scale(1) translateY(0)" : "scale(0.96) translateY(-10px)",
         opacity: isAnimating ? 1 : 0,
-        transition: "all 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
+        boxShadow: isAnimating
+          ? "0 28px 78px rgba(15,23,42,0.18), 0 10px 28px rgba(37,99,235,0.08)"
+          : "0 16px 42px rgba(15,23,42,0.12)",
+        transition: prefersReducedMotion
+          ? "opacity 120ms linear"
+          : "opacity 240ms cubic-bezier(0.16, 1, 0.3, 1), transform 280ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 280ms cubic-bezier(0.16, 1, 0.3, 1)",
         transformOrigin: "top left",
       }}
     >
@@ -224,7 +254,11 @@ export function UserProfileCard({ userId, position, onClose }: UserProfileCardPr
         </div>
       ) : (
         <>
-          <div className="relative overflow-hidden border-b border-[var(--color-line)] bg-[linear-gradient(135deg,rgba(37,99,235,0.1),rgba(255,255,255,0.94)_55%,rgba(191,219,254,0.32))] px-5 pb-5 pt-4">
+          <div
+            className="relative overflow-hidden border-b border-[var(--color-line)] bg-[linear-gradient(135deg,rgba(37,99,235,0.1),rgba(255,255,255,0.94)_55%,rgba(191,219,254,0.32))] px-5 pb-5 pt-4"
+            style={createCardMotionStyle(isAnimating, 40, 12, 0.994)}
+          >
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.72),transparent_34%),radial-gradient(circle_at_12%_18%,rgba(96,165,250,0.18),transparent_28%)] opacity-90" />
             <button
               className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full bg-white/72 text-xs text-[var(--color-muted)] transition hover:bg-white hover:text-[var(--color-ink)]"
               onClick={handleClose}
@@ -240,7 +274,7 @@ export function UserProfileCard({ userId, position, onClose }: UserProfileCardPr
               个人档案
             </p>
 
-            <div className="mt-4 flex items-start gap-4">
+            <div className="relative mt-4 flex items-start gap-4" style={createCardMotionStyle(isAnimating, 90, 12, 0.996)}>
               {profile?.avatar_url ? (
                 <img
                   alt={name}
@@ -265,7 +299,7 @@ export function UserProfileCard({ userId, position, onClose }: UserProfileCardPr
               </div>
             </div>
 
-            <div className="mt-4 flex flex-wrap gap-2">
+            <div className="mt-4 flex flex-wrap gap-2" style={createCardMotionStyle(isAnimating, 130, 10, 0.998)}>
               {identityRows.map((item) => (
                 <span
                   key={item.label}
@@ -280,7 +314,7 @@ export function UserProfileCard({ userId, position, onClose }: UserProfileCardPr
           </div>
 
           <div className="space-y-4 p-5">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3" style={createCardMotionStyle(isAnimating, 160, 14, 0.996)}>
               <div className="rounded-[18px] border border-[var(--color-line)] bg-[var(--color-soft)] px-3 py-3">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
                   资料完成度
@@ -295,7 +329,10 @@ export function UserProfileCard({ userId, position, onClose }: UserProfileCardPr
               </div>
             </div>
 
-            <div className="rounded-[18px] border border-[var(--color-line)] bg-[linear-gradient(135deg,var(--color-brand-soft),rgba(255,255,255,0.76))] px-4 py-3.5">
+            <div
+              className="rounded-[18px] border border-[var(--color-line)] bg-[linear-gradient(135deg,var(--color-brand-soft),rgba(255,255,255,0.76))] px-4 py-3.5"
+              style={createCardMotionStyle(isAnimating, 210, 14, 0.996)}
+            >
               <div className="flex items-center justify-between gap-3">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
                   主页状态
@@ -326,7 +363,10 @@ export function UserProfileCard({ userId, position, onClose }: UserProfileCardPr
               </div>
             </div>
 
-            <div className="rounded-[18px] border border-[var(--color-line)] bg-[var(--color-soft)] px-4 py-3.5">
+            <div
+              className="rounded-[18px] border border-[var(--color-line)] bg-[var(--color-soft)] px-4 py-3.5"
+              style={createCardMotionStyle(isAnimating, 250, 14, 0.996)}
+            >
               <div className="flex items-center justify-between gap-3">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
                   身份字段
@@ -350,7 +390,10 @@ export function UserProfileCard({ userId, position, onClose }: UserProfileCardPr
               </div>
             </div>
 
-            <div className="rounded-[18px] border border-[var(--color-line)] bg-white/72 px-4 py-3.5">
+            <div
+              className="rounded-[18px] border border-[var(--color-line)] bg-white/72 px-4 py-3.5"
+              style={createCardMotionStyle(isAnimating, 300, 14, 0.996)}
+            >
               <div className="flex items-center justify-between gap-3">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
                   个人简介
@@ -363,7 +406,10 @@ export function UserProfileCard({ userId, position, onClose }: UserProfileCardPr
               <p className="mt-3 text-xs leading-5 text-[var(--color-muted)]">{profilePresentationTone}</p>
             </div>
 
-            <div className="rounded-[18px] border border-[var(--color-line)] bg-[var(--color-soft)] px-4 py-3.5">
+            <div
+              className="rounded-[18px] border border-[var(--color-line)] bg-[var(--color-soft)] px-4 py-3.5"
+              style={createCardMotionStyle(isAnimating, 340, 14, 0.996)}
+            >
               <div className="flex items-center justify-between gap-3">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
                   标签侧写
@@ -395,7 +441,7 @@ export function UserProfileCard({ userId, position, onClose }: UserProfileCardPr
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-2" style={createCardMotionStyle(isAnimating, 390, 12, 0.998)}>
               <Link
                 className="block rounded-full bg-[var(--color-brand)] py-2.5 text-center text-sm font-bold text-[var(--color-on-brand)] transition hover:bg-[var(--color-brand-deep)]"
                 href="/profile"
