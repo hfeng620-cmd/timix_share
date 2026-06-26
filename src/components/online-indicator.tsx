@@ -138,22 +138,22 @@ export function OnlineIndicator() {
         const now = new Date().toISOString();
 
         // Use upsert directly - simpler and more reliable
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from("user_presence")
           .upsert(
             { user_id: user!.id, last_seen: now },
             { onConflict: "user_id" }
-          );
+          )
+          .select();
 
         if (error) {
-          console.error("[OnlineIndicator] Ping error:", error);
+          console.error("[OnlineIndicator] Ping error:", error.message, error.code, error.details);
           retryCount++;
           if (retryCount < maxRetries) {
-            // Retry after 2 seconds
             setTimeout(ping, 2000);
           }
         } else {
-          retryCount = 0; // Reset on success
+          retryCount = 0;
         }
       } catch (err) {
         console.error("[OnlineIndicator] Ping exception:", err);
@@ -164,7 +164,7 @@ export function OnlineIndicator() {
       }
     }
 
-    // Ping immediately, then every 20 seconds (more frequent for better accuracy)
+    // Ping immediately, then every 20 seconds
     ping();
     const interval = setInterval(ping, 20_000);
     return () => clearInterval(interval);
