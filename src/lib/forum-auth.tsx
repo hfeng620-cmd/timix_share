@@ -300,14 +300,8 @@ export function ForumAuthProvider({ children }: { children: React.ReactNode }) {
   const setPassword = useCallback(
     async (password: string, displayName?: string): Promise<AuthResult> => {
       if (!configured) return { ok: false, error: "认证服务未配置。" };
-      if (password.length < 8) {
-        return { ok: false, error: "密码至少需要 8 位。" };
-      }
-      if (!/[A-Z]/.test(password)) {
-        return { ok: false, error: "密码需包含至少一个大写字母。" };
-      }
-      if (!/[0-9]/.test(password)) {
-        return { ok: false, error: "密码需包含至少一个数字。" };
+      if (password.length < 1) {
+        return { ok: false, error: "请输入密码。" };
       }
 
       const name = (displayName ?? "").trim() || "噜噜";

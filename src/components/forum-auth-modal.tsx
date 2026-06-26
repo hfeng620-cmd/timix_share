@@ -155,16 +155,8 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
       setError("请输入昵称。");
       return;
     }
-    if (password.length < 8) {
-      setError("密码至少需要 8 位。");
-      return;
-    }
-    if (!/[A-Z]/.test(password)) {
-      setError("密码需包含至少一个大写字母。");
-      return;
-    }
-    if (!/[0-9]/.test(password)) {
-      setError("密码需包含至少一个数字。");
+    if (!password) {
+      setError("请输入密码。");
       return;
     }
     if (password !== confirmPassword) {
@@ -638,7 +630,7 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
                           setPasswordValue(event.target.value);
                           setError("");
                         }}
-                        placeholder="设置密码，8位以上，含大写字母和数字"
+                        placeholder="设置密码"
                         type="password"
                         value={password}
                       />
@@ -731,7 +723,7 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
                   loading ||
                   !normalizedEmail ||
                   (mode === "login" && !password) ||
-                  (mode === "register" && !otpSent && (!displayNameInput.trim() || password.length < 8 || !confirmPassword)) ||
+                  (mode === "register" && !otpSent && (!displayNameInput.trim() || !password || !confirmPassword)) ||
                   (mode === "register" && otpSent && otpCode.length < 6)
                 }
                 onClick={mode === "login" ? handlePasswordLogin : otpSent ? handleVerifyAndRegister : handleSendCode}
