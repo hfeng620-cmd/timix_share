@@ -32,33 +32,48 @@ export function OnlineIndicator() {
     async function fetchOnline() {
       try {
         const cutoff = new Date(Date.now() - 5 * 60 * 1000).toISOString();
-        const { data } = await supabase
+
+        // First get the count
+        const { count: totalCount, error: countError } = await supabase
+          .from("user_presence")
+          .select("*", { count: "exact", head: true })
+          .gt("last_seen", cutoff);
+
+        if (countError) {
+          console.error("[OnlineIndicator] Count error:", countError);
+          return;
+        }
+
+        setCount(totalCount ?? 0);
+
+        // Then get the user details (with profile info)
+        const { data, error: queryError } = await supabase
           .from("user_presence")
           .select("user_id, last_seen, forum_profiles(display_name, avatar_url)")
           .gt("last_seen", cutoff)
           .order("last_seen", { ascending: false })
           .limit(20);
 
+        if (queryError) {
+          console.error("[OnlineIndicator] Query error:", queryError);
+          return;
+        }
+
         if (data) {
           const users: OnlineUser[] = (data as any[]).map((row: any) => ({
             id: row.user_id,
-            display_name: row.forum_profiles?.display_name || "噜噜",
+            display_name: row.forum_profiles?.display_name || "用户",
             avatar_url: row.forum_profiles?.avatar_url || null,
           }));
           setOnlineUsers(users);
-
-          // Also get total count
-          const { count: totalCount } = await supabase
-            .from("user_presence")
-            .select("*", { count: "exact", head: true })
-            .gt("last_seen", cutoff);
-          setCount(totalCount ?? users.length);
         }
-      } catch { /* table may not exist yet */ }
+      } catch (err) {
+        console.error("[OnlineIndicator] Fetch error:", err);
+      }
     }
 
     fetchOnline();
-    const interval = setInterval(fetchOnline, 60_000);
+    const interval = setInterval(fetchOnline, 30_000); // 每30秒刷新
     return () => clearInterval(interval);
   }, []);
 
@@ -71,22 +86,26 @@ export function OnlineIndicator() {
     async function ping() {
       try {
         const now = new Date().toISOString();
-        const { error: updateError } = await supabase
-          .from("user_presence")
-          .update({ last_seen: now })
-          .eq("user_id", user!.id);
 
-        // If update failed (row doesn't exist), insert
-        if (updateError) {
-          await supabase
-            .from("user_presence")
-            .upsert({ user_id: user!.id, last_seen: now }, { onConflict: "user_id" });
+        // Use upsert directly - simpler and more reliable
+        const { error } = await supabase
+          .from("user_presence")
+          .upsert(
+            { user_id: user!.id, last_seen: now },
+            { onConflict: "user_id" }
+          );
+
+        if (error) {
+          console.error("[OnlineIndicator] Ping error:", error);
         }
-      } catch { /* table may not exist yet */ }
+      } catch (err) {
+        console.error("[OnlineIndicator] Ping exception:", err);
+      }
     }
 
+    // Ping immediately, then every 30 seconds
     ping();
-    const interval = setInterval(ping, 60_000);
+    const interval = setInterval(ping, 30_000);
     return () => clearInterval(interval);
   }, [isConnected, user]);
 
