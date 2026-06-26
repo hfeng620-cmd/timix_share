@@ -18,8 +18,8 @@ const collaborationCards = [
   {
     id: "01",
     title: "站内讨论区",
-    summary: "短反馈、价格变化、试用线索，适合直接发到这页。",
-    actionLabel: "现在发站内反馈",
+    summary: "短反馈、价格波动、试用线索。",
+    actionLabel: "发站内反馈",
     href: "#community-composer",
     external: false,
     accent:
@@ -29,7 +29,7 @@ const collaborationCards = [
   {
     id: "02",
     title: "GitHub Discussions",
-    summary: "经验总结、平台对比、长期维护的话题放这里更合适。",
+    summary: "经验整理、平台对比、长期主题。",
     actionLabel: "去 Discussions",
     href: siteLinks.discussions,
     external: true,
@@ -41,8 +41,8 @@ const collaborationCards = [
   {
     id: "03",
     title: "QQ 群 602190132",
-    summary: "新站、活动、价格跳变等即时线索，先在群里同步最快。",
-    actionLabel: "打开 QQ 群入口",
+    summary: "新站、活动、跳价线索，先同步。",
+    actionLabel: "打开 QQ 群",
     href: "#qq-group-entry",
     external: false,
     accent:
@@ -53,22 +53,22 @@ const collaborationCards = [
 ];
 
 const decisionRules = [
-  "内容只需要补一条新信息，直接发站内讨论区。",
-  "话题需要长期沉淀和多人补充，放到 Discussions。",
-  "线索讲究时效，先回 QQ 群，再视情况整理成帖。",
+  "补一条: 站内发",
+  "做专题: Discussions",
+  "抢时效: 先 QQ 群",
 ];
 
 const quickSignals = [
   {
-    label: "30 秒内可完成",
-    value: "站内发帖",
+    label: "最快",
+    value: "站内发",
   },
   {
-    label: "适合长期归档",
+    label: "沉淀",
     value: "Discussions",
   },
   {
-    label: "适合实时同步",
+    label: "实时",
     value: "QQ 群",
   },
 ];
@@ -145,10 +145,10 @@ export default function CommunityPage() {
                 Community Routing Desk
               </p>
               <h1 className="mt-3 max-w-3xl text-3xl font-black tracking-tight sm:text-4xl">
-                三条协作路径，先选对入口，再决定怎么展开。
+                先选入口，再展开。
               </h1>
               <p className="mt-4 max-w-2xl text-sm leading-6 text-[var(--color-muted)]">
-                短反馈发站内，长期话题进 Discussions，讲究时效的线索先回 QQ 群。
+                短反馈发站内，长话题进 Discussions，急线索先回 QQ 群。
               </p>
 
               <div className="mt-5 flex flex-wrap gap-2.5">
@@ -228,10 +228,10 @@ export default function CommunityPage() {
             <div className="grid gap-3">
               <div className="rounded-[24px] border border-[var(--color-line)] bg-[linear-gradient(180deg,var(--color-panel),rgba(255,255,255,0.72))] p-5 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
                 <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
-                  选入口的规则
+                  入口规则
                 </p>
                 <p className="mt-3 text-sm leading-6 text-[var(--color-muted)]">
-                  把信息按生命周期分流，页面会更清楚，社区也更容易维护。
+                  按时效和沉淀分流。
                 </p>
                 <div className="mt-4 grid gap-3">
                   {decisionRules.map((rule, index) => (
@@ -250,17 +250,17 @@ export default function CommunityPage() {
 
               <div className="rounded-[24px] border border-[var(--color-line)] bg-[var(--color-brand-soft)] p-5">
                 <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-brand-deep)]">
-                  移动端也别藏入口
+                  手机端入口
                 </p>
                 <p className="mt-2 text-sm leading-6 text-[var(--color-muted)]">
-                  在手机上，我们把三条协作路径都放在主内容前面。你不用先理解版块结构，也不用去侧栏里找按钮。
+                  三个入口都放在主内容前面，不用翻侧栏。
                 </p>
                 <div className="mt-4 grid gap-2 sm:grid-cols-2">
                   <Link
                     className="rounded-[18px] bg-[var(--color-brand)] px-4 py-3 text-sm font-bold text-[var(--color-on-brand)] shadow-[0_12px_24px_var(--color-panel-glow)]"
                     href="#community-composer"
                   >
-                    直接发站内反馈
+                    发站内反馈
                   </Link>
                   <a
                     className="rounded-[18px] border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-3 text-sm font-bold text-[var(--color-ink)] transition hover:border-[var(--color-brand)] hover:text-[var(--color-brand-deep)]"
@@ -268,7 +268,7 @@ export default function CommunityPage() {
                     rel="noopener noreferrer"
                     target="_blank"
                   >
-                    打开 Discussions
+                    去 Discussions
                   </a>
                   <div className="sm:col-span-2 md:hidden">
                     <QqGroupModalButton />

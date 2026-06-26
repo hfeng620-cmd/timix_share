@@ -180,6 +180,54 @@ export default function ProfilePage() {
   const latestPost = posts[0];
   const latestReply = replies[0];
   const latestLike = likedPosts[0];
+  const latestPostDateLabel = latestPost ? formatDateLabel(latestPost.postedAt) : "暂无";
+  const latestReplyDateLabel = latestReply ? formatDateLabel(latestReply.reply.postedAt) : "暂无";
+  const latestLikedPostDateLabel = latestLike ? formatDateLabel(latestLike.postedAt) : "暂无";
+  const profileStage =
+    totalContribution >= 10 && completenessPercent >= 75
+      ? "稳定贡献者"
+      : totalContribution >= 4
+        ? "持续参与中"
+        : totalContribution > 0
+          ? "刚开始发声"
+          : completenessPercent >= 75
+            ? "资料已就绪"
+            : "待完善新成员";
+  const profileStageHint =
+    totalContribution >= 10 && completenessPercent >= 75
+      ? "资料和互动都已形成较强辨识度。"
+      : totalContribution >= 4
+        ? "已经开始形成连续的公开记录。"
+        : totalContribution > 0
+          ? "继续补几次互动，主页会更像完整名片。"
+          : completenessPercent >= 75
+            ? "资料已经差不多，只差内容互动来补足真实感。"
+            : "先补资料或发出第一条帖子，主页会更立得住。";
+  const profileMeta = [
+    {
+      label: "账号阶段",
+      value: profileStage,
+      hint: profileStageHint,
+    },
+    {
+      label: "最近发声",
+      value: latestPost ? latestPostDateLabel : "还没发帖",
+      hint: latestPost ? "最近一次公开发帖时间" : "发出第一条帖子后会显示在这里",
+    },
+    {
+      label: "观察方向",
+      value: mostDiscussedStation ? mostDiscussedStation.station : "仍在探索",
+      hint: mostDiscussedStation
+        ? `已在发帖中提及 ${mostDiscussedStation.count} 次`
+        : "多参与几个站点话题后会更清晰",
+    },
+  ];
+  const activeTabDescription =
+    activeTab === "posts"
+      ? "这里收纳你最近公开发出的帖子，方便回看自己的表达与观察。"
+      : activeTab === "replies"
+        ? "这里整理你参与过的话题回应，更像一条个人讨论轨迹。"
+        : "这里展示你点过赞的内容偏好，能反映近期关注重点。";
 
   const profileSignals: ProfileSignal[] = [
     {
@@ -188,14 +236,14 @@ export default function ProfilePage() {
       hint: completionTone,
     },
     {
-      label: "近期活跃",
+      label: "公开表达",
       value: `${totalContribution}`,
-      hint: totalContribution > 0 ? "发帖与回复合计" : "还没有互动记录",
+      hint: totalContribution > 0 ? "发帖与本人回复合计" : "还没有互动记录",
     },
     {
       label: "关注站点",
       value: `${uniqueStations}`,
-      hint: uniqueStations > 0 ? "发帖涉及的站点数" : "还没有站点足迹",
+      hint: mostDiscussedStation ? `最常提及 ${mostDiscussedStation.station}` : "还没有站点足迹",
     },
   ];
 
@@ -203,22 +251,22 @@ export default function ProfilePage() {
     {
       label: "发帖",
       value: postCount,
-      note: latestPost ? `最近一帖 ${latestPost.postedAt}` : "还没开始发帖",
+      note: latestPost ? `最近更新 ${latestPostDateLabel}` : "还没开始发帖",
     },
     {
-      label: "回复",
+      label: "本人回复",
+      value: authoredReplyCount,
+      note: latestReply ? `最近回复 ${latestReplyDateLabel}` : "还没留下回复",
+    },
+    {
+      label: "收到回复",
       value: totalReplies,
-      note: authoredReplyCount > 0 ? `本人回复 ${authoredReplyCount} 条` : "还没留下回复",
+      note: totalReplies > 0 ? "来自其他人的讨论反馈" : "还没有收到回复",
     },
     {
       label: "收到赞",
       value: totalLikes,
-      note: likedCount > 0 ? `也点赞过 ${likedCount} 条内容` : "还没有点赞记录",
-    },
-    {
-      label: "加入时间",
-      value: joinDate,
-      note: "账号创建时间",
+      note: likedCount > 0 ? `你也点赞过 ${likedCount} 条内容` : "还没有点赞记录",
     },
   ];
 
@@ -243,17 +291,17 @@ export default function ProfilePage() {
   const footprintItems = [
     {
       title: "最近发帖",
-      value: latestPost ? latestPost.postedAt : "暂无",
+      value: latestPost ? latestPostDateLabel : "暂无",
       detail: latestPost ? latestPost.body : "发出第一条帖子后，这里会显示你的最新内容。",
     },
     {
       title: "最近回复",
-      value: latestReply ? formatDateLabel(latestReply.reply.postedAt) : "暂无",
+      value: latestReply ? latestReplyDateLabel : "暂无",
       detail: latestReply ? latestReply.postTitle : "开始参与讨论后，这里会显示你最近回复的话题。",
     },
     {
-      title: "最近点赞",
-      value: latestLike ? latestLike.postedAt : "暂无",
+      title: "最近点赞内容",
+      value: latestLike ? `发布于 ${latestLikedPostDateLabel}` : "暂无",
       detail: latestLike ? latestLike.body : "给喜欢的内容点个赞，这里会留下你的兴趣轨迹。",
     },
   ];
@@ -450,6 +498,23 @@ export default function ProfilePage() {
                             还没有个人标签
                           </span>
                         )}
+                      </div>
+
+                      <div className="mt-6 grid gap-3 sm:grid-cols-3">
+                        {profileMeta.map((item) => (
+                          <div
+                            key={item.label}
+                            className="rounded-[20px] border border-white/80 bg-white/72 px-4 py-4 shadow-[0_12px_28px_rgba(15,23,42,0.04)] backdrop-blur"
+                          >
+                            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
+                              {item.label}
+                            </p>
+                            <p className="mt-2 text-sm font-black text-[var(--color-ink)] sm:text-base">
+                              {item.value}
+                            </p>
+                            <p className="mt-2 text-xs leading-5 text-[var(--color-muted)]">{item.hint}</p>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   </div>
@@ -715,6 +780,9 @@ export default function ProfilePage() {
                     内容档案
                   </p>
                   <h2 className="mt-3 text-2xl font-black tracking-tight">按类型查看你的发帖、回复和点赞</h2>
+                  <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--color-muted)]">
+                    {activeTabDescription}
+                  </p>
                 </div>
                 <div className="flex flex-wrap gap-2 rounded-full border border-[var(--color-line)] bg-[var(--color-soft)] p-1">
                   {activityTabs.map((tab) => {
@@ -786,7 +854,7 @@ export default function ProfilePage() {
                             {post.body}
                           </p>
                           <p className="mt-2 text-sm leading-6 text-[var(--color-muted)]">
-                            继续回到讨论区，可查看完整上下文并参与后续讨论。
+                            这是你公开档案中的一条发言记录，回到讨论区可查看完整上下文。
                           </p>
                         </Link>
                       ))}
@@ -798,6 +866,9 @@ export default function ProfilePage() {
                   replies.length === 0 ? (
                     <div className="px-6 py-12 text-center">
                       <p className="text-sm font-bold text-[var(--color-ink)]">暂无回复。</p>
+                      <p className="mt-2 text-sm text-[var(--color-muted)]">
+                        参与一次追问、补充或纠错后，这里会沉淀你的讨论轨迹。
+                      </p>
                     </div>
                   ) : (
                     <div className="divide-y divide-[var(--color-line)]">
@@ -825,6 +896,9 @@ export default function ProfilePage() {
                   likedPosts.length === 0 ? (
                     <div className="px-6 py-12 text-center">
                       <p className="text-sm font-bold text-[var(--color-ink)]">暂无点赞。</p>
+                      <p className="mt-2 text-sm text-[var(--color-muted)]">
+                        点赞过的内容会留在这里，逐步形成你的兴趣偏好。
+                      </p>
                     </div>
                   ) : (
                     <div className="divide-y divide-[var(--color-line)]">
@@ -846,6 +920,9 @@ export default function ProfilePage() {
                           </div>
                           <p className="mt-3 line-clamp-3 text-base font-black text-[var(--color-ink)]">
                             {post.body}
+                          </p>
+                          <p className="mt-2 text-sm leading-6 text-[var(--color-muted)]">
+                            这条内容进入过你的点赞记录，能反映你近期关注的方向。
                           </p>
                         </Link>
                       ))}

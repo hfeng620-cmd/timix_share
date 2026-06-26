@@ -9,29 +9,29 @@ const decisionMap = [
   {
     step: "01",
     eyebrow: "榜单",
-    title: "先锁定值得继续看的站点",
-    description: "从中转站榜单里快速筛出正在被验证、值得跟进的候选。",
+    title: "先锁定候选站点",
+    description: "先从榜单圈定候选。",
     href: "/stations",
   },
   {
     step: "02",
     eyebrow: "模型",
-    title: "再把站点和模型放在一起比",
-    description: "进入模型择优，把能力、稳定性和使用场景放到同一张桌面上看。",
+    title: "再把站点和模型放一起比",
+    description: "把能力、稳定性和场景放到一起看。",
     href: "/models",
   },
   {
     step: "03",
     eyebrow: "指南",
-    title: "有疑问时回到指南校准判断",
-    description: "用常见问题和操作说明补齐背景，避免只凭片段反馈做决定。",
+    title: "有疑问时回指南校准",
+    description: "有分歧时先回这里统一口径。",
     href: "/guides",
   },
   {
     step: "04",
     eyebrow: "社区",
-    title: "把结论带回社区继续共建",
-    description: "将体验、提醒和新发现沉淀到讨论区，反过来影响下一轮榜单。",
+    title: "把结论带回社区",
+    description: "把体验和提醒沉淀回讨论区。",
     href: "/community",
   },
 ];
@@ -65,10 +65,10 @@ export function SiteFooter() {
             Timix观察站
           </p>
           <h2 className="mt-3 max-w-2xl text-2xl font-black tracking-tight text-[var(--color-ink)]">
-            从榜单出发，穿过模型与指南，最后把判断沉淀回社区。
+            从榜单出发，把判断带回社区。
           </h2>
           <p className="max-w-2xl text-sm leading-7 text-[var(--color-muted)]">
-            这里不再只是出口链接，而是一张收束区地图: 先发现候选，再校准选择，最后把反馈送回讨论现场，让榜单、模型、指南、社区形成闭环。
+            这里是一张收束区地图：找候选、比模型、查指南、回社区。
           </p>
 
           <div className="grid gap-3 md:grid-cols-2">
@@ -105,15 +105,15 @@ export function SiteFooter() {
             <div className="mt-4 space-y-4 text-sm text-[var(--color-muted)]">
               <div className="rounded-2xl border border-[var(--color-line)] px-4 py-3">
                 <p className="font-semibold text-[var(--color-ink)]">发现候选</p>
-                <p className="mt-1 leading-6">榜单负责给出现场热度，模型页负责把“能不能用”讲得更具体。</p>
+                <p className="mt-1 leading-6">先看榜单，再去模型页核对可用性。</p>
               </div>
               <div className="rounded-2xl border border-[var(--color-line)] px-4 py-3">
                 <p className="font-semibold text-[var(--color-ink)]">校准判断</p>
-                <p className="mt-1 leading-6">当反馈互相矛盾时，指南是统一口径，社区是补充真实样本。</p>
+                <p className="mt-1 leading-6">拿不准时查指南，想看样本就去社区。</p>
               </div>
               <div className="rounded-2xl border border-[var(--color-line)] px-4 py-3">
                 <p className="font-semibold text-[var(--color-ink)]">回流共建</p>
-                <p className="mt-1 leading-6">社区里的新结论会继续反哺榜单排序，让下一次进入的人少走弯路。</p>
+                <p className="mt-1 leading-6">把新结论留在社区，下一轮会更准。</p>
               </div>
             </div>
           </div>
@@ -151,7 +151,7 @@ export function SiteFooter() {
             </div>
             <div className="mt-5 space-y-2 text-sm leading-7 text-[var(--color-muted)]">
               <p>QQ群：602190132</p>
-              <p>建议路径：先看榜单，再查模型，遇到问题翻指南，最后回社区对答案。</p>
+              <p>建议路径：榜单 -&gt; 模型 -&gt; 指南 -&gt; 社区。</p>
             </div>
           </div>
         </div>

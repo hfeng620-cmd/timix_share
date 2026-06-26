@@ -524,6 +524,50 @@ export async function loadDiscussionPostsPaginated(
   }
 }
 
+/** Load posts filtered by station name with cursor-based pagination. */
+export async function loadStationDiscussionPosts(
+  stationName: string,
+  limit: number = 20,
+  cursor?: string | null,
+): Promise<PaginatedPostsResult> {
+  if (!isSupabaseConfigured()) {
+    return { posts: [], nextCursor: null, hasMore: false };
+  }
+
+  try {
+    let query = getSupabaseClient()
+      .from(FORUM_POSTS_PUBLIC_VIEW)
+      .select("*")
+      .eq("station", stationName)
+      .order("is_pinned", { ascending: false })
+      .order("created_at", { ascending: false })
+      .limit(limit + 1);
+
+    if (cursor) {
+      query = query.lt("created_at", cursor);
+    }
+
+    const { data, error } = await query;
+
+    if (error) throw error;
+
+    const rows = (data ?? []) as ForumPostRow[];
+    const hasMore = rows.length > limit;
+    const page = hasMore ? rows.slice(0, limit) : rows;
+    const nextCursor = hasMore && page.length > 0
+      ? page[page.length - 1].created_at ?? null
+      : null;
+
+    return {
+      posts: page.map(postFromRow),
+      nextCursor,
+      hasMore,
+    };
+  } catch {
+    return { posts: [], nextCursor: null, hasMore: false };
+  }
+}
+
 export async function createDiscussionPost(
   input: CreateDiscussionPostInput,
 ): Promise<DiscussionPost> {

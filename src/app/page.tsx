@@ -48,20 +48,17 @@ const productLayers = [
   {
     label: "中心任务",
     title: "先把候选站缩到 2 到 3 个",
-    description:
-      "首页先帮你做第一轮去留判断，不让你一上来就在大量站点里反复横跳。",
+    description: "首页先做第一轮去留判断。",
   },
   {
     label: "关键输入",
     title: "把成本、口径和风险放进同一视角",
-    description:
-      "倍率、试用、备注和社区反馈一起看，能更快区分“便宜能用”和“值得长期用”。",
+    description: "倍率、试用、备注和反馈一起看。",
   },
   {
     label: "清晰下一步",
     title: "每块信息都直接连接下一个动作",
-    description:
-      "榜单负责初筛，社区负责校验，模型页负责定方向，减少无效跳转。",
+    description: "榜单初筛，社区校验，模型页定方向。",
   },
 ];
 
@@ -69,24 +66,21 @@ const actionFlows = [
   {
     step: "01",
     title: "先建立第一轮候选",
-    description:
-      "如果你已经知道目标模型，先按倍率、试用和入口成本筛掉明显不合适的站点。",
+    description: "先按倍率、试用和入口成本做初筛。",
     href: "/stations",
     cta: "进入榜单初筛",
   },
   {
     step: "02",
     title: "再补齐风险信号",
-    description:
-      "把价格变化、群友反馈和特殊口径补进来，避免只凭静态价格做决定。",
+    description: "再补价格变化、群友反馈和特殊口径。",
     href: "/community",
     cta: "查看实时反馈",
   },
   {
     step: "03",
     title: "最后锁定长期路线",
-    description:
-      "如果目标模型还没定，再回模型页看场景适配，最后再决定长期充值。",
+    description: "模型未定时，回模型页完成收口。",
     href: "/models",
     cta: "去定模型方向",
   },
@@ -226,8 +220,7 @@ export default function Home() {
                 把中转站从“能用”，筛到“值得长期用”。
               </h1>
               <p className="mt-5 max-w-2xl text-base leading-8 text-[var(--color-muted)] sm:text-lg">
-                我们把倍率、真实入口、模型口径、社区备注和试用线索放进同一块观察面板里，
-                让你先做低成本验证，再决定谁适合长期放进工作流。
+                把倍率、入口、模型口径和社区反馈放进同一视角，先验证，再决定长期用谁。
               </p>
               <div className="mt-7 flex flex-wrap gap-3">
                 <Link
@@ -319,7 +312,7 @@ export default function Home() {
                       先看什么
                     </p>
                     <p className="mt-2 text-sm leading-7 text-[var(--color-ink)]">
-                      先筛倍率和试用，再看群友备注，最后再决定值不值得长期充值。
+                      先看倍率和试用，再看备注。
                     </p>
                   </div>
                   <div className="rounded-[18px] border border-[var(--color-line)] bg-white/76 px-4 py-4">
@@ -327,7 +320,7 @@ export default function Home() {
                       观察口径
                     </p>
                     <p className="mt-2 text-sm leading-7 text-[var(--color-ink)]">
-                      同站不同模型可能完全不是一个价格，像 GPT、Claude、Grok 要拆开判断。
+                      GPT、Claude、Grok 往往要拆开判断。
                     </p>
                   </div>
                 </div>
@@ -338,15 +331,15 @@ export default function Home() {
                   <div className="mt-3 grid gap-3 sm:grid-cols-3">
                     <div>
                       <p className="text-sm font-black text-[var(--color-ink)]">01 先试用</p>
-                      <p className="mt-1 text-sm leading-6 text-[var(--color-muted)]">优先拿可试用、注册送额和低门槛入口做验证。</p>
+                      <p className="mt-1 text-sm leading-6 text-[var(--color-muted)]">优先验证低门槛入口。</p>
                     </div>
                     <div>
                       <p className="text-sm font-black text-[var(--color-ink)]">02 看备注</p>
-                      <p className="mt-1 text-sm leading-6 text-[var(--color-muted)]">重点看群友反馈、特殊口径、双档价格和模型分组。</p>
+                      <p className="mt-1 text-sm leading-6 text-[var(--color-muted)]">重点看反馈和特殊口径。</p>
                     </div>
                     <div>
                       <p className="text-sm font-black text-[var(--color-ink)]">03 再长期用</p>
-                      <p className="mt-1 text-sm leading-6 text-[var(--color-muted)]">稳定性、成本和口径都顺了，再决定谁进主工作流。</p>
+                      <p className="mt-1 text-sm leading-6 text-[var(--color-muted)]">确认稳定后再进主工作流。</p>
                     </div>
                   </div>
                 </div>
@@ -367,8 +360,7 @@ export default function Home() {
                 从首页直接完成第一轮判断，再进入更深的验证。
               </h2>
               <p className="mt-4 max-w-3xl text-base leading-8 text-[var(--color-muted)]">
-                先在这里理解该看什么、先做什么、下一步去哪里。这样用户不会只看到信息堆叠，
-                而是能顺着明确路径，把“要不要试”“要不要长期用”拆成连续动作。
+                先明确看什么、先做什么、下一步去哪。
               </p>
               <div className="mt-6 grid gap-4 lg:grid-cols-3">
                 {productLayers.map((layer) => (
@@ -404,8 +396,7 @@ export default function Home() {
                 推荐起步路径
               </h2>
               <p className="mt-3 max-w-2xl text-sm leading-7 text-[var(--color-muted)]">
-                默认建议是先小成本验证，再补风险信号，最后才做长期选择。每一步都只解决一个问题，
-                决策会更轻，也更接近真实使用场景。
+                先低成本验证，再补风险信号，最后决定长期路线。
               </p>
               <div className="mt-6 space-y-4">
                 {actionFlows.map((flow) => (
@@ -665,10 +656,10 @@ export default function Home() {
                   下一步动作
                 </p>
                 <h2 className="mt-3 text-2xl font-black tracking-tight sm:text-3xl">
-                  看完榜单后，把判断继续往前推一步。
+                  看完榜单，继续收口。
                 </h2>
                 <p className="mt-3 max-w-2xl text-sm leading-7 text-[var(--color-muted)]">
-                  如果你已经筛出候选，就去社区补风险信息；如果还没定模型路线，就直接回模型页继续收口。
+                  已有候选就去社区补风险，模型未定就回模型页。
                 </p>
               </div>
               <div className="flex flex-wrap gap-3">

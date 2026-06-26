@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { stationComparisonRows, stationLinkMap } from "@/lib/site-data";
 import { StationDetailModal } from "@/components/station-detail-modal";
+import { DiscussionFeed } from "@/components/discussion-feed";
 import { SubmissionPanel } from "@/components/submission-panel";
 import { useForumAuth } from "@/lib/forum-auth";
 import { getSafeExternalHref } from "@/lib/url-safety";
@@ -211,6 +212,9 @@ export function StationsBoard() {
 
   // ---- detail modal -------------------------------------------------------
   const [detailStation, setDetailStation] = useState<Station | null>(null);
+
+  // ---- station discussion modal --------------------------------------------
+  const [discussionStation, setDiscussionStation] = useState<Station | null>(null);
 
   // ---- history ------------------------------------------------------------
   const [historyStationId, setHistoryStationId] = useState<string | null>(null);
@@ -809,6 +813,24 @@ export function StationsBoard() {
                           <span className="ml-2 transition-all duration-300 group-hover:translate-x-1.5">→</span>
                         </div>
                       )}
+
+                      {/* Discussion button for hero cards */}
+                      <div className="mt-3 flex items-center gap-2">
+                        <button
+                          className="inline-flex items-center gap-1.5 rounded-full bg-[var(--color-soft)] px-3 py-1.5 text-xs font-semibold text-[var(--color-muted)] transition hover:bg-[var(--color-brand-soft)] hover:text-[var(--color-brand-deep)]"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setDiscussionStation(station);
+                          }}
+                          type="button"
+                        >
+                          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                          </svg>
+                          讨论区
+                        </button>
+                      </div>
                     </>
                   );
 
@@ -1163,6 +1185,18 @@ export function StationsBoard() {
                             {station.entry || station.groupName || "待补"}
                           </span>
                         )}
+                        {/* Discussion button */}
+                        <button
+                          className="inline-flex items-center gap-1.5 text-sm text-[var(--color-muted)] transition hover:text-[var(--color-brand-deep)]"
+                          onClick={() => setDiscussionStation(station)}
+                          title="查看站点讨论"
+                          type="button"
+                        >
+                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                          </svg>
+                          讨论
+                        </button>
                         <div className="ml-auto flex items-center gap-3">
                           {isConnected && (
                             <button
@@ -1329,6 +1363,18 @@ export function StationsBoard() {
                         ) : (
                           <span className="text-[var(--color-muted)]">待补</span>
                         )}
+                        {/* Discussion button */}
+                        <button
+                          className="mt-2 flex items-center gap-1.5 text-xs text-[var(--color-muted)] transition hover:text-[var(--color-brand-deep)]"
+                          onClick={() => setDiscussionStation(station)}
+                          title="查看站点讨论"
+                          type="button"
+                        >
+                          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                          </svg>
+                          讨论区
+                        </button>
                       </div>
 
                       {/* 收费方式 */}
@@ -1434,6 +1480,49 @@ export function StationsBoard() {
         open={detailStation !== null}
         onClose={() => setDetailStation(null)}
       />
+
+      {/* ---- Station Discussion Modal ---- */}
+      {discussionStation && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+          <div className="relative flex h-[85vh] w-full max-w-3xl flex-col overflow-hidden rounded-[24px] border border-[var(--color-line)] bg-[var(--color-panel)] shadow-[0_20px_60px_rgba(0,0,0,0.3)]">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-[var(--color-line)] px-6 py-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--color-brand-soft)]">
+                  <svg className="h-5 w-5 text-[var(--color-brand-deep)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="text-lg font-black text-[var(--color-ink)]">{discussionStation.name} 讨论区</h2>
+                  <p className="text-xs text-[var(--color-muted)]">站点专属讨论空间</p>
+                </div>
+              </div>
+              <button
+                className="flex h-10 w-10 items-center justify-center rounded-full text-[var(--color-muted)] transition hover:bg-[var(--color-soft)] hover:text-[var(--color-ink)]"
+                onClick={() => setDiscussionStation(null)}
+                type="button"
+                aria-label="关闭"
+              >
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18 6 6 18M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto">
+              <div className="p-4">
+                <DiscussionFeed
+                  hideComposer={false}
+                  title={`${discussionStation.name} 讨论`}
+                  stationFilter={discussionStation.name}
+                  showSyncButton={true}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Quick action FAB — bottom-right */}
       {isConnected && (

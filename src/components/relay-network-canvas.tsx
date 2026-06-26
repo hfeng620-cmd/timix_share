@@ -28,6 +28,7 @@ type RelayNetworkCanvasProps = {
 const NODE_COUNT = 22;
 const PARTICLE_COUNT = 18;
 const BASE_CONNECTION_DISTANCE = 148;
+const POINTER_EASE = 0.08;
 
 function createNodes(width: number, height: number): RelayNode[] {
   return Array.from({ length: NODE_COUNT }, () => {
@@ -69,7 +70,14 @@ export function RelayNetworkCanvas({ className }: RelayNetworkCanvasProps) {
     if (!context) return;
 
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const pointer = { x: 0, y: 0, active: false };
+    const pointer = {
+      x: 0,
+      y: 0,
+      targetX: 0,
+      targetY: 0,
+      active: false,
+      easedPresence: 0,
+    };
     let reduceMotion = mediaQuery.matches;
     let width = 0;
     let height = 0;
@@ -77,6 +85,40 @@ export function RelayNetworkCanvas({ className }: RelayNetworkCanvasProps) {
     let isVisible = document.visibilityState === "visible";
     let nodes: RelayNode[] = [];
     let particles: AtmosphereParticle[] = [];
+    let ambientGlow: CanvasGradient | null = null;
+    let horizonGlow: CanvasGradient | null = null;
+    let atmosphereGlow: CanvasGradient | null = null;
+
+    const rebuildGradients = () => {
+      ambientGlow = context.createRadialGradient(
+        width * 0.72,
+        height * 0.2,
+        0,
+        width * 0.72,
+        height * 0.2,
+        Math.max(width, height) * 0.55,
+      );
+      ambientGlow.addColorStop(0, "rgba(37, 99, 235, 0.22)");
+      ambientGlow.addColorStop(0.4, "rgba(56, 189, 248, 0.10)");
+      ambientGlow.addColorStop(1, "rgba(255, 255, 255, 0)");
+
+      horizonGlow = context.createLinearGradient(0, height * 0.18, 0, height);
+      horizonGlow.addColorStop(0, "rgba(255, 255, 255, 0)");
+      horizonGlow.addColorStop(0.58, "rgba(148, 163, 184, 0.04)");
+      horizonGlow.addColorStop(1, "rgba(15, 23, 42, 0.07)");
+
+      atmosphereGlow = context.createRadialGradient(
+        width * 0.5,
+        height * 0.56,
+        0,
+        width * 0.5,
+        height * 0.56,
+        Math.max(width * 0.34, height * 0.2),
+      );
+      atmosphereGlow.addColorStop(0, "rgba(255, 255, 255, 0.07)");
+      atmosphereGlow.addColorStop(0.55, "rgba(191, 219, 254, 0.04)");
+      atmosphereGlow.addColorStop(1, "rgba(255, 255, 255, 0)");
+    };
 
     const resizeCanvas = () => {
       width = Math.max(container.clientWidth, 1);
@@ -91,6 +133,11 @@ export function RelayNetworkCanvas({ className }: RelayNetworkCanvasProps) {
 
       nodes = createNodes(width, height);
       particles = createParticles(width, height);
+      pointer.x = width * 0.28;
+      pointer.y = height * 0.62;
+      pointer.targetX = pointer.x;
+      pointer.targetY = pointer.y;
+      rebuildGradients();
       drawFrame(performance.now(), true);
     };
 
@@ -99,46 +146,56 @@ export function RelayNetworkCanvas({ className }: RelayNetworkCanvasProps) {
 
       const centerX = width * 0.5;
       const centerY = height * 0.52;
+      const minDimension = Math.min(width, height);
+
+      if (!reduceMotion) {
+        pointer.x += (pointer.targetX - pointer.x) * POINTER_EASE;
+        pointer.y += (pointer.targetY - pointer.y) * POINTER_EASE;
+        pointer.easedPresence += ((pointer.active ? 1 : 0) - pointer.easedPresence) * POINTER_EASE;
+      } else {
+        pointer.x = pointer.targetX;
+        pointer.y = pointer.targetY;
+        pointer.easedPresence = pointer.active ? 1 : 0;
+      }
+
       const idleTiltX = Math.sin(time * 0.00018) * 0.22;
       const idleTiltY = Math.cos(time * 0.00014) * 0.18;
-      const pointerTiltX = pointer.active ? (pointer.x / width - 0.5) * 0.85 : idleTiltX;
-      const pointerTiltY = pointer.active ? (pointer.y / height - 0.5) * 0.72 : idleTiltY;
-      const tiltX = reduceMotion ? 0 : pointerTiltX;
-      const tiltY = reduceMotion ? 0 : pointerTiltY;
+      const pointerTiltX = (pointer.x / width - 0.5) * 0.85;
+      const pointerTiltY = (pointer.y / height - 0.5) * 0.72;
+      const tiltMix = reduceMotion ? 0 : pointer.easedPresence;
+      const tiltX = idleTiltX + (pointerTiltX - idleTiltX) * tiltMix;
+      const tiltY = idleTiltY + (pointerTiltY - idleTiltY) * tiltMix;
 
-      const ambientGlow = context.createRadialGradient(
-        width * 0.72,
-        height * 0.2,
-        0,
-        width * 0.72,
-        height * 0.2,
-        Math.max(width, height) * 0.55,
-      );
-      ambientGlow.addColorStop(0, "rgba(37, 99, 235, 0.22)");
-      ambientGlow.addColorStop(0.4, "rgba(56, 189, 248, 0.10)");
-      ambientGlow.addColorStop(1, "rgba(255, 255, 255, 0)");
-      context.fillStyle = ambientGlow;
-      context.fillRect(0, 0, width, height);
+      if (ambientGlow) {
+        context.fillStyle = ambientGlow;
+        context.fillRect(0, 0, width, height);
+      }
 
-      const horizonGlow = context.createLinearGradient(0, height * 0.18, 0, height);
-      horizonGlow.addColorStop(0, "rgba(255, 255, 255, 0)");
-      horizonGlow.addColorStop(0.58, "rgba(148, 163, 184, 0.04)");
-      horizonGlow.addColorStop(1, "rgba(15, 23, 42, 0.07)");
-      context.fillStyle = horizonGlow;
-      context.fillRect(0, 0, width, height);
+      if (horizonGlow) {
+        context.fillStyle = horizonGlow;
+        context.fillRect(0, 0, width, height);
+      }
 
+      if (atmosphereGlow) {
+        context.fillStyle = atmosphereGlow;
+        context.fillRect(0, 0, width, height);
+      }
+
+      context.save();
+      context.globalCompositeOperation = "screen";
       const pointerGlow = context.createRadialGradient(
-        pointer.active ? pointer.x : width * 0.28,
-        pointer.active ? pointer.y : height * 0.62,
+        pointer.easedPresence > 0.01 ? pointer.x : width * 0.28,
+        pointer.easedPresence > 0.01 ? pointer.y : height * 0.62,
         0,
-        pointer.active ? pointer.x : width * 0.28,
-        pointer.active ? pointer.y : height * 0.62,
-        Math.min(width, height) * 0.42,
+        pointer.easedPresence > 0.01 ? pointer.x : width * 0.28,
+        pointer.easedPresence > 0.01 ? pointer.y : height * 0.62,
+        minDimension * (0.34 + pointer.easedPresence * 0.1),
       );
-      pointerGlow.addColorStop(0, "rgba(125, 211, 252, 0.16)");
+      pointerGlow.addColorStop(0, `rgba(125, 211, 252, ${0.06 + pointer.easedPresence * 0.1})`);
       pointerGlow.addColorStop(1, "rgba(125, 211, 252, 0)");
       context.fillStyle = pointerGlow;
       context.fillRect(0, 0, width, height);
+      context.restore();
 
       context.save();
       context.strokeStyle = "rgba(37, 99, 235, 0.08)";
@@ -199,9 +256,13 @@ export function RelayNetworkCanvas({ className }: RelayNetworkCanvasProps) {
             Math.cos(time * 0.00012 + particle.pulse) * particle.depth * (reduceMotion ? 0 : 3),
           radius: particle.radius * (0.9 + particle.depth * 0.25),
           alpha: particle.alpha * pulse,
+          depth: particle.depth,
         };
       });
+      projectedParticles.sort((left, right) => left.depth - right.depth);
 
+      context.save();
+      context.globalCompositeOperation = "screen";
       for (const particle of projectedParticles) {
         const haze = context.createRadialGradient(
           particle.x,
@@ -218,6 +279,7 @@ export function RelayNetworkCanvas({ className }: RelayNetworkCanvasProps) {
         context.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
         context.fill();
       }
+      context.restore();
 
       const projectedNodes = nodes.map((node) => {
         const scale = 0.72 + node.depth * 0.62;
@@ -227,10 +289,15 @@ export function RelayNetworkCanvas({ className }: RelayNetworkCanvasProps) {
         return {
           ...node,
           drawX: centerX + (node.x - centerX) * scale + tiltX * (10 + node.depth * 22) + floatX,
-          drawY: centerY + (node.y - centerY) * (0.82 + node.depth * 0.48) + tiltY * (8 + node.depth * 18) + floatY,
+          drawY:
+            centerY +
+            (node.y - centerY) * (0.82 + node.depth * 0.48) +
+            tiltY * (8 + node.depth * 18) +
+            floatY,
           drawRadius: node.radius * (0.82 + node.depth * 0.45),
         };
       });
+      projectedNodes.sort((left, right) => left.depth - right.depth);
 
       const connectionDistance = Math.min(BASE_CONNECTION_DISTANCE, width * 0.22);
       for (let index = 0; index < projectedNodes.length; index += 1) {
@@ -254,15 +321,15 @@ export function RelayNetworkCanvas({ className }: RelayNetworkCanvasProps) {
           context.stroke();
         }
 
-        if (pointer.active) {
+        if (pointer.easedPresence > 0.03) {
           const dx = pointer.x - node.drawX;
           const dy = pointer.y - node.drawY;
           const pointerDistance = Math.hypot(dx, dy);
           const pointerReach = Math.min(180, width * 0.28);
 
           if (pointerDistance < pointerReach) {
-            const alpha = 1 - pointerDistance / pointerReach;
-            context.strokeStyle = `rgba(125, 211, 252, ${0.05 + alpha * 0.16 + node.depth * 0.04})`;
+            const alpha = (1 - pointerDistance / pointerReach) * pointer.easedPresence;
+            context.strokeStyle = `rgba(125, 211, 252, ${0.04 + alpha * 0.14 + node.depth * 0.04})`;
             context.lineWidth = 0.8 + node.depth * 0.25;
             context.beginPath();
             context.moveTo(node.drawX, node.drawY);
@@ -272,6 +339,8 @@ export function RelayNetworkCanvas({ className }: RelayNetworkCanvasProps) {
         }
       }
 
+      context.save();
+      context.globalCompositeOperation = "screen";
       for (const node of projectedNodes) {
         const pulse = 0.75 + Math.sin(node.pulse + time * 0.0005) * 0.25;
         context.fillStyle = `rgba(255, 255, 255, ${0.72 + pulse * 0.16})`;
@@ -284,6 +353,7 @@ export function RelayNetworkCanvas({ className }: RelayNetworkCanvasProps) {
         context.arc(node.drawX, node.drawY, node.drawRadius * (2.6 + node.depth * 1.1), 0, Math.PI * 2);
         context.fill();
       }
+      context.restore();
     };
 
     const stopAnimation = () => {
@@ -309,13 +379,13 @@ export function RelayNetworkCanvas({ className }: RelayNetworkCanvasProps) {
 
     const handlePointerMove = (event: PointerEvent) => {
       const bounds = canvas.getBoundingClientRect();
-      pointer.x = event.clientX - bounds.left;
-      pointer.y = event.clientY - bounds.top;
+      pointer.targetX = event.clientX - bounds.left;
+      pointer.targetY = event.clientY - bounds.top;
       pointer.active =
-        pointer.x >= 0 &&
-        pointer.x <= bounds.width &&
-        pointer.y >= 0 &&
-        pointer.y <= bounds.height;
+        pointer.targetX >= 0 &&
+        pointer.targetX <= bounds.width &&
+        pointer.targetY >= 0 &&
+        pointer.targetY <= bounds.height;
       requestDraw();
     };
 

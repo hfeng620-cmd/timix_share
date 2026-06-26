@@ -10,6 +10,17 @@ interface OnlineUser {
   avatar_url: string | null;
 }
 
+interface PresenceRow {
+  user_id: string;
+  last_seen: string;
+}
+
+interface ProfileRow {
+  id: string;
+  display_name: string | null;
+  avatar_url: string | null;
+}
+
 const COLORS = ["#6366f1","#0ea5e9","#10b981","#f59e0b","#ef4444","#8b5cf6","#ec4899","#14b8a6","#f97316","#84cc16","#06b6d4","#a855f7"];
 
 function getColor(name: string) {
@@ -46,10 +57,10 @@ export function OnlineIndicator() {
 
         setCount(totalCount ?? 0);
 
-        // Then get the user details (with profile info)
+        // Then get the recent presence rows
         const { data, error: queryError } = await supabase
           .from("user_presence")
-          .select("user_id, last_seen, forum_profiles(display_name, avatar_url)")
+          .select("user_id, last_seen")
           .gt("last_seen", cutoff)
           .order("last_seen", { ascending: false })
           .limit(20);
@@ -59,14 +70,51 @@ export function OnlineIndicator() {
           return;
         }
 
-        if (data) {
-          const users: OnlineUser[] = (data as any[]).map((row: any) => ({
-            id: row.user_id,
-            display_name: row.forum_profiles?.display_name || "用户",
-            avatar_url: row.forum_profiles?.avatar_url || null,
-          }));
-          setOnlineUsers(users);
+        const presenceRows = (data ?? []) as PresenceRow[];
+
+        if (presenceRows.length === 0) {
+          setOnlineUsers([]);
+          return;
         }
+
+        const latestPresenceByUser = new Map<string, PresenceRow>();
+        for (const row of presenceRows) {
+          if (!row.user_id || latestPresenceByUser.has(row.user_id)) continue;
+          latestPresenceByUser.set(row.user_id, row);
+        }
+
+        const userIds = Array.from(latestPresenceByUser.keys());
+
+        if (userIds.length === 0) {
+          setOnlineUsers([]);
+          return;
+        }
+
+        const { data: profileData, error: profileError } = await supabase
+          .from("forum_profiles")
+          .select("id, display_name, avatar_url")
+          .in("id", userIds);
+
+        if (profileError) {
+          console.error("[OnlineIndicator] Profile query error:", profileError);
+          return;
+        }
+
+        const profilesById = new Map<string, ProfileRow>();
+        for (const profile of (profileData ?? []) as ProfileRow[]) {
+          profilesById.set(profile.id, profile);
+        }
+
+        const users: OnlineUser[] = userIds.map((userId) => {
+          const profile = profilesById.get(userId);
+          return {
+            id: userId,
+            display_name: profile?.display_name || "用户",
+            avatar_url: profile?.avatar_url || null,
+          };
+        });
+
+        setOnlineUsers(users);
       } catch (err) {
         console.error("[OnlineIndicator] Fetch error:", err);
       }

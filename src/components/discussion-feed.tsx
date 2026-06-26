@@ -9,6 +9,7 @@ import {
   likeReply,
   loadComments,
   loadDiscussionPostsPaginated,
+  loadStationDiscussionPosts,
   pinDiscussionPost,
   replyDiscussionPost,
   searchDiscussionPosts,
@@ -26,6 +27,8 @@ type DiscussionFeedProps = {
   title?: string;
   hideComposer?: boolean;
   limit?: number;
+  stationFilter?: string;
+  showSyncButton?: boolean;
 };
 
 function getBookmarkKey(uid: string) {
@@ -224,6 +227,8 @@ export function DiscussionFeed({
   title = "讨论",
   hideComposer = false,
   limit,
+  stationFilter,
+  showSyncButton = false,
 }: DiscussionFeedProps) {
   const { isConnected, displayName, adminUserIds, ownerUserIds, showAuthModal, user, isAdmin } = useForumAuth();
 
@@ -391,7 +396,9 @@ export function DiscussionFeed({
     setError(null);
 
     try {
-      const result = await loadDiscussionPostsPaginated(pageSize);
+      const result = stationFilter
+        ? await loadStationDiscussionPosts(stationFilter, pageSize)
+        : await loadDiscussionPostsPaginated(pageSize);
       setPosts(result.posts);
       setFeedCursor(result.nextCursor);
       setHasMore(result.hasMore);
@@ -400,13 +407,15 @@ export function DiscussionFeed({
     } finally {
       if (setLoadingState) setLoading(false);
     }
-  }, [pageSize]);
+  }, [pageSize, stationFilter]);
 
   const loadMoreFeed = useCallback(async () => {
     if (!feedCursor || loadingMore) return;
     setLoadingMore(true);
     try {
-      const result = await loadDiscussionPostsPaginated(pageSize, feedCursor);
+      const result = stationFilter
+        ? await loadStationDiscussionPosts(stationFilter, pageSize, feedCursor)
+        : await loadDiscussionPostsPaginated(pageSize, feedCursor);
       setPosts((prev) => [...prev, ...result.posts]);
       setFeedCursor(result.nextCursor);
       setHasMore(result.hasMore);
@@ -414,7 +423,7 @@ export function DiscussionFeed({
       // ignore
     }
     setLoadingMore(false);
-  }, [feedCursor, loadingMore, pageSize]);
+  }, [feedCursor, loadingMore, pageSize, stationFilter]);
 
   useEffect(() => {
     let cancelled = false;
@@ -1127,6 +1136,21 @@ export function DiscussionFeed({
                     >
                       <ActionIcon kind={isBookmarked ? "bookmarkFilled" : "bookmark"} />
                     </button>
+                    {/* Sync to main discussion button (only in station view) */}
+                    {showSyncButton && stationFilter && (
+                      <a
+                        className="inline-flex items-center gap-1.5 min-h-[44px] min-w-[44px] rounded-lg px-3 py-2 text-xs font-bold text-[var(--color-brand-deep)] transition hover:bg-[var(--color-brand-soft)]"
+                        href="/community"
+                        title="同步到站内讨论区"
+                      >
+                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+                          <polyline points="16 6 12 2 8 6" />
+                          <line x1="12" y1="2" x2="12" y2="15" />
+                        </svg>
+                        同步
+                      </a>
+                    )}
                     <button
                       className="min-h-[44px] min-w-[44px] rounded-lg px-3 py-2 text-xs font-bold text-[var(--color-muted)] transition hover:bg-[var(--color-soft)] hover:text-[var(--color-brand-deep)]"
                       onClick={() => togglePost(post.issueNumber, expanded)}
