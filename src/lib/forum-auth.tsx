@@ -32,6 +32,7 @@ interface ForumAuthState {
   isAdmin: boolean;
   isOwner: boolean;
   adminUserIds: Set<string>;
+  ownerUserIds: Set<string>;
   authModalOpen: boolean;
   showAuthModal: () => void;
   hideAuthModal: () => void;
@@ -56,6 +57,7 @@ const defaultState: ForumAuthState = {
   isAdmin: false,
   isOwner: false,
   adminUserIds: new Set(),
+  ownerUserIds: new Set(),
   authModalOpen: false,
   showAuthModal: () => {},
   hideAuthModal: () => {},
@@ -103,6 +105,7 @@ export function ForumAuthProvider({ children }: { children: React.ReactNode }) {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
   const [adminUserIds, setAdminUserIds] = useState<Set<string>>(new Set());
+  const [ownerUserIds, setOwnerUserIds] = useState<Set<string>>(new Set());
   const [authModalOpen, setAuthModalOpen] = useState(false);
 
   const adminLoadedRef = useRef(false);
@@ -164,6 +167,18 @@ export function ForumAuthProvider({ children }: { children: React.ReactNode }) {
         .rpc("is_site_owner", { check_user_id: userId });
       const owner = Boolean(data);
       setIsOwner(owner);
+
+      // Load all site owner user IDs
+      try {
+        const { data: ownerRows } = await getSupabaseClient()
+          .from("site_owners")
+          .select("user_id");
+        if (ownerRows) {
+          setOwnerUserIds(new Set((ownerRows as { user_id: string }[]).map((r) => r.user_id)));
+        }
+      } catch {
+        // RLS may block non-owner queries
+      }
 
       // Site owner is always auto-admin
       if (owner) {
@@ -404,6 +419,7 @@ export function ForumAuthProvider({ children }: { children: React.ReactNode }) {
       isAdmin,
       isOwner,
       adminUserIds,
+      ownerUserIds,
       authModalOpen,
       showAuthModal,
       hideAuthModal,
@@ -414,7 +430,7 @@ export function ForumAuthProvider({ children }: { children: React.ReactNode }) {
       setDisplayName,
       signOut,
     };
-  }, [configured, displayName, isLoading, isAdmin, isOwner, adminUserIds, sendEmailCode, verifyOtp, session, setDisplayName, setPassword, signInWithPassword, signOut, authModalOpen, showAuthModal, hideAuthModal]);
+  }, [configured, displayName, isLoading, isAdmin, isOwner, adminUserIds, ownerUserIds, sendEmailCode, verifyOtp, session, setDisplayName, setPassword, signInWithPassword, signOut, authModalOpen, showAuthModal, hideAuthModal]);
 
   return (
     <ForumAuthContext.Provider value={value}>

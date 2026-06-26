@@ -157,7 +157,7 @@ export function DiscussionFeed({
   hideComposer = false,
   limit,
 }: DiscussionFeedProps) {
-  const { isConnected, displayName, adminUserIds, showAuthModal, user, isAdmin } = useForumAuth();
+  const { isConnected, displayName, adminUserIds, ownerUserIds, showAuthModal, user, isAdmin, isOwner, email } = useForumAuth();
 
   const [posts, setPosts] = useState<DiscussionPost[]>([]);
   const [commentsMap, setCommentsMap] = useState<Record<string, DiscussionReply[]>>({});
@@ -878,7 +878,11 @@ export function DiscussionFeed({
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <h3 className="font-black">{post.author}</h3>
-                    {post.authorId && adminUserIds.has(post.authorId) ? (
+                    {post.authorId && ownerUserIds.has(post.authorId) ? (
+                      <span className="rounded-full bg-[#dbeafe] px-2 py-0.5 text-[10px] font-bold text-[#1d4ed8] ring-1 ring-[#3b82f6]/30">
+                        站主
+                      </span>
+                    ) : post.authorId && adminUserIds.has(post.authorId) ? (
                       <span className="rounded-full bg-[#fef3c7] px-2 py-0.5 text-[10px] font-bold text-[#b45309] ring-1 ring-[#f59e0b]/30">
                         管理员
                       </span>
@@ -1068,7 +1072,11 @@ export function DiscussionFeed({
                             <div className="min-w-0 flex-1">
                               <div className="flex flex-wrap items-center gap-2 text-sm">
                                 <span className="font-bold text-[var(--color-ink)]">{reply.author}</span>
-                                {reply.authorId && adminUserIds.has(reply.authorId) ? (
+                                {reply.authorId && ownerUserIds.has(reply.authorId) ? (
+                                  <span className="rounded-full bg-[#dbeafe] px-2 py-0.5 text-[10px] font-bold text-[#1d4ed8] ring-1 ring-[#3b82f6]/30">
+                                    站主
+                                  </span>
+                                ) : reply.authorId && adminUserIds.has(reply.authorId) ? (
                                   <span className="rounded-full bg-[#fef3c7] px-2 py-0.5 text-[10px] font-bold text-[#b45309] ring-1 ring-[#f59e0b]/30">
                                     管理员
                                   </span>
