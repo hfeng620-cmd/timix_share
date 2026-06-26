@@ -24,6 +24,7 @@ export function AiNewsSubmit({ open, onClose }: AiNewsSubmitProps) {
   const [error, setError] = useState<string | null>(null);
   const [titleError, setTitleError] = useState<string | null>(null);
   const [summaryError, setSummaryError] = useState<string | null>(null);
+  const [sourceError, setSourceError] = useState<string | null>(null);
   const [urlError, setUrlError] = useState<string | null>(null);
   const [lastSubmittedFingerprint, setLastSubmittedFingerprint] = useState("");
 
@@ -50,6 +51,7 @@ export function AiNewsSubmit({ open, onClose }: AiNewsSubmitProps) {
       setError(null);
       setTitleError(null);
       setSummaryError(null);
+      setSourceError(null);
       setUrlError(null);
     } else if (!open && el.open) {
       el.close();
@@ -72,11 +74,14 @@ export function AiNewsSubmit({ open, onClose }: AiNewsSubmitProps) {
 
   const handleBackdropClick = useCallback(
     (e: React.MouseEvent) => {
+      if (submitting) {
+        return;
+      }
       if (e.target === dialogRef.current) {
         onClose();
       }
     },
-    [onClose],
+    [onClose, submitting],
   );
 
   const handleSubmit = useCallback(
@@ -85,6 +90,7 @@ export function AiNewsSubmit({ open, onClose }: AiNewsSubmitProps) {
       setError(null);
       setTitleError(null);
       setSummaryError(null);
+      setSourceError(null);
       setUrlError(null);
 
       if (submitting) {
@@ -121,7 +127,7 @@ export function AiNewsSubmit({ open, onClose }: AiNewsSubmitProps) {
         return;
       }
       if (trimmedSource.length > SOURCE_MAX) {
-        setError(`来源不能超过 ${SOURCE_MAX} 个字符。`);
+        setSourceError(`来源不能超过 ${SOURCE_MAX} 个字符。`);
         return;
       }
 
@@ -211,6 +217,7 @@ export function AiNewsSubmit({ open, onClose }: AiNewsSubmitProps) {
             <button
               type="button"
               className="flex h-8 w-8 items-center justify-center rounded-full text-[var(--color-muted)] transition hover:bg-[var(--color-soft)] hover:text-[var(--color-ink)]"
+              disabled={submitting}
               onClick={onClose}
             >
               <svg
@@ -300,7 +307,7 @@ export function AiNewsSubmit({ open, onClose }: AiNewsSubmitProps) {
               <form className="space-y-4" onSubmit={handleSubmit}>
                 <div>
                   <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.14em] text-[var(--color-muted)]">
-                    新闻标题 <span className="text-red-400">*</span>
+                    新闻标题 <span className="text-[var(--color-brand-strong)]">*</span>
                   </label>
                   <input
                     autoFocus
@@ -312,7 +319,7 @@ export function AiNewsSubmit({ open, onClose }: AiNewsSubmitProps) {
                     onChange={(e) => { setTitle(e.target.value); setTitleError(null); }}
                   />
                   {titleError && (
-                    <p className="mt-1.5 text-xs font-medium text-[#be123c]">{titleError}</p>
+                    <p className="mt-1.5 text-xs font-medium text-[var(--color-brand-strong)]">{titleError}</p>
                   )}
                   {!titleError && title.trim().length > 0 && title.trim().length < TITLE_MIN && (
                     <p className="mt-1.5 text-xs text-[var(--color-muted)]">还差 {TITLE_MIN - title.trim().length} 个字符（至少 {TITLE_MIN} 个）</p>
@@ -321,7 +328,7 @@ export function AiNewsSubmit({ open, onClose }: AiNewsSubmitProps) {
 
                 <div>
                   <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.14em] text-[var(--color-muted)]">
-                    内容摘要 <span className="text-red-400">*</span>
+                    内容摘要 <span className="text-[var(--color-brand-strong)]">*</span>
                   </label>
                   <textarea
                     className="w-full resize-none rounded-xl border border-[var(--color-line)] bg-[var(--color-soft)] px-4 py-3 text-sm text-[var(--color-ink)] placeholder:text-[var(--color-muted)]/60 focus:border-[var(--color-brand)] focus:outline-none"
@@ -332,7 +339,7 @@ export function AiNewsSubmit({ open, onClose }: AiNewsSubmitProps) {
                     onChange={(e) => { setSummary(e.target.value); setSummaryError(null); }}
                   />
                   {summaryError && (
-                    <p className="mt-1.5 text-xs font-medium text-[#be123c]">{summaryError}</p>
+                    <p className="mt-1.5 text-xs font-medium text-[var(--color-brand-strong)]">{summaryError}</p>
                   )}
                   {!summaryError && summary.trim().length > 0 && summary.trim().length < SUMMARY_MIN && (
                     <p className="mt-1.5 text-xs text-[var(--color-muted)]">还差 {SUMMARY_MIN - summary.trim().length} 个字符（至少 {SUMMARY_MIN} 个）</p>
@@ -349,8 +356,11 @@ export function AiNewsSubmit({ open, onClose }: AiNewsSubmitProps) {
                     placeholder="例如：量子位、机器之心"
                     type="text"
                     value={source}
-                    onChange={(e) => setSource(e.target.value)}
+                    onChange={(e) => { setSource(e.target.value); setSourceError(null); }}
                   />
+                  {sourceError && (
+                    <p className="mt-1.5 text-xs font-medium text-[var(--color-brand-strong)]">{sourceError}</p>
+                  )}
                 </div>
 
                 <div>
@@ -365,12 +375,12 @@ export function AiNewsSubmit({ open, onClose }: AiNewsSubmitProps) {
                     onChange={(e) => { setUrl(e.target.value); setUrlError(null); }}
                   />
                   {urlError && (
-                    <p className="mt-1.5 text-xs font-medium text-[#be123c]">{urlError}</p>
+                    <p className="mt-1.5 text-xs font-medium text-[var(--color-brand-strong)]">{urlError}</p>
                   )}
                 </div>
 
                 {error && (
-                  <p className="rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
+                  <p className="rounded-xl bg-[var(--color-brand-soft)] px-4 py-3 text-sm font-medium text-[var(--color-brand-strong)]">
                     {error}
                   </p>
                 )}
@@ -379,6 +389,7 @@ export function AiNewsSubmit({ open, onClose }: AiNewsSubmitProps) {
                   <button
                     type="button"
                     className="rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-2.5 text-sm font-semibold text-[var(--color-muted)] transition hover:bg-[var(--color-soft)] hover:text-[var(--color-ink)]"
+                    disabled={submitting}
                     onClick={onClose}
                   >
                     取消

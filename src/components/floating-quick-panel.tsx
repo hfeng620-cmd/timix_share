@@ -112,7 +112,7 @@ export function FloatingQuickPanel() {
               <div>
                 <p className="text-sm font-bold text-[var(--color-ink)]">观察站导航台</p>
                 <p className="mt-1 text-xs leading-5 text-[var(--color-muted)]">
-                  推荐路径、协作入口和外观设置都收在这里。
+                  推荐路径、协作入口和外观中心都收在这里。
                 </p>
               </div>
               <span className="rounded-full border border-[var(--color-line)] bg-[var(--color-soft)] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-brand-deep)]">
@@ -136,9 +136,48 @@ export function FloatingQuickPanel() {
                 <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--color-muted)]">
                   外观
                 </p>
-                <p className="mt-1 text-sm font-bold text-[var(--color-ink)]">主题切换</p>
+                <p className="mt-1 text-sm font-bold text-[var(--color-ink)]">主题 + 配色</p>
               </div>
             </div>
+          </div>
+
+          <div className="mt-4">
+            <div className="rounded-[18px] border border-[var(--color-line)] bg-[color:color-mix(in_srgb,var(--color-brand-soft)_54%,white)] p-3">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-brand-deep)]">
+                    外观速调
+                  </p>
+                  <p className="mt-1 text-sm font-bold text-[var(--color-ink)]">
+                    先选整套气质，再细调主题和配色。
+                  </p>
+                </div>
+                <span className="rounded-full border border-[var(--color-line)] bg-white/70 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-brand-deep)]">
+                  New
+                </span>
+              </div>
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <div className="rounded-[14px] border border-[var(--color-line)] bg-white/70 px-3 py-2.5">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--color-muted)]">
+                    主题
+                  </p>
+                  <p className="mt-1 text-sm font-bold text-[var(--color-ink)]">管背景氛围</p>
+                </div>
+                <div className="rounded-[14px] border border-[var(--color-line)] bg-white/70 px-3 py-2.5">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--color-muted)]">
+                    配色
+                  </p>
+                  <p className="mt-1 text-sm font-bold text-[var(--color-ink)]">管主色强调</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4">
+            <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
+              外观中心
+            </p>
+            <ThemeToggleInline />
           </div>
 
           <div className="mt-4">
@@ -260,18 +299,11 @@ export function FloatingQuickPanel() {
               </a>
             </div>
           </div>
-
-          <div className="mt-4">
-            <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
-              外观
-            </p>
-            <ThemeToggleInline />
-          </div>
         </div>
       ) : null}
 
       <button
-        aria-label="打开快捷面板"
+        aria-label="打开导航与外观面板"
         className={`relative flex h-11 min-w-11 items-center justify-center rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-4 text-sm font-bold text-[var(--color-brand-deep)] shadow-[0_12px_34px_rgba(15,23,42,0.14)] transition hover:border-[var(--color-brand)] hover:bg-[var(--color-brand-soft)] ${showHint ? "theme-hint-pulse" : ""}`}
         onClick={() => {
           setOpen((current) => !current);
@@ -280,7 +312,7 @@ export function FloatingQuickPanel() {
         type="button"
       >
         <span className="mr-1.5 text-base leading-none" aria-hidden="true">✦</span>
-        导航
+        导航 / 外观
       </button>
     </div>
   );

@@ -776,110 +776,175 @@ export function StationsBoard() {
           </div>
         </div>
 
-        {featuredStations.length > 0 && (
-          <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            {featuredStations.map((station, index) => {
-              const stationHref = getSafeExternalHref(station.url);
-              const cardContent = (
-                <>
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--color-muted)]">
-                        {rankingBadge(index)}
-                      </p>
-                      <h2 className="mt-2 text-2xl font-black">{station.name}</h2>
+        <div className="mt-8 grid gap-5 xl:grid-cols-[minmax(0,1.18fr)_320px]">
+          {featuredStations.length > 0 ? (
+            <div className="grid gap-4 md:grid-cols-2">
+              {featuredStations.map((station, index) => {
+                const stationHref = getSafeExternalHref(station.url);
+                const cardContent = (
+                  <>
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--color-muted)]">
+                          {rankingBadge(index)} · 首批候选
+                        </p>
+                        <h2 className="mt-2 text-2xl font-black">{station.name}</h2>
+                      </div>
+                      <span className="rounded-full bg-[var(--color-brand-soft)] px-3 py-1 text-xs font-bold text-[var(--color-brand-deep)]">
+                        {station.badge}
+                      </span>
                     </div>
-                    <span className="rounded-full bg-[var(--color-brand-soft)] px-3 py-1 text-xs font-bold text-[var(--color-brand-deep)]">
-                      {station.badge}
-                    </span>
-                  </div>
 
-                  <p className="mt-4 line-clamp-3 text-sm leading-7 text-[var(--color-muted)]">{station.note}</p>
+                    <p className="mt-4 line-clamp-3 text-sm leading-7 text-[var(--color-muted)]">{station.note}</p>
 
-                  <div className="mt-5 grid grid-cols-2 gap-3 border-t border-[var(--color-line)] pt-4 text-sm">
-                    <div>
-                      <p className="text-[var(--color-muted)]">价格</p>
-                      <p className="mt-1 font-black">{station.price}</p>
+                    <div className="mt-5 grid grid-cols-3 gap-3 border-t border-[var(--color-line)] pt-4 text-sm">
+                      <div>
+                        <p className="text-[var(--color-muted)]">价格</p>
+                        <p className="mt-1 font-black">{station.price}</p>
+                      </div>
+                      <div>
+                        <p className="text-[var(--color-muted)]">倍率</p>
+                        <p className="mt-1 font-black">{station.multiplier}</p>
+                      </div>
+                      <div>
+                        <p className="text-[var(--color-muted)]">门槛</p>
+                        <p className="mt-1 line-clamp-1 font-black">{station.packageType || "待补"}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-[var(--color-muted)]">倍率</p>
-                      <p className="mt-1 font-black">{station.multiplier}</p>
-                    </div>
-                  </div>
 
-                  {stationHref ? (
-                    <div className="mt-5 inline-flex items-center text-sm font-bold text-[var(--color-brand-deep)]">
-                      打开站点入口
-                      <span className="ml-2 transition-all duration-300 group-hover:translate-x-1.5">→</span>
-                    </div>
-                  ) : null}
+                    <div className="mt-5 flex flex-wrap items-center gap-2">
+                      {stationHref ? (
+                        <div className="inline-flex items-center text-sm font-bold text-[var(--color-brand-deep)]">
+                          打开站点入口
+                          <span className="ml-2 transition-all duration-300 group-hover:translate-x-1.5">→</span>
+                        </div>
+                      ) : null}
 
-                  <div className="mt-3 flex items-center gap-2">
-                    <button
-                      className="inline-flex items-center gap-1.5 rounded-full bg-[var(--color-soft)] px-3 py-1.5 text-xs font-semibold text-[var(--color-muted)] transition hover:bg-[var(--color-brand-soft)] hover:text-[var(--color-brand-deep)]"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setDiscussionStation(station);
-                      }}
-                      type="button"
+                      <button
+                        className="inline-flex items-center gap-1.5 rounded-full bg-[var(--color-soft)] px-3 py-1.5 text-xs font-semibold text-[var(--color-muted)] transition hover:bg-[var(--color-brand-soft)] hover:text-[var(--color-brand-deep)]"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setDiscussionStation(station);
+                        }}
+                        type="button"
+                      >
+                        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                        </svg>
+                        讨论区
+                      </button>
+                    </div>
+                  </>
+                );
+
+                if (stationHref) {
+                  return (
+                    <a
+                      key={`${station.id}-hero`}
+                      href={stationHref}
+                      rel="noopener noreferrer"
+                      target="_blank"
+                      className="stagger-in card-lift group min-h-[232px] rounded-[22px] border border-[var(--color-line)] bg-[var(--surface-gradient)] p-6 shadow-[var(--shadow-card)] transition-all duration-300 hover:-translate-y-[4px] hover:border-[var(--color-brand)] hover:shadow-[0_28px_72px_rgba(15,23,42,0.10)]"
                     >
-                      <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                      </svg>
-                      讨论区
-                    </button>
-                  </div>
-                </>
-              );
+                      {cardContent}
+                    </a>
+                  );
+                }
 
-              if (stationHref) {
                 return (
-                  <a
+                  <div
                     key={`${station.id}-hero`}
-                    href={stationHref}
-                    rel="noopener noreferrer"
-                    target="_blank"
-                    className="stagger-in card-lift group min-h-[226px] rounded-[20px] border border-[var(--color-line)] bg-[var(--surface-gradient)] p-6 shadow-[var(--shadow-card)] transition-all duration-300 hover:-translate-y-[4px] hover:border-[var(--color-brand)] hover:shadow-[0_28px_72px_rgba(15,23,42,0.10)]"
+                    className="stagger-in card-lift group min-h-[232px] rounded-[22px] border border-[var(--color-line)] bg-[var(--surface-gradient)] p-6 shadow-[var(--shadow-card)] transition-all duration-300 hover:-translate-y-[4px] hover:border-[var(--color-brand)] hover:shadow-[0_28px_72px_rgba(15,23,42,0.10)]"
                   >
                     {cardContent}
-                  </a>
+                  </div>
                 );
-              }
+              })}
+            </div>
+          ) : (
+            <div />
+          )}
 
-              return (
-                <div
-                  key={`${station.id}-hero`}
-                  className="stagger-in card-lift group min-h-[226px] rounded-[20px] border border-[var(--color-line)] bg-[var(--surface-gradient)] p-6 shadow-[var(--shadow-card)] transition-all duration-300 hover:-translate-y-[4px] hover:border-[var(--color-brand)] hover:shadow-[0_28px_72px_rgba(15,23,42,0.10)]"
-                >
-                  {cardContent}
-                </div>
-              );
-            })}
-          </div>
-        )}
+          <aside className="surface-in rounded-[24px] border border-[var(--color-line)] bg-[var(--color-panel)] p-5 shadow-[var(--shadow-card)]">
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
+              先这样看
+            </p>
+            <p className="mt-3 text-lg font-black text-[var(--color-ink)]">
+              先筛，再看总表，最后回社区补风险。
+            </p>
+
+            <div className="mt-4 grid gap-3">
+              <div className="rounded-[18px] bg-[var(--color-soft)] px-4 py-3">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--color-muted)]">
+                  第一步
+                </p>
+                <p className="mt-2 text-sm font-black text-[var(--color-ink)]">先锁 2 到 3 个候选</p>
+                <p className="mt-1 text-sm leading-6 text-[var(--color-muted)]">先用价格、倍率和门槛缩小决策面。</p>
+              </div>
+              <div className="rounded-[18px] bg-[var(--color-soft)] px-4 py-3">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--color-muted)]">
+                  第二步
+                </p>
+                <p className="mt-2 text-sm font-black text-[var(--color-ink)]">再看备注和更新</p>
+                <p className="mt-1 text-sm leading-6 text-[var(--color-muted)]">把总表备注当摘要看，细节再进历史和讨论区。</p>
+              </div>
+              <div className="rounded-[18px] bg-[var(--color-brand-soft)] px-4 py-3">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--color-muted)]">
+                  第三步
+                </p>
+                <p className="mt-2 text-sm font-black text-[var(--color-ink)]">最后补反馈</p>
+                <p className="mt-1 text-sm leading-6 text-[var(--color-muted)]">价格负责初筛，真实变化继续靠社区回流。</p>
+              </div>
+            </div>
+
+            <div className="mt-5 grid grid-cols-2 gap-3 border-t border-[var(--color-line)] pt-5">
+              <div className="rounded-[18px] bg-[var(--color-soft)] px-4 py-3">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--color-muted)]">本周更新</p>
+                <p className="mt-2 text-lg font-black text-[var(--color-ink)]">{freshnessStats.updatedThisWeek}</p>
+              </div>
+              <div className="rounded-[18px] bg-[var(--color-soft)] px-4 py-3">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--color-muted)]">试用样本</p>
+                <p className="mt-2 text-lg font-black text-[var(--color-ink)]">{trialCount}+</p>
+              </div>
+            </div>
+          </aside>
+        </div>
 
         <div className="surface-in mt-6 rounded-[28px] border border-[var(--color-line)] bg-[var(--color-panel)] p-6 shadow-[var(--shadow-card)] backdrop-blur">
-          <div className="flex flex-wrap items-start justify-between gap-5">
-            <div className="max-w-2xl">
+          <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_280px] xl:items-start">
+            <div>
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
                 快速查找
               </p>
               <h2 className="mt-2 text-2xl font-black">搜索 / 筛选</h2>
-              <p className="mt-2 text-sm leading-6 text-[var(--color-muted)]">
-                先把结果收成可比较的一批，再往下看总表和右侧协作提示，不要在第一屏就读完所有备注。
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--color-muted)]">
+                先把结果收成可比较的一批，再往下看总表，不要在第一屏就读完所有备注。
               </p>
             </div>
-            <div className="min-w-[240px] rounded-[20px] border border-[var(--color-line)] bg-[var(--color-soft)] px-4 py-3.5 text-sm">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--color-muted)]">
-                当前结果面
-              </p>
-              <p className="mt-2 text-lg font-black text-[var(--color-ink)]">
-                找到 {filteredRows.length} 个站点
-              </p>
-              <p className="mt-1 text-sm text-[var(--color-muted)]">
-                先看前 {Math.min(visibleRows.length, filteredRows.length)} 条，再决定要不要展开更多。
-              </p>
+            <div className="grid gap-3">
+              <div className="rounded-[20px] border border-[var(--color-line)] bg-[var(--color-soft)] px-4 py-3.5 text-sm">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--color-muted)]">
+                  当前结果面
+                </p>
+                <p className="mt-2 text-lg font-black text-[var(--color-ink)]">
+                  找到 {filteredRows.length} 个站点
+                </p>
+                <p className="mt-1 text-sm text-[var(--color-muted)]">
+                  先看前 {Math.min(visibleRows.length, filteredRows.length)} 条，再决定要不要展开更多。
+                </p>
+              </div>
+              <div className="rounded-[20px] border border-[var(--color-line)] bg-[var(--color-panel-strong)] px-4 py-3.5 text-sm">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--color-muted)]">
+                  当前筛选
+                </p>
+                <p className="mt-2 text-sm font-black text-[var(--color-ink)]">
+                  {filters.find((filter) => filter.id === activeFilter)?.label ?? "全部站点"}
+                </p>
+                <p className="mt-1 text-sm text-[var(--color-muted)]">
+                  {sortOptions.find((option) => option.value === sortBy)?.label}
+                </p>
+              </div>
             </div>
           </div>
 
@@ -975,7 +1040,7 @@ export function StationsBoard() {
 
       {/* ---- Table ---- */}
       <section className="mx-auto max-w-[1500px] px-6 pb-14 lg:px-10">
-        <div className="grid gap-5 xl:grid-cols-[minmax(0,1.5fr)_300px] xl:items-start">
+        <div className="grid gap-5 xl:grid-cols-[minmax(0,1.62fr)_320px] xl:items-start">
           <div className="surface-in overflow-hidden rounded-[28px] border border-[var(--color-line)] bg-[var(--color-panel)] shadow-[var(--shadow-card)]">
           {/* Table header */}
           <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--color-line)] px-6 py-5">
@@ -1194,7 +1259,7 @@ export function StationsBoard() {
           <div className="hidden overflow-x-auto lg:block">
             <div className="min-w-[1320px]">
               {/* Column headers */}
-              <div className="grid grid-cols-[0.64fr_1.36fr_1.08fr_0.92fr_0.98fr_0.84fr_0.98fr] bg-[var(--color-soft)] px-6 py-4 text-sm font-bold uppercase tracking-[0.18em] text-[var(--color-muted)]">
+              <div className="grid grid-cols-[0.62fr_1.38fr_1.1fr_0.94fr_0.96fr_0.82fr_1fr] bg-[var(--color-soft)] px-6 py-4 text-sm font-bold uppercase tracking-[0.18em] text-[var(--color-muted)]">
                 <span>排序</span>
                 <span>站点</span>
                 <span>入口 / 地址</span>
@@ -1239,7 +1304,7 @@ export function StationsBoard() {
                 return (
                   <div key={station.id}>
                     <article
-                      className="grid grid-cols-[0.64fr_1.36fr_1.08fr_0.92fr_0.98fr_0.84fr_0.98fr] items-start border-l-2 border-l-transparent px-6 py-5 transition-all duration-300 hover:border-l-[var(--color-brand)] hover:bg-[var(--color-hover)]"
+                      className="grid grid-cols-[0.62fr_1.38fr_1.1fr_0.94fr_0.96fr_0.82fr_1fr] items-start border-l-2 border-l-transparent px-6 py-5 transition-all duration-300 hover:border-l-[var(--color-brand)] hover:bg-[var(--color-hover)]"
                     >
                       {/* 排序 */}
                       <div className="font-bold text-[var(--color-muted)]">
@@ -1418,11 +1483,9 @@ export function StationsBoard() {
 
           <aside className="hidden xl:block">
             <div className="surface-in sticky top-24 rounded-[28px] border border-[var(--color-line)] bg-[var(--color-panel)] p-5 shadow-[var(--shadow-card)]">
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
-                右侧协作栏
-              </p>
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">右侧协作栏</p>
               <p className="mt-3 text-sm leading-6 text-[var(--color-muted)]">
-                右边只保留决策时最常用的辅助信息，不和总表抢视觉重心。
+                这里只保留看表时最常用的辅助动作，不和总表抢视觉重心。
               </p>
 
               <div className="mt-5 grid gap-3">
@@ -1444,7 +1507,7 @@ export function StationsBoard() {
                   </p>
                   <p className="mt-2 text-sm font-black text-[var(--color-ink)]">倍率和门槛先看，备注后看</p>
                   <p className="mt-1 text-sm leading-6 text-[var(--color-muted)]">
-                    详细口径更适合进历史或讨论区，不要在总表里一次读完。
+                    详细口径更适合进历史或讨论区，不要把总表当长文看。
                   </p>
                 </div>
               </div>
