@@ -49,6 +49,30 @@ const utilityRoutes = [
   },
 ] as const;
 
+const appearanceWays = [
+  {
+    label: "整套切换",
+    title: "先从整套预设开始",
+    description: "如果拿不准，先在外观中心里选一套现成组合，再决定要不要细调。",
+  },
+  {
+    label: "只换主题",
+    title: "想换气质就动主题",
+    description: "主题主要影响背景层次、空间感和整体氛围，适合先定网站气质。",
+  },
+  {
+    label: "只换配色",
+    title: "想保守一点就动配色",
+    description: "配色主要影响按钮、描边和强调色，改动更稳，更适合小步试。",
+  },
+] as const;
+
+const appearanceSuggestions = [
+  "第一次试用：先选整套，再看要不要继续细调。",
+  "想保留结构：只改配色，通常更安全。",
+  "想明显换感觉：优先改主题，再挑一个顺眼的配色。",
+] as const;
+
 function isRouteActive(pathname: string, href: string) {
   return href === "/" ? pathname === "/" : pathname.startsWith(href);
 }
@@ -101,6 +125,12 @@ export function FloatingQuickPanel() {
     if (typeof window !== "undefined") {
       window.localStorage.setItem(HINT_DISMISSED_KEY, "1");
     }
+  }
+
+  function scrollAppearanceSection(sectionId: string) {
+    const section = document.getElementById(sectionId);
+    if (!section) return;
+    section.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
 
   return (
@@ -157,6 +187,28 @@ export function FloatingQuickPanel() {
                 </span>
               </div>
               <div className="mt-3 grid grid-cols-2 gap-2">
+                <button
+                  className="rounded-[14px] border border-[var(--color-line)] bg-white/78 px-3 py-2.5 text-left transition hover:border-[var(--color-brand)] hover:bg-white"
+                  onClick={() => scrollAppearanceSection("appearance-theme-section")}
+                  type="button"
+                >
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--color-muted)]">
+                    主题快捷
+                  </p>
+                  <p className="mt-1 text-sm font-bold text-[var(--color-ink)]">直接改背景气质</p>
+                </button>
+                <button
+                  className="rounded-[14px] border border-[var(--color-line)] bg-white/78 px-3 py-2.5 text-left transition hover:border-[var(--color-brand)] hover:bg-white"
+                  onClick={() => scrollAppearanceSection("appearance-palette-section")}
+                  type="button"
+                >
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--color-muted)]">
+                    配色快捷
+                  </p>
+                  <p className="mt-1 text-sm font-bold text-[var(--color-ink)]">直接改主色强调</p>
+                </button>
+              </div>
+              <div className="mt-3 grid grid-cols-2 gap-2">
                 <div className="rounded-[14px] border border-[var(--color-line)] bg-white/70 px-3 py-2.5">
                   <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--color-muted)]">
                     主题
@@ -174,9 +226,79 @@ export function FloatingQuickPanel() {
           </div>
 
           <div className="mt-4">
+            <div className="rounded-[18px] border border-[var(--color-line)] bg-[color:color-mix(in_srgb,var(--color-panel)_80%,white)] p-3">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
+                    怎么玩更轻松
+                  </p>
+                  <p className="mt-1 text-sm font-bold text-[var(--color-ink)]">
+                    把它当成 3 种不同力度的外观调节。
+                  </p>
+                </div>
+                <span className="rounded-full border border-[var(--color-line)] bg-[var(--color-soft)] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-brand-deep)]">
+                  Tips
+                </span>
+              </div>
+              <div className="mt-3 grid gap-2">
+                {appearanceWays.map((item) => (
+                  <div
+                    key={item.label}
+                    className="rounded-[16px] border border-[var(--color-line)] bg-[var(--color-soft)] px-3 py-3"
+                  >
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--color-brand-deep)]">
+                      {item.label}
+                    </p>
+                    <p className="mt-1 text-sm font-bold text-[var(--color-ink)]">{item.title}</p>
+                    <p className="mt-1 text-xs leading-5 text-[var(--color-muted)]">{item.description}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-3 rounded-[16px] border border-dashed border-[var(--color-line)] bg-white/65 px-3 py-3">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--color-muted)]">
+                  拿不准时
+                </p>
+                <div className="mt-2 space-y-1.5">
+                  {appearanceSuggestions.map((item) => (
+                    <p key={item} className="text-xs leading-5 text-[var(--color-muted)]">
+                      {item}
+                    </p>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4">
             <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
               外观中心
             </p>
+            <p className="mb-3 text-xs leading-5 text-[var(--color-muted)]">
+              先在这里试整套组合，再决定是继续改主题，还是只换一个更顺眼的配色。
+            </p>
+            <div className="mb-3 grid grid-cols-3 gap-2">
+              <button
+                className="rounded-[14px] border border-[var(--color-line)] bg-[var(--color-soft)] px-3 py-2 text-xs font-bold text-[var(--color-ink)] transition hover:border-[var(--color-brand)] hover:text-[var(--color-brand-deep)]"
+                onClick={() => scrollAppearanceSection("appearance-presets")}
+                type="button"
+              >
+                整套
+              </button>
+              <button
+                className="rounded-[14px] border border-[var(--color-line)] bg-[var(--color-soft)] px-3 py-2 text-xs font-bold text-[var(--color-ink)] transition hover:border-[var(--color-brand)] hover:text-[var(--color-brand-deep)]"
+                onClick={() => scrollAppearanceSection("appearance-theme-section")}
+                type="button"
+              >
+                主题
+              </button>
+              <button
+                className="rounded-[14px] border border-[var(--color-line)] bg-[var(--color-soft)] px-3 py-2 text-xs font-bold text-[var(--color-ink)] transition hover:border-[var(--color-brand)] hover:text-[var(--color-brand-deep)]"
+                onClick={() => scrollAppearanceSection("appearance-palette-section")}
+                type="button"
+              >
+                配色
+              </button>
+            </div>
             <ThemeToggleInline />
           </div>
 

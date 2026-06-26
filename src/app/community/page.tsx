@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { AuthButton } from "@/components/auth-button";
 import { NotificationBell } from "@/components/notification-bell";
@@ -63,6 +63,54 @@ export default function CommunityPage() {
   const [feedRefreshKey, setFeedRefreshKey] = useState(0);
   const [mobilePanel, setMobilePanel] = useState<"hot" | "rank" | null>(null);
   const [feedbackCard, discussionsCard, qqCard] = collaborationCards;
+  const heroRef = useRef<HTMLDivElement | null>(null);
+  const deskRef = useRef<HTMLDivElement | null>(null);
+  const contentRef = useRef<HTMLDivElement | null>(null);
+  const [revealedSections, setRevealedSections] = useState<Record<string, boolean>>({
+    hero: false,
+    desk: false,
+    content: false,
+  });
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (mediaQuery.matches || !("IntersectionObserver" in window)) {
+      setRevealedSections({ hero: true, desk: true, content: true });
+      return;
+    }
+
+    const entries = [
+      { key: "hero", node: heroRef.current },
+      { key: "desk", node: deskRef.current },
+      { key: "content", node: contentRef.current },
+    ].filter((entry): entry is { key: "hero" | "desk" | "content"; node: HTMLDivElement } => Boolean(entry.node));
+
+    const observer = new IntersectionObserver(
+      (items) => {
+        items.forEach((item) => {
+          if (!item.isIntersecting) return;
+          const key = item.target.getAttribute("data-reveal-key");
+          if (!key) return;
+          setRevealedSections((current) =>
+            current[key] ? current : { ...current, [key]: true },
+          );
+          observer.unobserve(item.target);
+        });
+      },
+      { threshold: 0.12, rootMargin: "0px 0px -8% 0px" },
+    );
+
+    entries.forEach(({ key, node }) => {
+      node.setAttribute("data-reveal-key", key);
+      observer.observe(node);
+    });
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
 
   const handleTopicClick = useCallback((postId: string) => {
     const el = document.getElementById(postId);
@@ -89,7 +137,7 @@ export default function CommunityPage() {
             </div>
             <div>
               <p className="text-2xl font-black tracking-tight">Timix观察站</p>
-              <p className="text-sm text-[var(--color-muted)]">协作路由桌面</p>
+              <p className="text-sm text-[var(--color-muted)]">讨论区与共建入口</p>
             </div>
             <div className="hidden md:block">
               <QqGroupModalButton />
@@ -111,7 +159,7 @@ export default function CommunityPage() {
                 中转站榜单
               </Link>
               <span className="rounded-full bg-[var(--color-brand)] px-4 py-2 text-sm font-semibold text-[var(--color-on-brand)] shadow-[0_10px_24px_var(--color-panel-glow)]">
-                协作桌面
+                论坛入口
               </span>
               {isAdmin ? (
                 <Link
@@ -131,7 +179,12 @@ export default function CommunityPage() {
       </section>
 
       <section className="relative mx-auto max-w-6xl px-3 py-4 sm:px-6 lg:px-10">
-        <div className="relative mb-5 overflow-hidden rounded-[36px] border border-[var(--color-line)] bg-[linear-gradient(145deg,rgba(255,255,255,0.92),rgba(255,247,237,0.82)_48%,rgba(248,250,252,0.96))] shadow-[0_28px_90px_rgba(15,23,42,0.1)]">
+        <div
+          ref={heroRef}
+          className={`relative mb-5 overflow-hidden rounded-[36px] border border-[var(--color-line)] bg-[linear-gradient(145deg,rgba(255,255,255,0.92),rgba(255,247,237,0.82)_48%,rgba(248,250,252,0.96))] shadow-[0_28px_90px_rgba(15,23,42,0.1)] transition-[opacity,transform] duration-700 ease-out motion-reduce:translate-y-0 motion-reduce:opacity-100 ${
+            revealedSections.hero ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
+          }`}
+        >
           <div
             aria-hidden="true"
             className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(59,130,246,0.12),transparent_26%),radial-gradient(circle_at_20%_20%,rgba(245,158,11,0.14),transparent_24%),linear-gradient(180deg,transparent,rgba(255,255,255,0.38))]"
@@ -265,7 +318,10 @@ export default function CommunityPage() {
         </div>
 
         <div
-          className="mb-4 rounded-[28px] border border-[var(--color-line)] bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(248,250,252,0.94))] px-4 py-4 shadow-[0_18px_44px_rgba(15,23,42,0.06)]"
+          ref={deskRef}
+          className={`mb-4 rounded-[28px] border border-[var(--color-line)] bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(248,250,252,0.94))] px-4 py-4 shadow-[0_18px_44px_rgba(15,23,42,0.06)] transition-[opacity,transform] duration-700 ease-out delay-75 motion-reduce:translate-y-0 motion-reduce:opacity-100 ${
+            revealedSections.desk ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0"
+          }`}
         >
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
@@ -330,7 +386,12 @@ export default function CommunityPage() {
           </button>
         </div>
 
-        <div className="xl:flex xl:gap-6">
+        <div
+          ref={contentRef}
+          className={`xl:flex xl:gap-6 transition-[opacity,transform] duration-700 ease-out delay-100 motion-reduce:translate-y-0 motion-reduce:opacity-100 ${
+            revealedSections.content ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0"
+          }`}
+        >
           <div className="min-w-0 flex-1 space-y-5">
             <div id="community-composer" className="scroll-mt-24">
               <CommunityPostPanel onPostCreated={() => setFeedRefreshKey((value) => value + 1)} />

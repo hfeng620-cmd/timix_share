@@ -111,25 +111,67 @@ export default function Home() {
     <main className="theme-stage min-h-screen bg-transparent text-[var(--color-ink)]">
       <style>{`
         @keyframes logo-pulse {
-          0%, 100% { box-shadow: 0 10px 30px var(--color-panel-glow); }
-          50% { box-shadow: 0 14px 38px var(--color-panel-glow); }
+          0%, 100% { box-shadow: 0 10px 28px var(--color-panel-glow); }
+          50% { box-shadow: 0 12px 34px var(--color-panel-glow); }
         }
         @keyframes ticker-slide {
-          from { opacity: 0; transform: translateY(-8px); }
+          from { opacity: 0; transform: translateY(-4px); }
           to { opacity: 1; transform: translateY(0); }
         }
+        @keyframes section-rise {
+          from { opacity: 0; transform: translate3d(0, 18px, 0); }
+          to { opacity: 1; transform: translate3d(0, 0, 0); }
+        }
+        @keyframes section-fade {
+          from { opacity: 0; transform: translate3d(0, 10px, 0); }
+          to { opacity: 1; transform: translate3d(0, 0, 0); }
+        }
         .logo-pulse {
-          animation: logo-pulse 2.4s ease-in-out infinite;
+          animation: logo-pulse 3.6s ease-in-out infinite;
         }
         .ticker-enter {
-          animation: ticker-slide 480ms 200ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+          animation: ticker-slide 420ms 140ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+        }
+        .home-reveal {
+          opacity: 0;
+          animation: section-rise 760ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+        }
+        .home-reveal-soft {
+          opacity: 0;
+          animation: section-fade 620ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+        }
+        .home-delay-1 { animation-delay: 80ms; }
+        .home-delay-2 { animation-delay: 160ms; }
+        .home-delay-3 { animation-delay: 240ms; }
+        .home-flow > * {
+          opacity: 0;
+          animation: section-fade 620ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+        }
+        .home-flow > :nth-child(1) { animation-delay: 80ms; }
+        .home-flow > :nth-child(2) { animation-delay: 150ms; }
+        .home-flow > :nth-child(3) { animation-delay: 220ms; }
+        .home-flow > :nth-child(4) { animation-delay: 290ms; }
+        .home-flow > :nth-child(5) { animation-delay: 360ms; }
+        .home-flow > :nth-child(6) { animation-delay: 430ms; }
+        .home-flow-tight > * {
+          opacity: 0;
+          animation: section-fade 560ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+        }
+        .home-flow-tight > :nth-child(1) { animation-delay: 60ms; }
+        .home-flow-tight > :nth-child(2) { animation-delay: 110ms; }
+        .home-flow-tight > :nth-child(3) { animation-delay: 160ms; }
         }
         .stagger-in:nth-child(5) { animation-delay: 160ms; }
         .stagger-in:nth-child(6) { animation-delay: 200ms; }
         .stagger-in:nth-child(7) { animation-delay: 240ms; }
         .stagger-in:nth-child(8) { animation-delay: 280ms; }
         @media (prefers-reduced-motion: reduce) {
-          .logo-pulse, .ticker-enter { animation: none; }
+          .logo-pulse,
+          .ticker-enter,
+          .home-reveal,
+          .home-reveal-soft,
+          .home-flow > *,
+          .home-flow-tight > * { animation: none; opacity: 1; transform: none; }
         }
       `}</style>
       <section className="sticky top-0 z-30 border-b border-[var(--color-line)] bg-[var(--color-header)] backdrop-blur-xl">
@@ -212,7 +254,7 @@ export default function Home() {
         <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.72),rgba(244,247,251,0.28)_55%,rgba(219,234,254,0.62))]" />
         <div className="relative mx-auto max-w-7xl px-6 py-9 lg:px-10 lg:py-12">
           <div className="grid gap-8 lg:grid-cols-[1.12fr_0.88fr] lg:items-end">
-            <div className="max-w-3xl">
+            <div className="home-reveal max-w-3xl">
               <p className="text-sm font-semibold uppercase tracking-[0.28em] text-[var(--color-brand-deep)]">
                 Relay Signal Desk
               </p>
@@ -240,7 +282,7 @@ export default function Home() {
                 <p className="mb-3 text-xs font-semibold uppercase tracking-[0.22em] text-[var(--color-muted)]">
                   按你的起步方式进入
                 </p>
-                <div className="grid gap-3 sm:grid-cols-3">
+                <div className="home-flow grid gap-3 sm:grid-cols-3">
                 {decisionRoutes.map((route) => (
                   <Link
                     key={route.title}
@@ -253,7 +295,7 @@ export default function Home() {
                 ))}
                 </div>
               </div>
-              <div className="mt-7 grid gap-3 sm:grid-cols-3">
+              <div className="home-flow-tight mt-7 grid gap-3 sm:grid-cols-3">
                 <div className="rounded-[20px] border border-white/70 bg-white/72 px-4 py-4 shadow-[0_16px_34px_rgba(15,23,42,0.06)] backdrop-blur">
                   <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
                     收录站点
@@ -275,7 +317,7 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="relative overflow-hidden rounded-[28px] border border-white/70 bg-white/78 p-6 shadow-[0_22px_64px_rgba(15,23,42,0.08)] backdrop-blur">
+            <div className="home-reveal home-delay-2 relative overflow-hidden rounded-[28px] border border-white/70 bg-white/78 p-6 shadow-[0_22px_64px_rgba(15,23,42,0.08)] backdrop-blur">
               <div className="absolute inset-x-0 top-0 h-28 bg-[radial-gradient(circle_at_top,rgba(37,99,235,0.16),transparent_70%)]" />
               <div className="relative">
                 <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[var(--color-brand-deep)]">
@@ -311,7 +353,7 @@ export default function Home() {
                     </div>
                   </>
                 ) : null}
-                <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                <div className="home-flow-tight mt-5 grid gap-3 sm:grid-cols-2">
                   <div className="rounded-[18px] border border-[var(--color-line)] bg-white/76 px-4 py-4">
                     <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
                       先看什么
@@ -333,7 +375,7 @@ export default function Home() {
                   <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
                     三步判断
                   </p>
-                  <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                  <div className="home-flow-tight mt-3 grid gap-3 sm:grid-cols-3">
                     <div>
                       <p className="text-sm font-black text-[var(--color-ink)]">01 先试用</p>
                       <p className="mt-1 text-sm leading-6 text-[var(--color-muted)]">优先验证低门槛入口。</p>
@@ -357,7 +399,7 @@ export default function Home() {
       <section className="border-b border-[var(--color-line)]">
         <div className="mx-auto max-w-7xl px-6 py-9 lg:px-10 lg:py-11">
           <div className="grid gap-6 xl:grid-cols-[1.04fr_0.96fr]">
-            <div className="rounded-[30px] border border-[var(--color-line)] bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(239,246,255,0.9))] p-6 shadow-[0_22px_60px_rgba(15,23,42,0.06)] lg:p-7">
+            <div className="home-reveal rounded-[30px] border border-[var(--color-line)] bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(239,246,255,0.9))] p-6 shadow-[0_22px_60px_rgba(15,23,42,0.06)] lg:p-7">
               <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[var(--color-brand-deep)]">
                 产品路径
               </p>
@@ -367,7 +409,7 @@ export default function Home() {
               <p className="mt-4 max-w-3xl text-base leading-8 text-[var(--color-muted)]">
                 首页先帮你定顺序，不让动作断在半路。
               </p>
-              <div className="mt-6 grid gap-4 lg:grid-cols-3">
+              <div className="home-flow mt-6 grid gap-4 lg:grid-cols-3">
                 {productLayers.map((layer) => (
                   <article
                     key={layer.title}
@@ -385,7 +427,7 @@ export default function Home() {
               </div>
             </div>
 
-            <aside className="rounded-[30px] border border-[var(--color-line)] bg-[linear-gradient(180deg,rgba(239,246,255,0.96),rgba(255,255,255,0.92))] p-6 shadow-[0_22px_60px_rgba(37,99,235,0.08)] lg:p-7">
+            <aside className="home-reveal home-delay-2 rounded-[30px] border border-[var(--color-line)] bg-[linear-gradient(180deg,rgba(239,246,255,0.96),rgba(255,255,255,0.92))] p-6 shadow-[0_22px_60px_rgba(37,99,235,0.08)] lg:p-7">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="rounded-full bg-white/80 px-3 py-1 text-xs font-bold text-[var(--color-brand-deep)]">
                   已收录 {stationComparisonRows.length} 个站点
@@ -403,7 +445,7 @@ export default function Home() {
               <p className="mt-3 max-w-2xl text-sm leading-7 text-[var(--color-muted)]">
                 先低成本试，再补风险，最后定长期路线。
               </p>
-              <div className="mt-6 space-y-4">
+              <div className="home-flow mt-6 space-y-4">
                 {actionFlows.map((flow) => (
                   <div
                     key={flow.step}
@@ -436,7 +478,7 @@ export default function Home() {
 
       <section className="border-b border-[var(--color-line)]">
         <div className="surface-in mx-auto max-w-7xl px-6 py-8 lg:px-10 lg:py-10">
-          <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+          <div className="home-reveal mb-6 flex flex-wrap items-end justify-between gap-4">
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[var(--color-brand-deep)]">
                 建立判断基准
@@ -467,7 +509,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="surface-in overflow-hidden rounded-[20px] border border-[var(--color-line)] bg-[var(--surface-gradient)] shadow-[var(--shadow-card)]">
+          <div className="home-reveal home-delay-1 surface-in overflow-hidden rounded-[20px] border border-[var(--color-line)] bg-[var(--surface-gradient)] shadow-[var(--shadow-card)]">
             <div className="grid gap-0 lg:grid-cols-[1.35fr_0.65fr]">
               <div className="px-6 py-6 lg:px-8 lg:py-7">
                 <div className="hidden grid-cols-[0.55fr_1fr_0.95fr_0.75fr_1.35fr] border-b border-[var(--color-line)] pb-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--color-muted)] md:grid">
@@ -584,14 +626,14 @@ export default function Home() {
       </section>
 
       <section className="border-t border-[var(--color-line)]">
-        <div className="mx-auto max-w-7xl px-6 py-10 lg:px-10 lg:py-6">
+        <div className="home-reveal-soft mx-auto max-w-7xl px-6 py-10 lg:px-10 lg:py-9">
           <AiNewsPanel />
         </div>
       </section>
 
       <section className="border-t border-[var(--color-line)]">
         <div className="mx-auto max-w-7xl px-6 py-10 lg:px-10 lg:py-12">
-          <div className="flex items-end justify-between gap-6 border-b border-[var(--color-line)] pb-4">
+          <div className="home-reveal flex items-end justify-between gap-6 border-b border-[var(--color-line)] pb-4">
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[var(--color-muted)]">
                 更多中转站
@@ -654,7 +696,7 @@ export default function Home() {
               );
             })}
           </div>
-          <div className="mt-8 rounded-[28px] border border-[var(--color-line)] bg-[linear-gradient(135deg,rgba(239,246,255,0.96),rgba(255,255,255,0.92))] px-6 py-6 shadow-[0_18px_44px_rgba(37,99,235,0.08)]">
+          <div className="home-reveal home-delay-2 mt-8 rounded-[28px] border border-[var(--color-line)] bg-[linear-gradient(135deg,rgba(239,246,255,0.96),rgba(255,255,255,0.92))] px-6 py-6 shadow-[0_18px_44px_rgba(37,99,235,0.08)]">
             <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
               <div>
                 <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[var(--color-brand-deep)]">

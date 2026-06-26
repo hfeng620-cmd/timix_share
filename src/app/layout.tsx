@@ -8,6 +8,8 @@ import { RegisterCounter } from "@/components/register-counter";
 import { MobileDock } from "@/components/mobile-dock";
 import { MouseGlowLayer } from "@/components/mouse-glow-layer";
 import { PageLoadingBar } from "@/components/page-loading-bar";
+import { PageTransitionShell } from "@/components/page-transition-shell";
+import { ScrollRevealOrchestrator } from "@/components/scroll-reveal-orchestrator";
 import { SelectionCommentLayer } from "@/components/selection-comment-layer";
 import { SiteFooter } from "@/components/site-footer";
 import { ToastContainer } from "@/components/toast-container";
@@ -79,8 +81,11 @@ export default function RootLayout({
           <ToastProvider>
             <MouseGlowLayer />
             <MobileDock />
-            <main id="main-content" className="page-enter relative z-10 flex min-h-full flex-col">
-              <ErrorBoundary>{children}</ErrorBoundary>
+            <main id="main-content" className="relative z-10 flex min-h-full flex-col">
+              <ScrollRevealOrchestrator />
+              <PageTransitionShell>
+                <ErrorBoundary>{children}</ErrorBoundary>
+              </PageTransitionShell>
               <SiteFooter />
               <SelectionCommentLayer />
             </main>

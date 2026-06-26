@@ -98,6 +98,13 @@ const APPEARANCE_PRESETS = [
     palette: "midnight",
   },
   {
+    id: "reading",
+    label: "雾面阅读",
+    description: "更适合资料页、榜单页和长内容阅读。",
+    mode: "mist",
+    palette: "graphite",
+  },
+  {
     id: "product",
     label: "柔和产品",
     description: "更像产品首页，适合轻氛围展示。",
@@ -105,11 +112,25 @@ const APPEARANCE_PRESETS = [
     palette: "sage",
   },
   {
+    id: "studio",
+    label: "理性桌面",
+    description: "更专业克制，适合工具页和信息密集页面。",
+    mode: "signal",
+    palette: "graphite",
+  },
+  {
     id: "editorial",
     label: "编辑稿面",
     description: "更克制的纸感和纤维纹理，适合长内容页。",
     mode: "linen",
     palette: "sand",
+  },
+  {
+    id: "console",
+    label: "终端监听",
+    description: "更强的信号压感，适合深色技术氛围。",
+    mode: "signal",
+    palette: "cyber",
   },
   {
     id: "gallery",
@@ -232,11 +253,11 @@ export function ThemeToggleInline() {
         </span>
       </div>
 
-      <div className="mt-4">
+      <div className="mt-4" id="appearance-summary">
         <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
           当前组合
         </p>
-        <div className="mt-2 grid grid-cols-3 gap-2">
+        <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
           <div className="rounded-[14px] border border-[var(--color-line)] bg-[var(--color-panel-strong)] px-3 py-2.5">
             <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--color-muted)]">
               主题
@@ -248,6 +269,12 @@ export function ThemeToggleInline() {
               配色
             </p>
             <p className="mt-1 text-sm font-black text-[var(--color-ink)]">{PALETTES.length} 组</p>
+          </div>
+          <div className="rounded-[14px] border border-[var(--color-line)] bg-[var(--color-panel-strong)] px-3 py-2.5">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--color-muted)]">
+              预设
+            </p>
+            <p className="mt-1 text-sm font-black text-[var(--color-ink)]">{APPEARANCE_PRESETS.length} 组</p>
           </div>
           <div className="rounded-[14px] border border-[var(--color-line)] bg-[var(--color-panel-strong)] px-3 py-2.5">
             <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--color-muted)]">
@@ -296,7 +323,7 @@ export function ThemeToggleInline() {
         </div>
       </div>
 
-      <div className="mt-4">
+      <div className="mt-4" id="appearance-presets">
         <div className="flex items-center justify-between gap-3">
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
             一键切整套
@@ -345,7 +372,7 @@ export function ThemeToggleInline() {
         </div>
       </div>
 
-      <div className="mt-4">
+      <div className="mt-4" id="appearance-theme-section">
         <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
           主题
         </p>
@@ -389,7 +416,7 @@ export function ThemeToggleInline() {
         </div>
       </div>
 
-      <div className="mt-4">
+      <div className="mt-4" id="appearance-palette-section">
         <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
           配色
         </p>

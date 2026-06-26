@@ -261,6 +261,8 @@ export function DiscussionFeed({
   const [bookmarksOnly, setBookmarksOnly] = useState(false);
   const [pinSaving, setPinSaving] = useState(false);
   const [activeProfileCard, setActiveProfileCard] = useState<{ userId: string; position: { x: number; y: number } } | null>(null);
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const [isSectionRevealed, setIsSectionRevealed] = useState(false);
 
   // ── Server-side search + pagination state ──
   const [searchResult, setSearchResult] = useState<SearchResult | null>(null);
@@ -522,6 +524,36 @@ export function DiscussionFeed({
   ].filter((value): value is string => Boolean(value));
   const hasActiveFilters = activeFilters.length > 0;
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (mediaQuery.matches || !("IntersectionObserver" in window)) {
+      setIsSectionRevealed(true);
+      return;
+    }
+
+    const node = sectionRef.current;
+    if (!node) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          setIsSectionRevealed(true);
+          observer.unobserve(entry.target);
+        });
+      },
+      { threshold: 0.08, rootMargin: "0px 0px -10% 0px" },
+    );
+
+    observer.observe(node);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
   async function handleSubmitPost() {
     if (!isConnected) {
       showAuthModal();
@@ -769,7 +801,10 @@ export function DiscussionFeed({
 
   return (
     <section
-      className="card-lift overflow-hidden rounded-[24px] border border-[var(--color-line)] bg-[var(--color-panel)] shadow-[0_20px_60px_rgba(15,23,42,0.08)] transition-all duration-300"
+      ref={sectionRef}
+      className={`card-lift overflow-hidden rounded-[24px] border border-[var(--color-line)] bg-[var(--color-panel)] shadow-[0_20px_60px_rgba(15,23,42,0.08)] transition-[opacity,transform,box-shadow] duration-700 ease-out motion-reduce:translate-y-0 motion-reduce:opacity-100 ${
+        isSectionRevealed ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0"
+      }`}
       data-selection-comments="off"
     >
       <div className="border-b border-[var(--color-line)] bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.98)_58%,rgba(255,247,237,0.84))] px-5 py-5">
@@ -1069,7 +1104,7 @@ export function DiscussionFeed({
           const replyQuote = replyQuotes[post.issueNumber];
 
           return (
-            <article id={post.issueNumber} key={post.issueNumber} className={`card-lift border-l-2 border-l-transparent px-5 py-5 transition hover:border-l-[var(--color-brand)] hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.9),rgba(248,250,252,0.88))] sm:px-6 ${
+            <article id={post.issueNumber} key={post.issueNumber} className={`card-lift border-l-2 border-l-transparent px-5 py-5 transition-colors duration-200 hover:border-l-[var(--color-brand)] hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.9),rgba(248,250,252,0.88))] sm:px-6 ${
                 post.is_pinned ? "bg-[linear-gradient(180deg,rgba(255,247,237,0.86),rgba(255,255,255,0.9))]" : ""
               }`}>
               <div className="flex items-start gap-3 sm:gap-4">
@@ -1307,7 +1342,7 @@ export function DiscussionFeed({
               </div>
 
               {expanded ? (
-                <div className="mt-4 border-l-2 border-[var(--color-line)] pl-4">
+                <div className="mt-4 origin-top animate-[discussionExpand_220ms_ease-out] border-l-2 border-[var(--color-line)] pl-4 motion-reduce:animate-none">
                   <div className="space-y-4">
                     {comments === undefined ? (
                       <p className="text-sm text-[var(--color-muted)]">正在加载回复...</p>
@@ -1495,6 +1530,19 @@ export function DiscussionFeed({
           onClose={() => setActiveProfileCard(null)}
         />
       ) : null}
+
+      <style jsx>{`
+        @keyframes discussionExpand {
+          from {
+            opacity: 0;
+            transform: translateY(6px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
 
     </section>
   );
