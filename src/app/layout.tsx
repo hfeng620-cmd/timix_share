@@ -26,7 +26,10 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const siteOrigin = "https://www.1bex.com";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteOrigin),
   title: "Timix观察站 — AI 中转站榜单与社区",
   description: "社区共建的 AI 中转站观察站，持续整理价格、倍率、稳定性、模型覆盖和真实使用反馈。",
   keywords: ["AI中转站", "API中转", "GPT", "Claude", "倍率对比", "模型价格"],
@@ -35,6 +38,12 @@ export const metadata: Metadata = {
     description: "社区共建的 AI 中转站观察站，持续整理价格、倍率、稳定性、模型覆盖和真实使用反馈。",
     type: "website",
     locale: "zh_CN",
+    siteName: "Timix观察站",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Timix观察站 — AI 中转站榜单与社区",
+    description: "社区共建的 AI 中转站观察站，持续整理价格、倍率、稳定性、模型覆盖和真实使用反馈。",
   },
   robots: { index: true, follow: true },
 };
@@ -52,7 +61,9 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <head>
-        <link rel="preconnect" href="https://svksgdsuquhkwyliavfn.supabase.co" />
+        {process.env.NEXT_PUBLIC_SUPABASE_URL && (
+          <link rel="preconnect" href={process.env.NEXT_PUBLIC_SUPABASE_URL} />
+        )}
         <link rel="preconnect" href="https://api.github.com" />
       </head>
       <body className="min-h-full">

@@ -3,6 +3,21 @@ import Link from "next/link";
 import { NotificationBell } from "@/components/notification-bell";
 import { modelGuideNotes, modelPreviewRows, modelRankings, tickerItems } from "@/lib/site-data";
 
+const modelDecisionRoutes = [
+  {
+    title: "我要主力写作 / 代码",
+    description: "先看通用模型，再回榜单页比真实长期成本。",
+  },
+  {
+    title: "我要长文阅读 / 总结",
+    description: "优先看长上下文和稳定输出，再判断是否值得长期充值。",
+  },
+  {
+    title: "我想低成本先试一圈",
+    description: "先挑低门槛入口和可试用站，再决定主力站。",
+  },
+];
+
 export default function ModelsPage() {
   return (
     <main className="min-h-screen bg-[var(--color-bg)] text-[var(--color-ink)]">
@@ -49,7 +64,7 @@ export default function ModelsPage() {
                   key={item.label}
                   className="flex items-center gap-2 transition hover:text-[var(--color-ink)]"
                   href={item.href}
-                  rel="noreferrer"
+                  rel="noopener noreferrer"
                   target="_blank"
                 >
                   <span
@@ -77,6 +92,52 @@ export default function ModelsPage() {
       </section>
 
       <section className="mx-auto max-w-7xl px-6 py-12 lg:px-10">
+        <div className="mb-10 overflow-hidden rounded-[36px] border border-[var(--color-line)] bg-[var(--surface-gradient)] p-7 shadow-[var(--shadow-card)]">
+          <div className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
+            <div>
+              <p className="inline-flex rounded-full bg-[var(--color-brand-soft)] px-3 py-1 text-sm font-bold text-[var(--color-brand-deep)]">
+                先定模型，再去比价
+              </p>
+              <h1 className="mt-4 max-w-3xl text-4xl font-black tracking-tight sm:text-5xl">
+                不要先被站点名带跑，先把你要做的任务说清楚。
+              </h1>
+              <p className="mt-5 max-w-2xl text-base leading-8 text-[var(--color-muted)]">
+                这一页先帮你做第一层判断：你的主力是通用写作与代码、长文分析，还是低成本尝鲜。模型方向先定下来，回到榜单页比价格、倍率和入口时才不会失焦。
+              </p>
+
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Link
+                  className="rounded-full bg-[var(--color-brand)] px-5 py-3 text-sm font-bold text-[var(--color-on-brand)] shadow-[0_12px_24px_var(--color-panel-glow)]"
+                  href="/stations"
+                >
+                  选完就去比价
+                </Link>
+                <Link
+                  className="rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-3 text-sm font-bold text-[var(--color-ink)] transition hover:border-[var(--color-brand)] hover:text-[var(--color-brand-deep)]"
+                  href="/community"
+                >
+                  去看社区反馈
+                </Link>
+              </div>
+            </div>
+
+            <div className="grid gap-3">
+              {modelDecisionRoutes.map((item, index) => (
+                <article
+                  key={item.title}
+                  className="rounded-[24px] border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-5 transition hover:-translate-y-0.5 hover:border-[var(--color-brand)] hover:shadow-[0_14px_32px_rgba(15,23,42,0.10)]"
+                >
+                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-brand-deep)]">
+                    0{index + 1}
+                  </p>
+                  <h2 className="mt-2 text-xl font-black">{item.title}</h2>
+                  <p className="mt-2 text-sm leading-6 text-[var(--color-muted)]">{item.description}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+        </div>
+
         {/* ---- 模型智商排行榜 ---- */}
         <div className="mb-10 rounded-[36px] border border-[var(--color-line)] bg-white p-7 shadow-[var(--shadow-card)]">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -95,7 +156,7 @@ export default function ModelsPage() {
 
           <div className="mt-6 overflow-hidden rounded-[28px] border border-[var(--color-line)]">
             {/* 表头 */}
-            <div className="grid grid-cols-[0.5fr_1.5fr_1fr_1fr_1fr] bg-[var(--color-soft)] px-5 py-4 text-sm font-bold text-[var(--color-muted)]">
+            <div className="hidden md:grid grid-cols-[0.5fr_1.5fr_1fr_1fr_1fr] bg-[var(--color-soft)] px-5 py-4 text-sm font-bold text-[var(--color-muted)]">
               <span>排名</span>
               <span>模型</span>
               <span>智商 index</span>
@@ -115,7 +176,7 @@ export default function ModelsPage() {
               return (
                 <article
                   key={model.rank}
-                  className={`grid grid-cols-[0.5fr_1.5fr_1fr_1fr_1fr] items-center px-5 py-4 ${
+                  className={`grid grid-cols-[auto_1fr] md:grid-cols-[0.5fr_1.5fr_1fr_1fr_1fr] items-center gap-2 md:gap-0 px-5 py-4 ${
                     index % 2 === 0 ? "bg-white" : "bg-[var(--color-row-alt)]"
                   }`}
                 >
@@ -126,12 +187,18 @@ export default function ModelsPage() {
                       {model.rank}
                     </span>
                   </div>
-                  <div className="font-bold">{model.name}</div>
-                  <div>
+                  <div className="md:hidden">
+                    <p className="font-bold">{model.name}</p>
+                    <p className="text-xs text-[var(--color-muted)]">
+                      智商 {model.intelligenceIndex} · {model.medianPrice} · {model.provider}
+                    </p>
+                  </div>
+                  <div className="hidden md:block font-bold">{model.name}</div>
+                  <div className="hidden md:block">
                     <span className="font-black text-[var(--color-brand)]">{model.intelligenceIndex}</span>
                   </div>
-                  <div className="font-semibold">{model.medianPrice}</div>
-                  <div className="text-sm text-[var(--color-muted)]">{model.provider}</div>
+                  <div className="hidden md:block font-semibold">{model.medianPrice}</div>
+                  <div className="hidden md:block text-sm text-[var(--color-muted)]">{model.provider}</div>
                 </article>
               );
             })}
@@ -143,6 +210,21 @@ export default function ModelsPage() {
               智商 index 高的模型适合复杂推理、长文分析和高质量写作；价格低的模型适合日常对话、简单问答和批量任务。
               建议先确定你的主要使用场景，再在中转站榜单里找支持该模型的站点比价。
             </p>
+          </div>
+
+          <div className="mt-5 grid gap-3 lg:grid-cols-3">
+            <div className="rounded-[22px] border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-4">
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">先看能力</p>
+              <p className="mt-2 text-sm leading-6 text-[var(--color-muted)]">用排行榜判断大方向，不要把单个低价站误当成模型能力本身。</p>
+            </div>
+            <div className="rounded-[22px] border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-4">
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">再看口径</p>
+              <p className="mt-2 text-sm leading-6 text-[var(--color-muted)]">同一站里 GPT、Claude、Grok 的计费可能完全不是一套口径。</p>
+            </div>
+            <div className="rounded-[22px] border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-4">
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">最后看入口</p>
+              <p className="mt-2 text-sm leading-6 text-[var(--color-muted)]">优先从可试用、注册送额、社区反馈多的站点开始验证。</p>
+            </div>
           </div>
         </div>
 
@@ -188,7 +270,7 @@ export default function ModelsPage() {
           </div>
 
           <div className="mt-6 overflow-hidden rounded-[28px] border border-[var(--color-line)]">
-            <div className="grid grid-cols-[0.8fr_0.9fr_0.9fr_1.1fr_1.2fr] bg-[var(--color-soft)] px-5 py-4 text-sm font-bold text-[var(--color-muted)]">
+            <div className="hidden md:grid grid-cols-[0.8fr_0.9fr_0.9fr_1.1fr_1.2fr] bg-[var(--color-soft)] px-5 py-4 text-sm font-bold text-[var(--color-muted)]">
               <span>排序</span>
               <span>模型家族</span>
               <span>适用场景</span>
@@ -198,17 +280,23 @@ export default function ModelsPage() {
             {modelPreviewRows.map((row, index) => (
               <article
                 key={row.rank}
-                className={`grid grid-cols-[0.8fr_0.9fr_0.9fr_1.1fr_1.2fr] items-center px-5 py-5 ${
+                className={`grid grid-cols-[auto_1fr] md:grid-cols-[0.8fr_0.9fr_0.9fr_1.1fr_1.2fr] items-start md:items-center gap-2 md:gap-0 px-5 py-5 ${
                   index % 2 === 0 ? "bg-white" : "bg-[var(--color-row-alt)]"
                 }`}
               >
                 <div className="font-black">{row.rank}</div>
-                <div className="font-bold">{row.family}</div>
-                <div className="font-bold">{row.scene}</div>
-                <div className="text-sm leading-6 text-[var(--color-muted)]">
+                <div className="md:hidden">
+                  <p className="font-bold">{row.family}</p>
+                  <p className="text-xs text-[var(--color-muted)]">{row.scene}</p>
+                  <p className="mt-1 text-sm leading-6 text-[var(--color-muted)]">{row.focus}</p>
+                  <p className="mt-1 text-xs text-[var(--color-brand-deep)]">{row.stationHint}</p>
+                </div>
+                <div className="hidden md:block font-bold">{row.family}</div>
+                <div className="hidden md:block font-bold">{row.scene}</div>
+                <div className="hidden md:block text-sm leading-6 text-[var(--color-muted)]">
                   {row.focus}
                 </div>
-                <div className="text-sm leading-6 text-[var(--color-muted)]">
+                <div className="hidden md:block text-sm leading-6 text-[var(--color-muted)]">
                   {row.stationHint}
                 </div>
               </article>
@@ -227,6 +315,37 @@ export default function ModelsPage() {
                 </p>
               </article>
             ))}
+          </div>
+
+          <div className="mt-8 rounded-[28px] border border-[var(--color-line)] bg-[var(--color-panel-strong)] px-5 py-5">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div className="max-w-2xl">
+                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
+                  下一步
+                </p>
+                <h2 className="mt-2 text-2xl font-black tracking-tight">
+                  模型方向已经定下来，就回榜单页看真实成本。
+                </h2>
+                <p className="mt-2 text-sm leading-7 text-[var(--color-muted)]">
+                  这页负责帮你定模型，榜单页负责比倍率、价格、入口和社区口径。两页分工清楚，判断会稳很多。
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                <Link
+                  className="rounded-full bg-[var(--color-brand)] px-5 py-3 text-sm font-bold text-[var(--color-on-brand)] shadow-[0_12px_24px_var(--color-panel-glow)]"
+                  href="/stations"
+                >
+                  回榜单页比价
+                </Link>
+                <Link
+                  className="rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-3 text-sm font-bold text-[var(--color-ink)] transition hover:border-[var(--color-brand)] hover:text-[var(--color-brand-deep)]"
+                  href="/guides"
+                >
+                  看使用指南
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </section>

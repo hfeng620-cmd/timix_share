@@ -7,6 +7,7 @@ import { stationComparisonRows, stationLinkMap } from "@/lib/site-data";
 import { StationDetailModal } from "@/components/station-detail-modal";
 import { SubmissionPanel } from "@/components/submission-panel";
 import { useForumAuth } from "@/lib/forum-auth";
+import { getSafeExternalHref } from "@/lib/url-safety";
 import {
   createStation,
   deleteStation,
@@ -185,7 +186,8 @@ function fieldLabel(snakeName: string): string {
 // ---------------------------------------------------------------------------
 
 export function StationsBoard() {
-  const { isConnected, displayName } = useForumAuth();
+  const { isConnected, displayName, isAdmin, isOwner } = useForumAuth();
+  const canDeleteStations = isAdmin || isOwner;
 
   // ---- data ---------------------------------------------------------------
   const [stations, setStations] = useState<Station[]>([]);
@@ -235,9 +237,10 @@ export function StationsBoard() {
   // ---- Data loading ---------------------------------------------------------
   useEffect(() => {
     let cancelled = false;
+    let resolved = false;
     // 10s fallback — don't hang forever if Supabase is unreachable
     const timeout = setTimeout(() => {
-      if (!cancelled && loading) {
+      if (!cancelled && !resolved) {
         setError("加载超时，请刷新页面重试。");
         setLoading(false);
       }
@@ -246,6 +249,7 @@ export function StationsBoard() {
       .then((data) => {
         clearTimeout(timeout);
         if (!cancelled) {
+          resolved = true;
           if (data.length === 0) {
             // Fallback to static data when Supabase has no stations yet
             const staticStations: Station[] = stationComparisonRows.map((row, i) => ({
@@ -278,6 +282,7 @@ export function StationsBoard() {
       })
       .catch(() => {
         clearTimeout(timeout);
+        resolved = true;
         if (!cancelled) { setError("数据暂时加载失败，请稍后刷新重试。"); setLoading(false); }
       });
     return () => { cancelled = true; clearTimeout(timeout); };
@@ -305,7 +310,6 @@ export function StationsBoard() {
   // ---- Debounce search query -----------------------------------------------
   useEffect(() => {
     if (!query.trim()) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setDebouncedQuery("");
       return;
     }
@@ -578,13 +582,19 @@ export function StationsBoard() {
             取消
           </button>
           <span className="flex-1" />
-          <button
-            className="rounded-full border border-red-200 bg-red-50 px-4 py-2 text-sm font-bold text-red-600 transition hover:bg-red-100"
-            onClick={() => editingId && handleDelete(editingId)}
-            type="button"
-          >
-            删除站点
-          </button>
+          {canDeleteStations ? (
+            <button
+              className="rounded-full border border-red-200 bg-red-50 px-4 py-2 text-sm font-bold text-red-600 transition hover:bg-red-100"
+              onClick={() => editingId && handleDelete(editingId)}
+              type="button"
+            >
+              删除站点
+            </button>
+          ) : (
+            <p className="text-xs text-[var(--color-muted)]">
+              社区用户可以补充和修正资料；删除站点仅管理员可操作。
+            </p>
+          )}
         </div>
       </div>
     );
@@ -765,6 +775,7 @@ export function StationsBoard() {
             {featuredStations.length > 0 && (
               <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                 {featuredStations.map((station, index) => {
+                  const stationHref = getSafeExternalHref(station.url);
                   const cardContent = (
                     <>
                       <div className="flex items-start justify-between gap-3">
@@ -792,7 +803,7 @@ export function StationsBoard() {
                         </div>
                       </div>
 
-                      {station.url && (
+                      {stationHref && (
                         <div className="mt-5 inline-flex items-center text-sm font-bold text-[var(--color-brand-deep)]">
                           打开站点入口
                           <span className="ml-2 transition-all duration-300 group-hover:translate-x-1.5">→</span>
@@ -801,12 +812,12 @@ export function StationsBoard() {
                     </>
                   );
 
-                  if (station.url) {
+                  if (stationHref) {
                     return (
                       <a
                         key={`${station.id}-hero`}
-                        href={station.url}
-                        rel="noreferrer"
+                        href={stationHref}
+                        rel="noopener noreferrer"
                         target="_blank"
                         className="stagger-in card-lift group min-h-[238px] rounded-[20px] border border-[var(--color-line)] bg-[var(--surface-gradient)] p-6 shadow-[var(--shadow-card)] transition-all duration-300 hover:-translate-y-[4px] hover:border-[var(--color-brand)] hover:shadow-[0_28px_72px_rgba(15,23,42,0.10)]"
                       >
@@ -947,7 +958,7 @@ export function StationsBoard() {
               </Link>
               <a
                 href="https://github.com/hfeng620-cmd/timin_api_test_and_forum/discussions"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 target="_blank"
                 className="rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-3 text-center text-sm font-bold text-[var(--color-ink)] transition hover:border-[var(--color-brand)] hover:text-[var(--color-brand-deep)]"
               >
@@ -962,7 +973,7 @@ export function StationsBoard() {
               <div className="mt-4 grid gap-3">
                 <a
                   href="https://huhuai.xyz/register?aff=BCPA5AKW3KHX"
-                  rel="noreferrer"
+                  rel="noopener noreferrer"
                   target="_blank"
                   className="border-b border-[var(--color-line)] pb-3 text-sm leading-6 transition hover:text-[var(--color-brand-deep)]"
                 >
@@ -970,7 +981,7 @@ export function StationsBoard() {
                 </a>
                 <a
                   href="https://www.kdocs.cn/l/cj84YbmlJswN"
-                  rel="noreferrer"
+                  rel="noopener noreferrer"
                   target="_blank"
                   className="border-b border-[var(--color-line)] pb-3 text-sm leading-6 transition hover:text-[var(--color-brand-deep)]"
                 >
@@ -978,7 +989,7 @@ export function StationsBoard() {
                 </a>
                 <a
                   href="https://www.kdocs.cn/l/cr2932V6f6bH"
-                  rel="noreferrer"
+                  rel="noopener noreferrer"
                   target="_blank"
                   className="border-b border-[var(--color-line)] pb-3 text-sm leading-6 transition hover:text-[var(--color-brand-deep)]"
                 >
@@ -1069,6 +1080,7 @@ export function StationsBoard() {
               visibleRows.map((station, index) => {
                 const isEditing = editingId === station.id;
                 const isShowingHistory = historyStationId === station.id;
+                const stationHref = getSafeExternalHref(station.url);
 
                 return (
                   <div key={station.id}>
@@ -1137,10 +1149,10 @@ export function StationsBoard() {
 
                       {/* Actions */}
                       <div className="mt-4 flex items-center gap-4 border-t border-[var(--color-line)] pt-3">
-                        {station.url ? (
+                        {stationHref ? (
                           <a
-                            href={station.url}
-                            rel="noreferrer"
+                            href={stationHref}
+                            rel="noopener noreferrer"
                             target="_blank"
                             className="text-sm font-semibold text-[var(--color-brand-deep)] transition hover:text-[var(--color-brand)]"
                           >
@@ -1241,6 +1253,7 @@ export function StationsBoard() {
                 visibleRows.map((station, index) => {
                 const isEditing = editingId === station.id;
                 const isShowingHistory = historyStationId === station.id;
+                const stationHref = getSafeExternalHref(station.url);
 
                 return (
                   <div key={station.id}>
@@ -1286,14 +1299,14 @@ export function StationsBoard() {
                             );
                           })()}
                         </div>
-                        {station.url ? (
+                        {stationHref ? (
                           <a
-                            href={station.url}
-                            rel="noreferrer"
+                            href={stationHref}
+                            rel="noopener noreferrer"
                             target="_blank"
                             className="mt-2 inline-block text-sm leading-6 font-semibold text-[var(--color-brand-deep)] transition hover:text-[var(--color-brand)]"
                           >
-                            {station.entry || station.url}
+                            {station.entry || stationHref}
                           </a>
                         ) : (
                           <p className="mt-2 text-sm leading-6 text-[var(--color-muted)]">
@@ -1304,10 +1317,10 @@ export function StationsBoard() {
 
                       {/* 入口 / 地址 */}
                       <div className="text-sm leading-6 text-[var(--color-muted)]">
-                        {station.url ? (
+                        {stationHref ? (
                           <a
-                            href={station.url}
-                            rel="noreferrer"
+                            href={stationHref}
+                            rel="noopener noreferrer"
                             target="_blank"
                             className="font-semibold text-[var(--color-brand-deep)] transition hover:text-[var(--color-brand)]"
                           >

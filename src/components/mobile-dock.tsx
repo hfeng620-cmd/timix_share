@@ -20,7 +20,7 @@ export function MobileDock() {
   return (
     <>
       <nav
-        className="fixed inset-x-3 bottom-3 z-40 grid grid-cols-6 rounded-[20px] border border-[var(--color-line)] bg-[var(--color-panel)] p-1 shadow-[0_18px_60px_rgba(15,23,42,0.14)] backdrop-blur lg:hidden"
+        className="fixed inset-x-3 bottom-3 z-40 grid grid-cols-6 rounded-[22px] border border-[var(--color-line)] bg-[var(--color-panel)] p-1.5 shadow-[0_18px_60px_rgba(15,23,42,0.14)] backdrop-blur lg:hidden"
         data-selection-comments="off"
       >
         {navItems.map((item) => {
@@ -30,14 +30,14 @@ export function MobileDock() {
           return (
             <Link
               key={item.href}
-              className={`rounded-[16px] px-2 py-3.5 text-center text-xs font-bold transition ${
+              className={`rounded-[16px] px-2 py-3 text-center text-[11px] font-bold transition ${
                 active
-                  ? "bg-[var(--color-brand)] text-[var(--color-on-brand)]"
+                  ? "bg-[var(--color-brand)] text-[var(--color-on-brand)] shadow-[0_10px_24px_var(--color-panel-glow)]"
                   : "text-[var(--color-muted)] hover:bg-[var(--color-soft)] hover:text-[var(--color-ink)]"
               }`}
               href={item.href}
             >
-              {item.label}
+              <span className="block">{item.label}</span>
             </Link>
           );
         })}

@@ -2,6 +2,8 @@
 
 import { useRef, type MouseEvent, type PointerEvent, type ReactNode } from "react";
 
+import { getSafeExternalHref } from "@/lib/url-safety";
+
 type StationRowLinkProps = {
   href: string;
   className?: string;
@@ -13,6 +15,7 @@ const DRAG_THRESHOLD = 10;
 export function StationRowLink({ href, className, children }: StationRowLinkProps) {
   const startRef = useRef<{ x: number; y: number } | null>(null);
   const draggingRef = useRef(false);
+  const safeHref = getSafeExternalHref(href);
 
   function handlePointerDown(event: PointerEvent<HTMLAnchorElement>) {
     startRef.current = { x: event.clientX, y: event.clientY };
@@ -37,14 +40,18 @@ export function StationRowLink({ href, className, children }: StationRowLinkProp
     draggingRef.current = false;
   }
 
+  if (!safeHref) {
+    return <div className={className}>{children}</div>;
+  }
+
   return (
     <a
       className={className}
-      href={href}
+      href={safeHref}
       onClick={handleClick}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
-      rel="noreferrer"
+      rel="noopener noreferrer"
       target="_blank"
     >
       {children}

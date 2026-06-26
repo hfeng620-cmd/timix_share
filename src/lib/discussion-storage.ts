@@ -2,6 +2,19 @@
 
 import { getSupabaseClient, isSupabaseConfigured } from "@/lib/supabase";
 
+const FORUM_POSTS_PUBLIC_VIEW = "forum_posts_public";
+const FORUM_PUBLIC_REPLIES_VIEW = "forum_public_replies";
+const DEFAULT_SPAM_KEYWORDS = [
+  "加微信",
+  "免费领取",
+  "点击链接",
+  "日赚",
+  "兼职",
+  "刷单",
+  "代理",
+  "广告",
+] as const;
+
 export type DiscussionPost = {
   issueNumber: string;
   author: string;
@@ -66,6 +79,10 @@ type ForumReplyRow = {
   like_count?: number | null;
 };
 
+type RateLimitedTable = "forum_posts" | "forum_replies" | "station_reviews";
+
+const localRateLimitCache = new Map<string, number>();
+
 function assertConfigured() {
   if (!isSupabaseConfigured()) {
     throw new Error("Supabase forum is not configured.");
@@ -118,6 +135,97 @@ function replyFromRow(row: ForumReplyRow): DiscussionReply {
   };
 }
 
+function normalizeRequiredText(value: string, emptyMessage: string) {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    throw new Error(emptyMessage);
+  }
+  return trimmed;
+}
+
+function normalizeTags(tags?: string[]) {
+  if (!Array.isArray(tags)) return [];
+
+  const uniqueTags = new Set<string>();
+  for (const tag of tags) {
+    const trimmed = tag.trim();
+    if (trimmed) {
+      uniqueTags.add(trimmed.slice(0, 40));
+    }
+  }
+
+  return Array.from(uniqueTags);
+}
+
+function normalizeSpamText(value: string) {
+  return value.toLocaleLowerCase("zh-CN").replace(/\s+/g, "");
+}
+
+function containsSpamKeyword(value: string) {
+  const normalizedContent = normalizeSpamText(value);
+  return DEFAULT_SPAM_KEYWORDS.some((keyword) =>
+    normalizedContent.includes(normalizeSpamText(keyword)),
+  );
+}
+
+function getRateLimitCacheKey(userId: string, table: RateLimitedTable) {
+  return `${table}:${userId}`;
+}
+
+function isRateLimitedAt(timestamp: number) {
+  return Date.now() - timestamp < RATE_LIMIT_SECONDS * 1000;
+}
+
+function reserveRateLimitSlot(userId: string, table: RateLimitedTable) {
+  const cacheKey = getRateLimitCacheKey(userId, table);
+  const now = Date.now();
+  const existing = localRateLimitCache.get(cacheKey);
+
+  if (existing !== undefined && isRateLimitedAt(existing)) {
+    throw new Error(RATE_LIMIT_MESSAGE);
+  }
+
+  localRateLimitCache.set(cacheKey, now);
+
+  let settled = false;
+
+  return {
+    commit() {
+      settled = true;
+    },
+    rollback() {
+      if (settled) return;
+      const cached = localRateLimitCache.get(cacheKey);
+      if (cached === now) {
+        localRateLimitCache.delete(cacheKey);
+      }
+      settled = true;
+    },
+  };
+}
+
+async function getDiscussionPostLikeCount(postId: string, fallback: number) {
+  const { data, error } = await getSupabaseClient()
+    .from(FORUM_POSTS_PUBLIC_VIEW)
+    .select("like_count")
+    .eq("id", postId)
+    .maybeSingle();
+
+  if (error) return fallback;
+  return (data as { like_count?: number | null } | null)?.like_count ?? fallback;
+}
+
+async function getDiscussionReplyLikeCount(replyId: string, fallback: number) {
+  const { data, error } = await getSupabaseClient()
+    .from(FORUM_PUBLIC_REPLIES_VIEW)
+    .select("like_count")
+    .eq("id", replyId)
+    .maybeSingle();
+
+  if (error) return fallback;
+  return (data as { like_count?: number | null } | null)?.like_count ?? fallback;
+}
+
 async function ensureProfile(displayName = "噜噜") {
   assertConfigured();
   const supabase = getSupabaseClient();
@@ -148,7 +256,7 @@ export async function getUserPosts(userId: string): Promise<DiscussionPost[]> {
   if (!isSupabaseConfigured()) return [];
   try {
     const { data, error } = await getSupabaseClient()
-      .from("forum_posts_public")
+      .from(FORUM_POSTS_PUBLIC_VIEW)
       .select("*")
       .eq("author_id", userId)
       .order("created_at", { ascending: false })
@@ -161,11 +269,86 @@ export async function getUserPosts(userId: string): Promise<DiscussionPost[]> {
   }
 }
 
+/** Get posts that a user has liked */
+export async function getUserLikedPosts(userId: string): Promise<DiscussionPost[]> {
+  if (!isSupabaseConfigured()) return [];
+  try {
+    // First get the liked post IDs
+    const { data: likes, error: likesError } = await getSupabaseClient()
+      .from("forum_likes")
+      .select("post_id")
+      .eq("user_id", userId)
+      .not("post_id", "is", null)
+      .order("created_at", { ascending: false })
+      .limit(20);
+
+    if (likesError) throw likesError;
+    const postIds = (likes ?? []).map((r: { post_id: string }) => r.post_id).filter(Boolean);
+    if (postIds.length === 0) return [];
+
+    // Then fetch the posts
+    const { data, error } = await getSupabaseClient()
+      .from(FORUM_POSTS_PUBLIC_VIEW)
+      .select("*")
+      .in("id", postIds);
+
+    if (error) throw error;
+    return ((data ?? []) as ForumPostRow[]).map(postFromRow);
+  } catch {
+    return [];
+  }
+}
+
+/** Get user's recent replies with parent post info */
+export async function getUserReplies(userId: string): Promise<{ reply: DiscussionReply; postTitle: string; postId: string }[]> {
+  if (!isSupabaseConfigured()) return [];
+  try {
+    const { data, error } = await getSupabaseClient()
+      .from("forum_replies")
+      .select("id, body, created_at, post_id, author_id, forum_profiles(display_name)")
+      .eq("author_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(20);
+
+    if (error) throw error;
+
+    const results: { reply: DiscussionReply; postTitle: string; postId: string }[] = [];
+    for (const row of data ?? []) {
+      const profile = (row as Record<string, unknown>).forum_profiles as { display_name?: string } | null;
+      const postId = (row as Record<string, unknown>).post_id as string;
+
+      // Get post title
+      const { data: post } = await getSupabaseClient()
+        .from("forum_posts")
+        .select("title")
+        .eq("id", postId)
+        .single();
+
+      results.push({
+        reply: {
+          id: String((row as Record<string, unknown>).id),
+          body: String((row as Record<string, unknown>).body ?? ""),
+          author: profile?.display_name ?? "噜噜",
+          authorId: userId,
+          avatar: "",
+          postedAt: (row as Record<string, unknown>).created_at as string ?? null,
+          likes: 0,
+        },
+        postTitle: (post as Record<string, unknown>)?.title as string ?? "未知帖子",
+        postId,
+      });
+    }
+    return results;
+  } catch {
+    return [];
+  }
+}
+
 export async function loadAllTags(): Promise<string[]> {
   if (!isSupabaseConfigured()) return [];
   try {
     const { data, error } = await getSupabaseClient()
-      .from("forum_posts_public")
+      .from(FORUM_POSTS_PUBLIC_VIEW)
       .select("tags")
       .limit(100);
 
@@ -187,7 +370,7 @@ export async function loadDiscussionPosts(): Promise<DiscussionPost[]> {
   if (!isSupabaseConfigured()) return [];
   try {
     const { data, error } = await getSupabaseClient()
-      .from("forum_posts_public")
+      .from(FORUM_POSTS_PUBLIC_VIEW)
       .select("*")
       .order("is_pinned", { ascending: false })
       .order("created_at", { ascending: false })
@@ -310,7 +493,7 @@ export async function loadDiscussionPostsPaginated(
 
   try {
     let query = getSupabaseClient()
-      .from("forum_posts_public")
+      .from(FORUM_POSTS_PUBLIC_VIEW)
       .select("*")
       .order("is_pinned", { ascending: false })
       .order("created_at", { ascending: false })
@@ -344,42 +527,57 @@ export async function loadDiscussionPostsPaginated(
 export async function createDiscussionPost(
   input: CreateDiscussionPostInput,
 ): Promise<DiscussionPost> {
-  const authorId = await ensureProfile(input.author || "噜噜");
+  const authorName = input.author?.trim() || "噜噜";
+  const trimmedBody = normalizeRequiredText(input.body, "先写点内容再发帖。");
+  const authorId = await ensureProfile(authorName);
+  const rateLimitSlot = reserveRateLimitSlot(authorId, "forum_posts");
 
-  await checkRateLimit(authorId, "forum_posts");
+  try {
+    await checkRateLimit(authorId, "forum_posts", { skipLocalCache: true });
 
-  const station = input.station?.trim() ?? "";
-  const titleSource = station || input.body.trim();
-  const title = titleSource.length > 80 ? titleSource.slice(0, 80) : titleSource;
+    const isSpam = await checkSpam(trimmedBody);
+    if (isSpam) {
+      throw new Error("内容包含违规关键词，请修改后重试。");
+    }
 
-  const { data, error } = await getSupabaseClient()
-    .from("forum_posts")
-    .insert({
-      author_id: authorId,
-      title: title || "新讨论",
-      body: input.body.trim(),
-      station,
-      tags: input.tags ?? [],
-      is_hidden: false,
-    })
-    .select("id, body, station, tags, created_at")
-    .single();
+    const station = input.station?.trim() ?? "";
+    const normalizedTags = normalizeTags(input.tags);
+    const titleSource = station || trimmedBody;
+    const title = titleSource.length > 80 ? titleSource.slice(0, 80) : titleSource;
 
-  if (error) throw error;
+    const { data, error } = await getSupabaseClient()
+      .from("forum_posts")
+      .insert({
+        author_id: authorId,
+        title: title || "新讨论",
+        body: trimmedBody,
+        station,
+        tags: normalizedTags,
+        is_hidden: false,
+      })
+      .select("id, body, station, tags, created_at")
+      .single();
 
-  return postFromRow({
-    ...(data as ForumPostRow),
-    author_display_name: input.author || "噜噜",
-    reply_count: 0,
-    like_count: 0,
-  });
+    if (error) throw error;
+    rateLimitSlot.commit();
+
+    return postFromRow({
+      ...(data as ForumPostRow),
+      author_display_name: authorName,
+      reply_count: 0,
+      like_count: 0,
+    });
+  } catch (error) {
+    rateLimitSlot.rollback();
+    throw error;
+  }
 }
 
 export async function loadComments(postId: string): Promise<DiscussionReply[]> {
   if (!isSupabaseConfigured()) return [];
   try {
     const { data, error } = await getSupabaseClient()
-      .from("forum_public_replies")
+      .from(FORUM_PUBLIC_REPLIES_VIEW)
       .select("*")
       .eq("post_id", postId)
       .order("created_at", { ascending: true });
@@ -395,28 +593,47 @@ export async function replyDiscussionPost(
   postId: string,
   body: string,
 ): Promise<DiscussionReply> {
+  const trimmedBody = normalizeRequiredText(body, "先写一点回复内容。");
   const authorId = await ensureProfile();
-  const { data, error } = await getSupabaseClient()
-    .from("forum_replies")
-    .insert({
-      post_id: postId,
-      author_id: authorId,
-      body: body.trim(),
-    })
-    .select("id, post_id, body, created_at")
-    .single();
+  const rateLimitSlot = reserveRateLimitSlot(authorId, "forum_replies");
 
-  if (error) throw error;
-  // Read the actual profile for display name
-  const { data: profile } = await getSupabaseClient()
-    .from("forum_profiles")
-    .select("display_name")
-    .eq("id", authorId)
-    .single();
-  return replyFromRow({
-    ...(data as ForumReplyRow),
-    author_display_name: profile?.display_name || "噜噜",
-  });
+  try {
+    await checkRateLimit(authorId, "forum_replies", { skipLocalCache: true });
+
+    const isSpam = await checkSpam(trimmedBody);
+    if (isSpam) {
+      throw new Error("内容包含违规关键词，请修改后重试。");
+    }
+
+    const { data, error } = await getSupabaseClient()
+      .from("forum_replies")
+      .insert({
+        post_id: postId,
+        author_id: authorId,
+        body: trimmedBody,
+      })
+      .select("id, post_id, body, created_at")
+      .single();
+
+    if (error) throw error;
+
+    const { data: profile } = await getSupabaseClient()
+      .from("forum_profiles")
+      .select("display_name, avatar_url")
+      .eq("id", authorId)
+      .maybeSingle();
+
+    rateLimitSlot.commit();
+
+    return replyFromRow({
+      ...(data as ForumReplyRow),
+      author_display_name: profile?.display_name || "噜噜",
+      author_avatar_url: profile?.avatar_url || "",
+    });
+  } catch (error) {
+    rateLimitSlot.rollback();
+    throw error;
+  }
 }
 
 export async function likeDiscussionPost(
@@ -431,11 +648,13 @@ export async function likeDiscussionPost(
   });
 
   if (error) {
-    if (error.code === "23505") return currentLikes;
+    if (error.code === "23505") {
+      return getDiscussionPostLikeCount(postId, currentLikes);
+    }
     throw error;
   }
 
-  return currentLikes + 1;
+  return getDiscussionPostLikeCount(postId, currentLikes + 1);
 }
 
 export async function likeReply(replyId: string): Promise<number> {
@@ -447,17 +666,13 @@ export async function likeReply(replyId: string): Promise<number> {
   });
 
   if (error) {
-    if (error.code === "23505") return 0;
+    if (error.code === "23505") {
+      return getDiscussionReplyLikeCount(replyId, 0);
+    }
     throw error;
   }
 
-  // Get updated like count
-  const { data } = await supabase
-    .from("forum_public_replies")
-    .select("like_count")
-    .eq("id", replyId)
-    .single();
-  return (data as { like_count?: number } | null)?.like_count ?? 1;
+  return getDiscussionReplyLikeCount(replyId, 1);
 }
 
 export async function loadPendingDiscussionPosts(): Promise<DiscussionPost[]> {
@@ -564,9 +779,10 @@ export async function updatePostBody(
   newBody: string,
 ): Promise<void> {
   assertConfigured();
+  const trimmedBody = normalizeRequiredText(newBody, "内容不能为空。");
   const { error } = await getSupabaseClient()
     .from("forum_posts")
-    .update({ body: newBody.trim() })
+    .update({ body: trimmedBody })
     .eq("id", postId);
 
   if (error) throw error;
@@ -577,9 +793,10 @@ export async function updateAndApprovePost(
   newBody: string,
 ): Promise<void> {
   assertConfigured();
+  const trimmedBody = normalizeRequiredText(newBody, "内容不能为空。");
   const { error } = await getSupabaseClient()
     .from("forum_posts")
-    .update({ body: newBody.trim(), is_hidden: false })
+    .update({ body: trimmedBody, is_hidden: false })
     .eq("id", postId);
 
   if (error) throw error;
@@ -659,11 +876,15 @@ export async function getForumStats(): Promise<ForumStats | null> {
 
 export async function checkSpam(body: string): Promise<boolean> {
   assertConfigured();
-  const { data, error } = await getSupabaseClient()
-    .rpc("check_spam_content", { content: body });
+  const trimmedBody = body.trim();
+  if (!trimmedBody) return false;
 
-  if (error) return false;
-  return Boolean(data);
+  const fallbackResult = containsSpamKeyword(trimmedBody);
+  const { data, error } = await getSupabaseClient()
+    .rpc("check_spam_content", { content: trimmedBody });
+
+  if (error) return fallbackResult;
+  return Boolean(data) || fallbackResult;
 }
 
 const RATE_LIMIT_SECONDS = 60;
@@ -671,8 +892,16 @@ const RATE_LIMIT_MESSAGE = "请稍后再提交（每分钟限1条）";
 
 export async function checkRateLimit(
   userId: string,
-  table: "forum_posts" | "station_reviews",
+  table: RateLimitedTable,
+  options?: { skipLocalCache?: boolean },
 ): Promise<void> {
+  if (!options?.skipLocalCache) {
+    const cached = localRateLimitCache.get(getRateLimitCacheKey(userId, table));
+    if (cached !== undefined && isRateLimitedAt(cached)) {
+      throw new Error(RATE_LIMIT_MESSAGE);
+    }
+  }
+
   const supabase = getSupabaseClient();
   const { data, error } = await supabase
     .from(table)
@@ -683,9 +912,10 @@ export async function checkRateLimit(
 
   if (error) return;
 
-  if (data && data.length > 0) {
-    const lastPostTime = new Date(data[0].created_at).getTime();
-    if (Date.now() - lastPostTime < RATE_LIMIT_SECONDS * 1000) {
+  const lastCreatedAt = data?.[0]?.created_at;
+  if (lastCreatedAt) {
+    const lastPostTime = new Date(lastCreatedAt).getTime();
+    if (Number.isFinite(lastPostTime) && Date.now() - lastPostTime < RATE_LIMIT_SECONDS * 1000) {
       throw new Error(RATE_LIMIT_MESSAGE);
     }
   }

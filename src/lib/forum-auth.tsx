@@ -17,7 +17,61 @@ import { getSupabaseClient, isSupabaseConfigured } from "@/lib/supabase";
 type AuthResult = {
   ok: boolean;
   error?: string;
+  warning?: string;
 };
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const OTP_CODE_LENGTH = 6;
+const PASSWORD_MIN_LENGTH = 8;
+const PASSWORD_UPPERCASE_PATTERN = /[A-Z]/;
+const PASSWORD_NUMBER_PATTERN = /\d/;
+
+function isValidEmail(email: string) {
+  return EMAIL_PATTERN.test(email);
+}
+
+function getDisplayNameValidationError(name: string) {
+  const trimmed = name.trim();
+  if (!trimmed) return "请输入昵称。";
+  if (trimmed.length > 80) return "昵称不能超过 80 个字符。";
+  return null;
+}
+
+function getPasswordValidationError(password: string) {
+  if (password.length < PASSWORD_MIN_LENGTH) {
+    return `密码至少需要 ${PASSWORD_MIN_LENGTH} 位。`;
+  }
+  if (!PASSWORD_UPPERCASE_PATTERN.test(password) || !PASSWORD_NUMBER_PATTERN.test(password)) {
+    return "密码至少需要包含 1 个大写字母和 1 个数字。";
+  }
+  return null;
+}
+
+function normalizeOtpCode(token: string) {
+  return token.replace(/\s+/g, "");
+}
+
+function getFallbackDisplayName(user: User, requestedName?: string) {
+  const requested = (requestedName ?? "").trim();
+  if (requested) return requested;
+
+  const metadataName =
+    typeof user.user_metadata?.full_name === "string"
+      ? user.user_metadata.full_name.trim()
+      : "";
+  if (metadataName) return metadataName;
+
+  const profileName =
+    typeof user.user_metadata?.display_name === "string"
+      ? user.user_metadata.display_name.trim()
+      : "";
+  if (profileName) return profileName;
+
+  const emailPrefix = user.email?.split("@")[0]?.trim();
+  if (emailPrefix) return emailPrefix;
+
+  return "Timix 用户";
+}
 
 interface ForumAuthState {
   session: Session | null;
@@ -86,6 +140,15 @@ function getAuthErrorMessage(message?: string) {
   }
   if (lower.includes("rate limit")) {
     return "请求太频繁，请稍后再试。";
+  }
+  if (lower.includes("token has expired") || lower.includes("otp expired")) {
+    return "验证码已过期，请重新发送。";
+  }
+  if (lower.includes("invalid token") || lower.includes("token is invalid") || lower.includes("otp")) {
+    return "验证码无效，请确认输入正确或重新发送。";
+  }
+  if (lower.includes("password should be at least")) {
+    return `密码至少需要 ${PASSWORD_MIN_LENGTH} 位。`;
   }
 
   return message;
@@ -271,6 +334,9 @@ export function ForumAuthProvider({ children }: { children: React.ReactNode }) {
 
       const normalizedEmail = email.trim().toLowerCase();
       if (!normalizedEmail) return { ok: false, error: "请输入邮箱。" };
+      if (!isValidEmail(normalizedEmail)) {
+        return { ok: false, error: "请输入有效的邮箱地址。" };
+      }
 
       const { error } = await getSupabaseClient().auth.signInWithOtp({
         email: normalizedEmail,
@@ -291,21 +357,28 @@ export function ForumAuthProvider({ children }: { children: React.ReactNode }) {
       if (!configured) return { ok: false, error: "认证服务未配置。" };
 
       const normalizedEmail = email.trim().toLowerCase();
-      if (!normalizedEmail || !token) {
+      const normalizedToken = normalizeOtpCode(token);
+      if (!normalizedEmail || !normalizedToken) {
         return { ok: false, error: "请输入验证码。" };
+      }
+      if (!isValidEmail(normalizedEmail)) {
+        return { ok: false, error: "请输入有效的邮箱地址。" };
+      }
+      if (!/^\d+$/.test(normalizedToken) || normalizedToken.length !== OTP_CODE_LENGTH) {
+        return { ok: false, error: `请输入 ${OTP_CODE_LENGTH} 位数字验证码。` };
       }
 
       // 先尝试 signup 类型，失败则尝试 email 类型
       let result = await getSupabaseClient().auth.verifyOtp({
         email: normalizedEmail,
-        token,
+        token: normalizedToken,
         type: "signup",
       });
 
       if (result.error) {
         result = await getSupabaseClient().auth.verifyOtp({
           email: normalizedEmail,
-          token,
+          token: normalizedToken,
           type: "email",
         });
       }
@@ -325,6 +398,9 @@ export function ForumAuthProvider({ children }: { children: React.ReactNode }) {
       if (!normalizedEmail || !password) {
         return { ok: false, error: "请输入邮箱和密码。" };
       }
+      if (!isValidEmail(normalizedEmail)) {
+        return { ok: false, error: "请输入有效的邮箱地址。" };
+      }
 
       const { error } = await getSupabaseClient().auth.signInWithPassword({
         email: normalizedEmail,
@@ -341,23 +417,35 @@ export function ForumAuthProvider({ children }: { children: React.ReactNode }) {
   const setPassword = useCallback(
     async (password: string, displayName?: string): Promise<AuthResult> => {
       if (!configured) return { ok: false, error: "认证服务未配置。" };
-      if (password.length < 1) {
-        return { ok: false, error: "请输入密码。" };
+      const passwordError = getPasswordValidationError(password);
+      if (passwordError) {
+        return { ok: false, error: passwordError };
+      }
+      const displayNameError =
+        typeof displayName === "string" ? getDisplayNameValidationError(displayName) : null;
+      if (displayNameError) return { ok: false, error: displayNameError };
+
+      const supabase = getSupabaseClient();
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      const user = userData.user;
+      if (userError || !user) {
+        return { ok: false, error: "登录状态已失效，请重新验证邮箱后再设置密码。" };
       }
 
-      const name = (displayName ?? "").trim() || "噜噜";
+      const name = getFallbackDisplayName(user, displayName);
+      let profileWarning: string | null = null;
 
-      // Save display name FIRST (before auth update triggers state change)
-      const { data: userData } = await getSupabaseClient().auth.getUser();
-      if (userData.user) {
-        await getSupabaseClient()
-          .from("forum_profiles")
-          .upsert({ id: userData.user.id, display_name: name }, { onConflict: "id" });
+      const { error: profileError } = await supabase
+        .from("forum_profiles")
+        .upsert({ id: user.id, display_name: name }, { onConflict: "id" });
+      if (profileError) {
+        profileWarning = "密码已设置，但昵称保存失败了，请稍后在个人资料里再试一次。";
+      } else {
         setDisplayNameState(name);
       }
 
       // Now update password — onAuthStateChange will re-read and find the new name
-      const { error } = await getSupabaseClient().auth.updateUser({
+      const { error } = await supabase.auth.updateUser({
         password,
         data: { password_set: true, full_name: name },
       });
@@ -366,9 +454,19 @@ export function ForumAuthProvider({ children }: { children: React.ReactNode }) {
         return { ok: false, error: getAuthErrorMessage(error.message) };
       }
 
-      const { data: sessionData } = await getSupabaseClient().auth.getSession();
+      if (profileWarning) {
+        const retryResult = await supabase
+          .from("forum_profiles")
+          .upsert({ id: user.id, display_name: name }, { onConflict: "id" });
+        if (!retryResult.error) {
+          setDisplayNameState(name);
+          profileWarning = null;
+        }
+      }
+
+      const { data: sessionData } = await supabase.auth.getSession();
       setSession(sessionData.session);
-      return { ok: true };
+      return profileWarning ? { ok: true, warning: profileWarning } : { ok: true };
     },
     [configured],
   );
@@ -377,34 +475,19 @@ export function ForumAuthProvider({ children }: { children: React.ReactNode }) {
     async (name: string) => {
       if (!configured) return;
       const trimmed = name.trim();
-      if (!trimmed || trimmed.length > 80) return;
+      if (getDisplayNameValidationError(trimmed)) return;
 
       try {
         const supabase = getSupabaseClient();
         const { data: userData } = await supabase.auth.getUser();
         if (!userData.user) return;
 
-        // Use update first (more reliable than upsert for existing profiles)
-        const { error: updateError } = await supabase
+        const { error } = await supabase
           .from("forum_profiles")
-          .update({ display_name: trimmed })
-          .eq("id", userData.user.id);
+          .upsert({ id: userData.user.id, display_name: trimmed }, { onConflict: "id" });
 
-        // If no rows updated (profile doesn't exist yet), insert
-        if (updateError) {
-          const { error: insertError } = await supabase
-            .from("forum_profiles")
-            .insert({ id: userData.user.id, display_name: trimmed });
-          if (insertError) throw insertError;
-        }
-
-        // Verify it was saved
-        const { data: verify } = await supabase
-          .from("forum_profiles")
-          .select("display_name")
-          .eq("id", userData.user.id)
-          .single();
-        if (verify) setDisplayNameState(verify.display_name);
+        if (error) throw error;
+        setDisplayNameState(trimmed);
       } catch {
         // Still update local state so UI doesn't revert immediately
         setDisplayNameState(trimmed);
@@ -464,5 +547,3 @@ export function ForumAuthProvider({ children }: { children: React.ReactNode }) {
 export function useForumAuth(): ForumAuthState {
   return useContext(ForumAuthContext);
 }
-
-

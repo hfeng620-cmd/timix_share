@@ -32,7 +32,7 @@ export default function NotFound() {
           <a
             className="rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-3 text-sm font-bold text-[var(--color-ink)] transition hover:border-[var(--color-brand)] hover:text-[var(--color-brand-deep)]"
             href={siteLinks.discussions}
-            rel="noreferrer"
+            rel="noopener noreferrer"
             target="_blank"
           >
             GitHub Discussions

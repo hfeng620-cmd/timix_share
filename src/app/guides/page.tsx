@@ -9,6 +9,29 @@ import {
   resourceLinks,
 } from "@/lib/site-data";
 
+const quickGuideRoutes = [
+  {
+    title: "第一次来",
+    description: "先看倍率、备注和试用入口，不要直接被最低价带走。",
+    href: "#guide-flow",
+  },
+  {
+    title: "我想先试用",
+    description: "优先去看低门槛入口，再决定要不要长期用。",
+    href: "#guide-resources",
+  },
+  {
+    title: "我想参与共建",
+    description: "分清 QQ 群、Discussions 和 Issues 各自该发什么。",
+    href: "#guide-collaboration",
+  },
+  {
+    title: "我只想快速找答案",
+    description: "直接跳到 FAQ，把常见误区一次看完。",
+    href: "#guide-faq",
+  },
+];
+
 export default function GuidesPage() {
   return (
     <main className="min-h-screen bg-[var(--color-bg)] text-[var(--color-ink)]">
@@ -48,9 +71,53 @@ export default function GuidesPage() {
       </section>
 
       <section className="mx-auto max-w-7xl px-6 py-10 lg:px-10">
+        <div className="mb-6 overflow-hidden rounded-[34px] border border-[var(--color-line)] bg-[var(--surface-gradient)] shadow-[var(--shadow-card)]">
+          <div className="grid gap-5 px-6 py-7 lg:grid-cols-[1.1fr_0.9fr] lg:px-8">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[var(--color-brand-deep)]">
+                入门导航
+              </p>
+              <h1 className="mt-3 max-w-3xl text-4xl font-black tracking-tight sm:text-5xl">
+                别从最杂的地方开始，先按你现在想解决的事进入。
+              </h1>
+              <p className="mt-4 max-w-2xl text-sm leading-7 text-[var(--color-muted)]">
+                这一页不只是 FAQ。它更像 Timix观察站 的使用地图，帮你判断先看榜单、先试用、先看社区反馈，还是先补一条纠错更划算。
+              </p>
+
+              <div className="mt-5 flex flex-wrap gap-3">
+                <Link
+                  className="rounded-full bg-[var(--color-brand)] px-5 py-3 text-sm font-bold text-[var(--color-on-brand)] shadow-[0_12px_24px_var(--color-panel-glow)]"
+                  href="/stations"
+                >
+                  先去看榜单
+                </Link>
+                <Link
+                  className="rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-3 text-sm font-bold text-[var(--color-ink)] transition hover:border-[var(--color-brand)] hover:text-[var(--color-brand-deep)]"
+                  href="/community"
+                >
+                  去看社区反馈
+                </Link>
+              </div>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              {quickGuideRoutes.map((item) => (
+                <a
+                  key={item.title}
+                  className="rounded-[22px] border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-4 transition hover:-translate-y-0.5 hover:border-[var(--color-brand)] hover:shadow-[0_14px_32px_rgba(15,23,42,0.10)]"
+                  href={item.href}
+                >
+                  <p className="text-base font-black text-[var(--color-ink)]">{item.title}</p>
+                  <p className="mt-2 text-sm leading-6 text-[var(--color-muted)]">{item.description}</p>
+                </a>
+              ))}
+            </div>
+          </div>
+        </div>
+
         <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
           <div className="space-y-6">
-            <div className="rounded-[32px] border border-[var(--color-line)] bg-white p-6 shadow-[var(--shadow-card)]">
+            <div id="guide-flow" className="scroll-mt-24 rounded-[32px] border border-[var(--color-line)] bg-white p-6 shadow-[var(--shadow-card)]">
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
                 先看这几个
               </p>
@@ -103,7 +170,7 @@ export default function GuidesPage() {
               </div>
             </div>
 
-            <div className="rounded-[32px] border border-[var(--color-line)] bg-[var(--color-soft)] p-6">
+            <div id="guide-resources" className="scroll-mt-24 rounded-[32px] border border-[var(--color-line)] bg-[var(--color-soft)] p-6">
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
                 试用入口
               </p>
@@ -117,7 +184,7 @@ export default function GuidesPage() {
                       key={item.title}
                       className="rounded-2xl border border-[var(--color-line)] bg-white px-4 py-4 transition hover:border-[var(--color-brand)]"
                       href={item.href}
-                      rel="noreferrer"
+                      rel="noopener noreferrer"
                       target="_blank"
                     >
                       <p className="font-bold text-[var(--color-brand-deep)]">
@@ -145,7 +212,7 @@ export default function GuidesPage() {
               </div>
             </div>
 
-            <div className="rounded-[32px] border border-[var(--color-line)] bg-white p-6 shadow-[var(--shadow-card)]">
+            <div id="guide-collaboration" className="scroll-mt-24 rounded-[32px] border border-[var(--color-line)] bg-white p-6 shadow-[var(--shadow-card)]">
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
                 共建入口
               </p>
@@ -158,7 +225,7 @@ export default function GuidesPage() {
                     key={item.title}
                     className="rounded-2xl border border-[var(--color-line)] bg-[var(--color-soft)] px-4 py-4 transition hover:border-[var(--color-brand)]"
                     href={item.href}
-                    rel={item.href.startsWith("http") ? "noreferrer" : undefined}
+                    rel={item.href.startsWith("http") ? "noopener noreferrer" : undefined}
                     target={item.href.startsWith("http") ? "_blank" : undefined}
                   >
                     <p className="font-bold text-[var(--color-brand-deep)]">{item.title}</p>
@@ -171,7 +238,7 @@ export default function GuidesPage() {
             </div>
           </div>
 
-          <div className="rounded-[32px] border border-[var(--color-line)] bg-white p-6 shadow-[var(--shadow-card)]">
+          <div id="guide-faq" className="scroll-mt-24 rounded-[32px] border border-[var(--color-line)] bg-white p-6 shadow-[var(--shadow-card)]">
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
               常见问题
             </p>

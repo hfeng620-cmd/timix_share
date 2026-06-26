@@ -13,6 +13,94 @@ type ForumAuthModalProps = {
 
 type AuthMode = "login" | "register";
 
+type PendingRegistrationState = {
+  email: string;
+  displayName: string;
+  otpSent: boolean;
+  updatedAt: number;
+};
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const OTP_CODE_LENGTH = 6;
+const PASSWORD_MIN_LENGTH = 8;
+const PASSWORD_UPPERCASE_PATTERN = /[A-Z]/;
+const PASSWORD_NUMBER_PATTERN = /\d/;
+const PENDING_REGISTRATION_KEY = "forum-pending-registration";
+const PENDING_REGISTRATION_MAX_AGE_MS = 30 * 60 * 1000;
+
+function isValidEmail(email: string) {
+  return EMAIL_PATTERN.test(email);
+}
+
+function getDisplayNameValidationError(name: string) {
+  const trimmed = name.trim();
+  if (!trimmed) return "请输入昵称。";
+  if (trimmed.length > 80) return "昵称不能超过 80 个字符。";
+  return null;
+}
+
+function getPasswordValidationError(password: string) {
+  if (password.length < PASSWORD_MIN_LENGTH) {
+    return `密码至少需要 ${PASSWORD_MIN_LENGTH} 位。`;
+  }
+  if (!PASSWORD_UPPERCASE_PATTERN.test(password) || !PASSWORD_NUMBER_PATTERN.test(password)) {
+    return "密码至少需要包含 1 个大写字母和 1 个数字。";
+  }
+  return null;
+}
+
+function readPendingRegistration(): PendingRegistrationState | null {
+  try {
+    const raw = sessionStorage.getItem(PENDING_REGISTRATION_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<PendingRegistrationState>;
+    if (
+      typeof parsed.email !== "string" ||
+      typeof parsed.displayName !== "string" ||
+      typeof parsed.otpSent !== "boolean" ||
+      typeof parsed.updatedAt !== "number"
+    ) {
+      sessionStorage.removeItem(PENDING_REGISTRATION_KEY);
+      return null;
+    }
+    if (Date.now() - parsed.updatedAt > PENDING_REGISTRATION_MAX_AGE_MS) {
+      sessionStorage.removeItem(PENDING_REGISTRATION_KEY);
+      return null;
+    }
+    return {
+      email: parsed.email,
+      displayName: parsed.displayName,
+      otpSent: parsed.otpSent,
+      updatedAt: parsed.updatedAt,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function writePendingRegistration(state: Omit<PendingRegistrationState, "updatedAt">) {
+  try {
+    sessionStorage.setItem(
+      PENDING_REGISTRATION_KEY,
+      JSON.stringify({
+        ...state,
+        updatedAt: Date.now(),
+      } satisfies PendingRegistrationState),
+    );
+  } catch {
+    /* sessionStorage may be unavailable */
+  }
+}
+
+function clearPendingRegistration() {
+  try {
+    sessionStorage.removeItem(PENDING_REGISTRATION_KEY);
+    sessionStorage.removeItem("forum-reg-display-name");
+  } catch {
+    /* sessionStorage may be unavailable */
+  }
+}
+
 export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
   const {
     email: signedInEmail,
@@ -46,6 +134,7 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const avatarFileRef = useRef<HTMLInputElement | null>(null);
   const normalizedEmail = useMemo(() => email.trim().toLowerCase(), [email]);
+  const registrationPasswordError = useMemo(() => getPasswordValidationError(password), [password]);
 
   // Load avatar URL when modal opens and user is connected
   useEffect(() => {
@@ -120,24 +209,32 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
     };
   }, [open, onClose]);
 
+  useEffect(() => {
+    if (!open || isConnected) return;
+
+    const pending = readPendingRegistration();
+    if (pending && mode !== "register") {
+      setMode("register");
+      return;
+    }
+    if (mode !== "register") return;
+
+    if (!pending) return;
+
+    setEmail((current) => current || pending.email);
+    setDisplayNameInput((current) => current || pending.displayName);
+    setOtpSent(pending.otpSent);
+  }, [open, isConnected, mode]);
+
   // Pre-fill display name when setting password for the first time.
   useEffect(() => {
     if (isConnected && needsPassword && !displayName) {
-      let restored = "";
-      try {
-        restored = sessionStorage.getItem("forum-reg-display-name") ?? "";
-      } catch {
-        /* unavailable */
-      }
+      const pending = readPendingRegistration();
+      const restored = pending?.displayName ?? "";
 
       if (restored) {
         setDisplayNameInput(restored);
         setDisplayName(restored).catch(() => {});
-        try {
-          sessionStorage.removeItem("forum-reg-display-name");
-        } catch {
-          /* unavailable */
-        }
       } else if (signedInEmail) {
         const at = signedInEmail.indexOf("@");
         if (at > 0) {
@@ -147,16 +244,49 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
     }
   }, [isConnected, needsPassword, displayName, signedInEmail, setDisplayName]);
 
+  useEffect(() => {
+    if (!open || isConnected || mode !== "register") return;
+
+    const trimmedName = displayNameInput.trim();
+    const trimmedEmail = normalizedEmail;
+    if (!trimmedEmail && !trimmedName && !otpSent) {
+      clearPendingRegistration();
+      return;
+    }
+
+    writePendingRegistration({
+      email: trimmedEmail,
+      displayName: trimmedName,
+      otpSent,
+    });
+  }, [open, isConnected, mode, normalizedEmail, displayNameInput, otpSent]);
+
+  useEffect(() => {
+    if (!needsPassword) {
+      clearPendingRegistration();
+    }
+  }, [needsPassword]);
+
   if (!open) return null;
 
   // ---- 注册流程：发送验证码 ----
   async function handleSendCode() {
-    if (!displayNameInput.trim()) {
-      setError("请输入昵称。");
+    const displayNameError = getDisplayNameValidationError(displayNameInput);
+    if (displayNameError) {
+      setError(displayNameError);
       return;
     }
-    if (!password) {
-      setError("请输入密码。");
+    if (!normalizedEmail) {
+      setError("请输入邮箱。");
+      return;
+    }
+    if (!isValidEmail(normalizedEmail)) {
+      setError("请输入有效的邮箱地址。");
+      return;
+    }
+    const passwordError = getPasswordValidationError(password);
+    if (passwordError) {
+      setError(passwordError);
       return;
     }
     if (password !== confirmPassword) {
@@ -168,14 +298,6 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
     setError("");
     setNotice("");
 
-    // Persist display name and password for after OTP verification
-    try {
-      sessionStorage.setItem("forum-reg-display-name", displayNameInput.trim());
-      sessionStorage.setItem("forum-reg-password", password);
-    } catch {
-      /* sessionStorage may be unavailable */
-    }
-
     const result = await sendEmailCode(normalizedEmail);
     setLoading(false);
 
@@ -185,11 +307,43 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
     }
 
     setOtpSent(true);
+    writePendingRegistration({
+      email: normalizedEmail,
+      displayName: displayNameInput.trim(),
+      otpSent: true,
+    });
     setNotice("验证码已发送！请查收邮箱（别忘了检查垃圾邮件箱）。");
   }
 
   // ---- 注册流程：验证验证码 + 设置密码 ----
   async function handleVerifyAndRegister() {
+    const displayNameError = getDisplayNameValidationError(displayNameInput);
+    if (displayNameError) {
+      setError(displayNameError);
+      return;
+    }
+    if (!normalizedEmail) {
+      setError("请输入邮箱。");
+      return;
+    }
+    if (!isValidEmail(normalizedEmail)) {
+      setError("请输入有效的邮箱地址。");
+      return;
+    }
+    const passwordError = getPasswordValidationError(password);
+    if (passwordError) {
+      setError(passwordError);
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError("两次输入的密码不一致。");
+      return;
+    }
+    if (otpCode.trim().length !== OTP_CODE_LENGTH) {
+      setError(`请输入 ${OTP_CODE_LENGTH} 位数字验证码。`);
+      return;
+    }
+
     setLoading(true);
     setError("");
     setNotice("");
@@ -202,30 +356,23 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
       return;
     }
 
-    // Step 2: Get stored password and display name
-    let storedPassword = "";
-    let storedName = "";
-    try {
-      storedPassword = sessionStorage.getItem("forum-reg-password") ?? "";
-      storedName = sessionStorage.getItem("forum-reg-display-name") ?? "";
-      sessionStorage.removeItem("forum-reg-password");
-      sessionStorage.removeItem("forum-reg-display-name");
-    } catch {
-      /* unavailable */
-    }
+    const pending = readPendingRegistration();
+    const finalDisplayName = pending?.displayName?.trim() || displayNameInput.trim();
 
     // Step 3: Set password and display name
-    if (storedPassword) {
-      const setResult = await setPassword(storedPassword, storedName || undefined);
-      if (!setResult.ok) {
-        setLoading(false);
-        setError(setResult.error ?? "注册成功但设置密码失败，请在个人设置中重新设置。");
-        return;
-      }
+    const setResult = await setPassword(password, finalDisplayName || undefined);
+    if (!setResult.ok) {
+      setLoading(false);
+      writePendingRegistration({
+        email: normalizedEmail,
+        displayName: finalDisplayName,
+        otpSent: true,
+      });
+      setError(setResult.error ?? "邮箱验证已完成，但设置密码失败，请重新设置密码。");
+      return;
     }
-
-    if (storedName) {
-      await setDisplayName(storedName).catch(() => {});
+    if (finalDisplayName) {
+      await setDisplayName(finalDisplayName).catch(() => {});
     }
 
     setLoading(false);
@@ -234,7 +381,12 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
     setPasswordValue("");
     setConfirmPassword("");
     setDisplayNameInput("");
-    setNotice("✓ 注册成功！欢迎来到 Timix观察站。");
+    clearPendingRegistration();
+    setNotice(
+      setResult.warning
+        ? `✓ 注册成功，密码已设置。${setResult.warning}`
+        : "✓ 注册成功！欢迎来到 Timix观察站。",
+    );
   }
 
   // ---- 登录流程 ----
@@ -255,6 +407,16 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
   }
 
   async function handleSetPassword() {
+    const displayNameError = getDisplayNameValidationError(displayNameInput);
+    if (displayNameError) {
+      setError(displayNameError);
+      return;
+    }
+    const passwordError = getPasswordValidationError(password);
+    if (passwordError) {
+      setError(passwordError);
+      return;
+    }
     if (password !== confirmPassword) {
       setError("两次输入的密码不一致。");
       return;
@@ -275,7 +437,12 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
     setPasswordValue("");
     setConfirmPassword("");
     setDisplayNameInput("");
-    setNotice("✓ 密码已设置完成！下次可以直接用邮箱和密码登录。");
+    clearPendingRegistration();
+    setNotice(
+      result.warning
+        ? `✓ 密码已设置完成。${result.warning}`
+        : "✓ 密码已设置完成！下次可以直接用邮箱和密码登录。",
+    );
   }
 
   async function handleAvatarChange(file: File) {
@@ -313,6 +480,7 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
     setDisplayNameInput("");
     setPasswordValue("");
     setConfirmPassword("");
+    clearPendingRegistration();
   }
 
   function switchToRegister() {
@@ -422,7 +590,7 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
                 />
                 <button
                   className="w-full rounded-full bg-[var(--color-brand)] px-5 py-3 text-sm font-bold text-[var(--color-on-brand)] transition hover:bg-[var(--color-brand-deep)] disabled:opacity-60"
-                  disabled={loading || password.length < 8 || !confirmPassword}
+                  disabled={loading || Boolean(registrationPasswordError) || !confirmPassword}
                   onClick={handleSetPassword}
                   type="button"
                 >
@@ -630,7 +798,7 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
                           setPasswordValue(event.target.value);
                           setError("");
                         }}
-                        placeholder="设置密码"
+                        placeholder="设置密码，8位以上，含大写字母和数字"
                         type="password"
                         value={password}
                       />
@@ -669,10 +837,10 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
                           setOtpCode(event.target.value.replace(/\D/g, ""));
                           setError("");
                         }}
-                        placeholder="输入验证码"
+                        placeholder={`输入 ${OTP_CODE_LENGTH} 位验证码`}
                         type="text"
                         inputMode="numeric"
-                        maxLength={10}
+                        maxLength={OTP_CODE_LENGTH}
                         value={otpCode}
                         autoFocus
                       />
@@ -723,8 +891,10 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
                   loading ||
                   !normalizedEmail ||
                   (mode === "login" && !password) ||
-                  (mode === "register" && !otpSent && (!displayNameInput.trim() || !password || !confirmPassword)) ||
-                  (mode === "register" && otpSent && otpCode.length < 1)
+                  (mode === "register" &&
+                    !otpSent &&
+                    (!displayNameInput.trim() || !password || !confirmPassword || Boolean(registrationPasswordError))) ||
+                  (mode === "register" && otpSent && otpCode.length !== OTP_CODE_LENGTH)
                 }
                 onClick={mode === "login" ? handlePasswordLogin : otpSent ? handleVerifyAndRegister : handleSendCode}
                 type="button"

@@ -6,15 +6,21 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { AuthButton } from "@/components/auth-button";
 import { NotificationBell } from "@/components/notification-bell";
-import { getUserPosts, uploadAvatar, updateProfileAvatar, type DiscussionPost } from "@/lib/discussion-storage";
+import { getUserPosts, getUserLikedPosts, getUserReplies, uploadAvatar, updateProfileAvatar, type DiscussionPost, type DiscussionReply } from "@/lib/discussion-storage";
 import { getSupabaseClient } from "@/lib/supabase";
 import { useForumAuth } from "@/lib/forum-auth";
+
+type ActivityTab = "posts" | "replies" | "likes";
+type ReplyWithPost = { reply: DiscussionReply; postTitle: string; postId: string };
 
 export default function ProfilePage() {
   const { isConnected, user, email, displayName, showAuthModal, setDisplayName } = useForumAuth();
   const router = useRouter();
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const [posts, setPosts] = useState<DiscussionPost[]>([]);
+  const [likedPosts, setLikedPosts] = useState<DiscussionPost[]>([]);
+  const [replies, setReplies] = useState<ReplyWithPost[]>([]);
+  const [activeTab, setActiveTab] = useState<ActivityTab>("posts");
   const [loading, setLoading] = useState(true);
   const [editingName, setEditingName] = useState(false);
   const [newName, setNewName] = useState(displayName ?? "");
@@ -26,10 +32,18 @@ export default function ProfilePage() {
     if (!isConnected || !user) return;
     setLoading(true);
     try {
-      const data = await getUserPosts(user.id);
-      setPosts(data);
+      const [postData, likedData, replyData] = await Promise.all([
+        getUserPosts(user.id),
+        getUserLikedPosts(user.id),
+        getUserReplies(user.id),
+      ]);
+      setPosts(postData);
+      setLikedPosts(likedData);
+      setReplies(replyData);
     } catch {
       setPosts([]);
+      setLikedPosts([]);
+      setReplies([]);
     } finally {
       setLoading(false);
     }
@@ -256,71 +270,105 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            {/* Recent posts */}
+            {/* Activity section with tabs */}
             <div className="mt-6 rounded-[20px] border border-[var(--color-line)] bg-[var(--color-panel)] shadow-[var(--shadow-card)]">
-              <div className="border-b border-[var(--color-line)] px-6 py-4">
-                <div className="flex items-center justify-between gap-4">
-                  <h2 className="text-xl font-black tracking-tight">最近发帖</h2>
-                  <span className="text-sm text-[var(--color-muted)]">{posts.length} 条</span>
-                </div>
+              {/* Tab bar */}
+              <div className="flex border-b border-[var(--color-line)]">
+                {([
+                  { key: "posts" as ActivityTab, label: "发帖", count: posts.length },
+                  { key: "replies" as ActivityTab, label: "回复", count: replies.length },
+                  { key: "likes" as ActivityTab, label: "点赞", count: likedPosts.length },
+                ]).map((tab) => (
+                  <button
+                    key={tab.key}
+                    className={`flex-1 px-4 py-3 text-sm font-bold transition ${
+                      activeTab === tab.key
+                        ? "border-b-2 border-[var(--color-brand)] text-[var(--color-brand)]"
+                        : "text-[var(--color-muted)] hover:text-[var(--color-ink)]"
+                    }`}
+                    onClick={() => setActiveTab(tab.key)}
+                    type="button"
+                  >
+                    {tab.label} ({tab.count})
+                  </button>
+                ))}
               </div>
 
               {loading ? (
                 <div className="px-6 py-10 text-center">
                   <p className="text-sm text-[var(--color-muted)]">正在加载...</p>
                 </div>
-              ) : posts.length === 0 ? (
-                <div className="px-6 py-10 text-center">
-                  <p className="text-sm font-bold text-[var(--color-ink)]">暂无发帖。</p>
-                  <p className="mt-2 text-sm text-[var(--color-muted)]">
-                    去
-                    <Link
-                      className="font-semibold text-[var(--color-brand-deep)] transition hover:text-[var(--color-brand)]"
-                      href="/community"
-                    >
-                      讨论区
-                    </Link>
-                    发布你的第一条帖子吧。
-                  </p>
-                </div>
               ) : (
-                <div className="divide-y divide-[var(--color-line)]">
-                  {posts.slice(0, 10).map((post) => (
-                    <Link
-                      key={post.issueNumber}
-                      href={`/community`}
-                      className="block px-6 py-4 transition hover:bg-[var(--color-hover)] cursor-pointer"
-                    >
-                      <div className="flex items-center gap-2 text-xs text-[var(--color-muted)]">
-                        {post.station ? (
-                          <span className="rounded-full bg-[var(--color-soft)] px-2 py-0.5 font-bold text-[var(--color-brand-deep)]">
-                            {post.station}
-                          </span>
-                        ) : null}
-                        <span>{post.postedAt}</span>
-                        <span>·</span>
-                        <span>{post.likes} 赞</span>
-                        <span>·</span>
-                        <span>{post.replyCount} 回复</span>
+                <>
+                  {/* Posts tab */}
+                  {activeTab === "posts" && (
+                    posts.length === 0 ? (
+                      <div className="px-6 py-10 text-center">
+                        <p className="text-sm font-bold text-[var(--color-ink)]">暂无发帖。</p>
+                        <p className="mt-2 text-sm text-[var(--color-muted)]">
+                          去<Link className="font-semibold text-[var(--color-brand-deep)]" href="/community">讨论区</Link>发布你的第一条帖子吧。
+                        </p>
                       </div>
-                      <p className="mt-2 line-clamp-3 text-sm leading-7 text-[var(--color-ink)]">
-                        {post.body}
-                      </p>
-                      {post.tags.length > 0 ? (
-                        <div className="mt-2 flex flex-wrap gap-1.5">
-                          {post.tags.map((tag) => (
-                            <span
-                              key={`${post.issueNumber}-${tag}`}
-                              className="text-xs font-semibold text-[var(--color-muted)]"
-                            >
-                              #{tag}
-                            </span>
-                          ))}
-                        </div>
-                      ) : null}
-                    </Link>
-                  ))}
-                </div>
+                    ) : (
+                      <div className="divide-y divide-[var(--color-line)]">
+                        {posts.slice(0, 10).map((post) => (
+                          <Link key={post.issueNumber} href="/community" className="block px-6 py-4 transition hover:bg-[var(--color-hover)]">
+                            <div className="flex items-center gap-2 text-xs text-[var(--color-muted)]">
+                              {post.station ? <span className="rounded-full bg-[var(--color-soft)] px-2 py-0.5 font-bold text-[var(--color-brand-deep)]">{post.station}</span> : null}
+                              <span>{post.postedAt}</span>
+                              <span>·</span><span>{post.likes} 赞</span>
+                              <span>·</span><span>{post.replyCount} 回复</span>
+                            </div>
+                            <p className="mt-2 line-clamp-3 text-sm leading-7 text-[var(--color-ink)]">{post.body}</p>
+                          </Link>
+                        ))}
+                      </div>
+                    )
+                  )}
+
+                  {/* Replies tab */}
+                  {activeTab === "replies" && (
+                    replies.length === 0 ? (
+                      <div className="px-6 py-10 text-center">
+                        <p className="text-sm font-bold text-[var(--color-ink)]">暂无回复。</p>
+                      </div>
+                    ) : (
+                      <div className="divide-y divide-[var(--color-line)]">
+                        {replies.map((item) => (
+                          <Link key={item.reply.id} href="/community" className="block px-6 py-4 transition hover:bg-[var(--color-hover)]">
+                            <p className="text-xs text-[var(--color-muted)]">
+                              回复了 <span className="font-bold text-[var(--color-brand-deep)]">{item.postTitle}</span>
+                              <span className="ml-2">{item.reply.postedAt}</span>
+                            </p>
+                            <p className="mt-2 line-clamp-2 text-sm leading-6 text-[var(--color-ink)]">{item.reply.body}</p>
+                          </Link>
+                        ))}
+                      </div>
+                    )
+                  )}
+
+                  {/* Likes tab */}
+                  {activeTab === "likes" && (
+                    likedPosts.length === 0 ? (
+                      <div className="px-6 py-10 text-center">
+                        <p className="text-sm font-bold text-[var(--color-ink)]">暂无点赞。</p>
+                      </div>
+                    ) : (
+                      <div className="divide-y divide-[var(--color-line)]">
+                        {likedPosts.map((post) => (
+                          <Link key={post.issueNumber} href="/community" className="block px-6 py-4 transition hover:bg-[var(--color-hover)]">
+                            <div className="flex items-center gap-2 text-xs text-[var(--color-muted)]">
+                              {post.station ? <span className="rounded-full bg-[var(--color-soft)] px-2 py-0.5 font-bold text-[var(--color-brand-deep)]">{post.station}</span> : null}
+                              <span>{post.postedAt}</span>
+                              <span>·</span><span>{post.likes} 赞</span>
+                            </div>
+                            <p className="mt-2 line-clamp-3 text-sm leading-7 text-[var(--color-ink)]">{post.body}</p>
+                          </Link>
+                        ))}
+                      </div>
+                    )
+                  )}
+                </>
               )}
             </div>
           </>

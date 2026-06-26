@@ -1,6 +1,7 @@
 "use client";
 
 import { getSupabaseClient, isSupabaseConfigured } from "@/lib/supabase";
+import { normalizeEditableExternalHref } from "@/lib/url-safety";
 
 export type Station = {
   id: string;
@@ -122,6 +123,10 @@ function editRecordFromRow(row: Record<string, unknown>): StationEditRecord {
   };
 }
 
+function normalizeStationUrl(url?: string) {
+  return normalizeEditableExternalHref(url);
+}
+
 // ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
@@ -186,6 +191,8 @@ export async function createStation(input: {
   const supabase = getSupabaseClient();
 
   try {
+    const normalizedUrl = normalizeStationUrl(input.url);
+
     // Compute next sort_order
     const { data: maxRow, error: maxError } = await supabase
       .from("stations")
@@ -203,7 +210,7 @@ export async function createStation(input: {
 
     const row = {
       name: input.name,
-      url: input.url ?? null,
+      url: normalizedUrl || null,
       price: input.price ?? null,
       multiplier: input.multiplier ?? null,
       entry: input.entry ?? null,
@@ -250,6 +257,11 @@ export async function updateStation(
   const supabase = getSupabaseClient();
 
   try {
+    const normalizedUpdates: Partial<Station> = { ...updates };
+    if (updates.url !== undefined) {
+      normalizedUpdates.url = normalizeStationUrl(updates.url);
+    }
+
     // Fetch current row
     const { data: current, error: fetchError } = await supabase
       .from("stations")
@@ -269,7 +281,7 @@ export async function updateStation(
     const editorId = userData.user.id;
 
     // Write the update row
-    const updateRow = stationToUpdate(updates);
+    const updateRow = stationToUpdate(normalizedUpdates);
     if (Object.keys(updateRow).length > 0) {
       const { error: updateError } = await supabase
         .from("stations")
@@ -289,7 +301,7 @@ export async function updateStation(
       new_value: string;
     }> = [];
 
-    for (const [camelKey, newVal] of Object.entries(updates)) {
+    for (const [camelKey, newVal] of Object.entries(normalizedUpdates)) {
       if (camelKey === "id") continue; // never edit id
 
       const snakeKey = toSnakeCase(camelKey);

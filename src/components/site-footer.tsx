@@ -75,7 +75,7 @@ export function SiteFooter() {
                     key={item.label}
                     className="transition hover:text-[var(--color-brand-deep)]"
                     href={item.href}
-                    rel="noreferrer"
+                    rel="noopener noreferrer"
                     target="_blank"
                   >
                     {item.label}
@@ -102,7 +102,7 @@ export function SiteFooter() {
               <a
                 className="inline-flex font-semibold text-[var(--color-brand-deep)] transition hover:text-[var(--color-brand)]"
                 href={siteLinks.pages}
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 target="_blank"
               >
                 打开线上站点

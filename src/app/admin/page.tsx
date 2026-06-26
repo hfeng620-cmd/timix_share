@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { GithubIssueReviewPanel } from "@/components/github-issue-review-panel";
 import { useForumAuth } from "@/lib/forum-auth";
@@ -47,6 +47,22 @@ type AuditEntry = {
   time: string;
 };
 
+function getErrorMessage(error: unknown, fallback: string) {
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "message" in error &&
+    typeof error.message === "string" &&
+    error.message
+  ) {
+    return error.message;
+  }
+  return fallback;
+}
+
 export default function AdminPage() {
   const { isConnected, isAdmin, isOwner, email, showAuthModal } = useForumAuth();
   const [adminChecked, setAdminChecked] = useState(false);
@@ -79,6 +95,7 @@ export default function AdminPage() {
   const [announceStation, setAnnounceStation] = useState("");
   const [announceSending, setAnnounceSending] = useState(false);
   const [announceStatus, setAnnounceStatus] = useState("");
+  const [deletingPostId, setDeletingPostId] = useState<string | null>(null);
 
   // ---- News state ----
   const [pendingNews, setPendingNews] = useState<
@@ -92,6 +109,8 @@ export default function AdminPage() {
   const [newsForm, setNewsForm] = useState({ title: "", summary: "", source: "", author: "", body: "" });
   const [newsFormSending, setNewsFormSending] = useState(false);
   const [newsFormStatus, setNewsFormStatus] = useState("");
+  const [newsStatus, setNewsStatus] = useState("");
+  const [newsActionId, setNewsActionId] = useState<string | null>(null);
 
   // ---- Owner: admin management state ----
   const [adminList, setAdminList] = useState<
@@ -108,9 +127,26 @@ export default function AdminPage() {
   >([]);
   const [userListLoading, setUserListLoading] = useState(false);
   const [userSearch, setUserSearch] = useState("");
+  const [userActionStatus, setUserActionStatus] = useState("");
+  const [togglingUserId, setTogglingUserId] = useState<string | null>(null);
+
+  const isMountedRef = useRef(true);
+  const statsRequestRef = useRef(0);
+  const forumHistoryRequestRef = useRef(0);
+  const pendingNewsRequestRef = useRef(0);
+  const approvedNewsRequestRef = useRef(0);
+  const adminListRequestRef = useRef(0);
+  const userListRequestRef = useRef(0);
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   // Load users + admin status
   const loadUsers = useCallback(async () => {
+    const requestId = ++userListRequestRef.current;
     setUserListLoading(true);
     try {
       const supabase = getSupabaseClient();
@@ -118,17 +154,22 @@ export default function AdminPage() {
         supabase.from("forum_profiles").select("id, display_name, avatar_url, created_at").order("created_at", { ascending: false }).limit(100),
         supabase.from("forum_admins").select("user_id"),
       ]);
+      if (profilesRes.error) throw profilesRes.error;
+      if (adminsRes.error) throw adminsRes.error;
       const adminIds = new Set(((adminsRes.data ?? []) as { user_id: string }[]).map((a) => a.user_id));
       // Try to get emails via RPC
       const emailMap: Record<string, string> = {};
       try {
-        const { data: emailData } = await supabase.rpc("get_admin_list");
+        const { data: emailData, error } = await supabase.rpc("get_admin_list");
+        if (error) throw error;
         if (emailData) {
           for (const row of (emailData as any[])) {
             emailMap[row.user_id] = row.email || "";
           }
         }
-      } catch { /* RPC may not exist */ }
+      } catch {
+        // RPC may not exist; user list can still render without emails
+      }
       const users = ((profilesRes.data ?? []) as any[]).map((u: any) => ({
         id: u.id,
         display_name: u.display_name,
@@ -137,21 +178,37 @@ export default function AdminPage() {
         isAdmin: adminIds.has(u.id),
         email: emailMap[u.id] || "—",
       }));
+      if (!isMountedRef.current || requestId !== userListRequestRef.current) return;
       setUserList(users);
-    } catch { /* ignore */ }
-    setUserListLoading(false);
+      setUserActionStatus("");
+    } catch (error) {
+      if (!isMountedRef.current || requestId !== userListRequestRef.current) return;
+      setUserActionStatus(`用户列表加载失败：${getErrorMessage(error, "请稍后重试。")}`);
+    } finally {
+      if (!isMountedRef.current || requestId !== userListRequestRef.current) return;
+      setUserListLoading(false);
+    }
   }, []);
 
   // Promote/demote user
   async function toggleAdmin(userId: string, makeAdmin: boolean) {
+    setTogglingUserId(userId);
+    setUserActionStatus("");
     try {
       if (makeAdmin) {
-        await getSupabaseClient().from("forum_admins").insert({ user_id: userId });
+        const { error } = await getSupabaseClient().from("forum_admins").insert({ user_id: userId });
+        if (error) throw error;
       } else {
-        await getSupabaseClient().from("forum_admins").delete().eq("user_id", userId);
+        const { error } = await getSupabaseClient().from("forum_admins").delete().eq("user_id", userId);
+        if (error) throw error;
       }
-      loadUsers();
-    } catch { /* ignore */ }
+      await loadUsers();
+      setUserActionStatus(makeAdmin ? "已授予管理员权限。" : "已取消管理员权限。");
+    } catch (error) {
+      setUserActionStatus(`操作失败：${getErrorMessage(error, "未知错误")}`);
+    } finally {
+      setTogglingUserId(null);
+    }
   }
 
   useEffect(() => {
@@ -193,98 +250,121 @@ export default function AdminPage() {
   }, [isConnected, isAdmin, isOwner]);
 
   // ---- Load forum stats ----
+  const refreshStats = useCallback(async () => {
+    const requestId = ++statsRequestRef.current;
+    setStatsLoading(true);
+    try {
+      const nextStats = await getForumStats();
+      if (!isMountedRef.current || requestId !== statsRequestRef.current) return;
+      setStats(nextStats);
+    } catch (error) {
+      if (!isMountedRef.current || requestId !== statsRequestRef.current) return;
+      setStatus(`论坛统计加载失败：${getErrorMessage(error, "请稍后刷新重试。")}`);
+    } finally {
+      if (!isMountedRef.current || requestId !== statsRequestRef.current) return;
+      setStatsLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     if (!adminOk) return;
-    let cancelled = false;
-    getForumStats()
-      .then((s) => { if (!cancelled) setStats(s); })
-      .catch(() => {})
-      .finally(() => { if (!cancelled) setStatsLoading(false); });
-    return () => { cancelled = true; };
-  }, [adminOk]);
+    void refreshStats();
+  }, [adminOk, refreshStats]);
 
   // ---- Load approved posts (existing logic preserved) ----
+  const refreshForumHistory = useCallback(async () => {
+    if (!isConnected || !adminOk) return;
+    const requestId = ++forumHistoryRequestRef.current;
+    setForumHistoryLoaded(false);
+    setForumHistoryError(false);
+    try {
+      const { data, error } = await getSupabaseClient()
+        .from("forum_posts")
+        .select("id, body, created_at")
+        .eq("is_hidden", false)
+        .order("created_at", { ascending: false })
+        .limit(20);
+      if (error) throw error;
+      if (!isMountedRef.current || requestId !== forumHistoryRequestRef.current) return;
+      setForumHistory(
+        ((data ?? []) as { id: string; body: string; created_at: string }[]).map((row) => ({
+          id: row.id,
+          body: row.body,
+          status: "approved" as const,
+          time: row.created_at,
+        })),
+      );
+    } catch (error) {
+      if (!isMountedRef.current || requestId !== forumHistoryRequestRef.current) return;
+      setForumHistoryError(true);
+      setStatus(`论坛帖子加载失败：${getErrorMessage(error, "请确认管理员权限。")}`);
+    } finally {
+      if (!isMountedRef.current || requestId !== forumHistoryRequestRef.current) return;
+      setForumHistoryLoaded(true);
+    }
+  }, [adminOk, isConnected]);
+
   useEffect(() => {
-    if (!isConnected || !adminOk || forumHistoryLoaded) return;
-    let cancelled = false;
-    (async () => {
-      try {
-        const { data } = await getSupabaseClient()
-          .from("forum_posts")
-          .select("id, body, created_at")
-          .eq("is_hidden", false)
-          .order("created_at", { ascending: false })
-          .limit(20);
-        if (cancelled) return;
-        if (data) {
-          setForumHistory(
-            (data as { id: string; body: string; created_at: string }[]).map(
-              (row) => ({
-                id: row.id,
-                body: row.body,
-                status: "approved" as const,
-                time: row.created_at,
-              }),
-            ),
-          );
-        }
-      } catch {
-        if (!cancelled) setForumHistoryError(true);
-      } finally {
-        if (!cancelled) setForumHistoryLoaded(true);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [isConnected, adminOk, forumHistoryLoaded]);
+    if (!isConnected || !adminOk) return;
+    void refreshForumHistory();
+  }, [isConnected, adminOk, refreshForumHistory]);
 
   // ---- Load pending news ----
-  useEffect(() => {
+  const refreshPendingNews = useCallback(async () => {
     if (!adminOk) return;
-    let cancelled = false;
+    const requestId = ++pendingNewsRequestRef.current;
     setPendingNewsLoading(true);
-    (async () => {
-      try {
-        const { data } = await getSupabaseClient()
-          .from("ai_news")
-          .select("id, title, summary, source, author, body, created_at")
-          .eq("is_approved", false)
-          .order("created_at", { ascending: false });
-        if (cancelled) return;
-        setPendingNews((data as any[]) ?? []);
-      } catch {
-        // silently ignore
-      } finally {
-        if (!cancelled) setPendingNewsLoading(false);
-      }
-    })();
-    return () => { cancelled = true; };
+    try {
+      const { data, error } = await getSupabaseClient()
+        .from("ai_news")
+        .select("id, title, summary, source, author, body, created_at")
+        .eq("is_approved", false)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      if (!isMountedRef.current || requestId !== pendingNewsRequestRef.current) return;
+      setPendingNews((data as any[]) ?? []);
+    } catch (error) {
+      if (!isMountedRef.current || requestId !== pendingNewsRequestRef.current) return;
+      setNewsStatus(`待审核新闻加载失败：${getErrorMessage(error, "请稍后刷新重试。")}`);
+    } finally {
+      if (!isMountedRef.current || requestId !== pendingNewsRequestRef.current) return;
+      setPendingNewsLoading(false);
+    }
   }, [adminOk]);
 
-  // ---- Load approved news ----
   useEffect(() => {
     if (!adminOk) return;
-    let cancelled = false;
+    void refreshPendingNews();
+  }, [adminOk, refreshPendingNews]);
+
+  // ---- Load approved news ----
+  const refreshApprovedNews = useCallback(async () => {
+    if (!adminOk) return;
+    const requestId = ++approvedNewsRequestRef.current;
     setApprovedNewsLoading(true);
-    (async () => {
-      try {
-        const { data } = await getSupabaseClient()
-          .from("ai_news")
-          .select("id, title, summary, source, author, body, created_at, is_hidden")
-          .eq("is_approved", true)
-          .order("created_at", { ascending: false })
-          .limit(50);
-        if (cancelled) return;
-        setApprovedNews((data as any[]) ?? []);
-      } catch {
-        // silently ignore
-      } finally {
-        if (!cancelled) setApprovedNewsLoading(false);
-      }
-    })();
-    return () => { cancelled = true; };
+    try {
+      const { data, error } = await getSupabaseClient()
+        .from("ai_news")
+        .select("id, title, summary, source, author, body, created_at, is_hidden")
+        .eq("is_approved", true)
+        .order("created_at", { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      if (!isMountedRef.current || requestId !== approvedNewsRequestRef.current) return;
+      setApprovedNews((data as any[]) ?? []);
+    } catch (error) {
+      if (!isMountedRef.current || requestId !== approvedNewsRequestRef.current) return;
+      setNewsStatus(`已发布新闻加载失败：${getErrorMessage(error, "请稍后刷新重试。")}`);
+    } finally {
+      if (!isMountedRef.current || requestId !== approvedNewsRequestRef.current) return;
+      setApprovedNewsLoading(false);
+    }
   }, [adminOk]);
+
+  useEffect(() => {
+    if (!adminOk) return;
+    void refreshApprovedNews();
+  }, [adminOk, refreshApprovedNews]);
 
   function addAudit(action: string, target: string) {
     setAuditLog((prev) => [
@@ -375,19 +455,25 @@ export default function AdminPage() {
 
   // ---- New: delete approved post ----
   async function handleDeletePost(postId: string) {
+    setDeletingPostId(postId);
     try {
       await deleteDiscussionPost(postId);
       setForumHistory((prev) => prev.filter((p) => p.id !== postId));
       setStatus("帖子已删除（隐藏）。");
       addAudit("删除帖子", postId);
-    } catch {
-      setStatus("删除失败，请确认管理员权限。");
+      void refreshStats();
+    } catch (error) {
+      setStatus(`删除失败：${getErrorMessage(error, "请确认管理员权限。")}`);
+    } finally {
+      setDeletingPostId(null);
     }
   }
 
   // ---- New: publish announcement ----
   async function handlePublishAnnouncement() {
-    if (!announceBody.trim()) {
+    const body = announceBody.trim();
+    const station = announceStation.trim();
+    if (!body) {
       setAnnounceStatus("公告内容不能为空。");
       return;
     }
@@ -395,23 +481,29 @@ export default function AdminPage() {
     setAnnounceStatus("");
     try {
       const authorId = (await getSupabaseClient().auth.getUser()).data.user?.id;
-      await getSupabaseClient()
+      if (!authorId) {
+        throw new Error("当前登录状态无效，请重新登录后再发布公告。");
+      }
+      const { error } = await getSupabaseClient()
         .from("forum_posts")
         .insert({
           author_id: authorId,
-          title: "【公告】" + (announceStation.trim() || "管理员公告"),
-          body: announceBody.trim(),
-          station: announceStation.trim() || null,
+          title: "【公告】" + (station || "管理员公告"),
+          body,
+          station: station || null,
           tags: ["公告"],
           is_hidden: false,
           is_pinned: true,
         });
+      if (error) throw error;
       setAnnounceBody("");
       setAnnounceStation("");
       setAnnounceStatus("公告已发布并置顶。");
-      addAudit("发布公告", announceStation.trim() || "管理员公告");
-    } catch {
-      setAnnounceStatus("发布失败，请重试。");
+      setStatus("公告已发布并置顶。");
+      addAudit("发布公告", station || "管理员公告");
+      void Promise.all([refreshForumHistory(), refreshStats()]);
+    } catch (error) {
+      setAnnounceStatus(`发布失败：${getErrorMessage(error, "请重试。")}`);
     } finally {
       setAnnounceSending(false);
     }
@@ -419,67 +511,74 @@ export default function AdminPage() {
 
   // ---- News handlers ----
   async function handleApproveNews(newsId: string) {
+    setNewsActionId(newsId);
     try {
-      await getSupabaseClient()
+      const { error } = await getSupabaseClient()
         .from("ai_news")
         .update({ is_approved: true })
         .eq("id", newsId);
+      if (error) throw error;
       const item = pendingNews.find((n) => n.id === newsId);
       setPendingNews((prev) => prev.filter((n) => n.id !== newsId));
+      setNewsStatus(`已通过新闻：${item?.title ?? newsId}`);
       addAudit("通过新闻", item?.title ?? newsId);
-    } catch {
-      setStatus("操作失败，请重试。");
-    }
-    // Refresh approved list
-    setApprovedNewsLoading(true);
-    try {
-      const { data } = await getSupabaseClient()
-        .from("ai_news")
-        .select("id, title, summary, source, author, body, created_at, is_hidden")
-        .eq("is_approved", true)
-        .order("created_at", { ascending: false })
-        .limit(50);
-      setApprovedNews((data as any[]) ?? []);
-    } catch {
-      // ignore
+      await Promise.all([refreshPendingNews(), refreshApprovedNews()]);
+    } catch (error) {
+      setNewsStatus(`操作失败：${getErrorMessage(error, "请重试。")}`);
     } finally {
-      setApprovedNewsLoading(false);
+      setNewsActionId(null);
     }
   }
 
   async function handleRejectNews(newsId: string) {
+    setNewsActionId(newsId);
     try {
-      await getSupabaseClient()
+      const { error } = await getSupabaseClient()
         .from("ai_news")
         .delete()
         .eq("id", newsId);
+      if (error) throw error;
       const item = pendingNews.find((n) => n.id === newsId);
       setPendingNews((prev) => prev.filter((n) => n.id !== newsId));
+      setNewsStatus(`已驳回新闻：${item?.title ?? newsId}`);
       addAudit("驳回新闻", item?.title ?? newsId);
-    } catch {
-      setStatus("操作失败，请重试。");
+      await refreshPendingNews();
+    } catch (error) {
+      setNewsStatus(`操作失败：${getErrorMessage(error, "请重试。")}`);
+    } finally {
+      setNewsActionId(null);
     }
   }
 
   async function handleToggleHideNews(newsId: string, currentHidden: boolean) {
+    setNewsActionId(newsId);
     try {
       const newHidden = !currentHidden;
-      await getSupabaseClient()
+      const { error } = await getSupabaseClient()
         .from("ai_news")
         .update({ is_hidden: newHidden })
         .eq("id", newsId);
+      if (error) throw error;
       setApprovedNews((prev) =>
         prev.map((n) => (n.id === newsId ? { ...n, is_hidden: newHidden } : n)),
       );
       const item = approvedNews.find((n) => n.id === newsId);
+      setNewsStatus(`${newHidden ? "已隐藏" : "已显示"}新闻：${item?.title ?? newsId}`);
       addAudit(newHidden ? "隐藏新闻" : "显示新闻", item?.title ?? newsId);
-    } catch {
-      setStatus("操作失败，请重试。");
+    } catch (error) {
+      setNewsStatus(`操作失败：${getErrorMessage(error, "请重试。")}`);
+    } finally {
+      setNewsActionId(null);
     }
   }
 
   async function handlePublishNews() {
-    if (!newsForm.title.trim() || !newsForm.summary.trim()) {
+    const title = newsForm.title.trim();
+    const summary = newsForm.summary.trim();
+    const source = newsForm.source.trim();
+    const author = newsForm.author.trim();
+    const body = newsForm.body.trim();
+    if (!title || !summary) {
       setNewsFormStatus("标题和摘要不能为空。");
       return;
     }
@@ -487,56 +586,53 @@ export default function AdminPage() {
     setNewsFormStatus("");
     try {
       const authorId = (await getSupabaseClient().auth.getUser()).data.user?.id;
-      await getSupabaseClient()
+      if (!authorId) {
+        throw new Error("当前登录状态无效，请重新登录后再发布新闻。");
+      }
+      const { error } = await getSupabaseClient()
         .from("ai_news")
         .insert({
-          title: newsForm.title.trim(),
-          summary: newsForm.summary.trim(),
-          source: newsForm.source.trim() || null,
-          author: newsForm.author.trim() || (email ?? "管理员"),
-          body: newsForm.body.trim() || null,
+          title,
+          summary,
+          source: source || null,
+          author: author || (email ?? "管理员"),
+          body: body || null,
           author_id: authorId,
           is_approved: true,
           is_hidden: false,
         });
+      if (error) throw error;
       setNewsForm({ title: "", summary: "", source: "", author: "", body: "" });
       setNewsFormStatus("新闻已发布。");
-      addAudit("发布新闻", newsForm.title.trim());
-      // Refresh approved list
-      setApprovedNewsLoading(true);
-      try {
-        const { data } = await getSupabaseClient()
-          .from("ai_news")
-          .select("id, title, summary, source, author, body, created_at, is_hidden")
-          .eq("is_approved", true)
-          .order("created_at", { ascending: false })
-          .limit(50);
-        setApprovedNews((data as any[]) ?? []);
-      } catch {
-        // ignore
-      } finally {
-        setApprovedNewsLoading(false);
-      }
-    } catch {
-      setNewsFormStatus("发布失败，请重试。");
+      setNewsStatus(`已发布新闻：${title}`);
+      addAudit("发布新闻", title);
+      await refreshApprovedNews();
+    } catch (error) {
+      setNewsFormStatus(`发布失败：${getErrorMessage(error, "请重试。")}`);
     } finally {
       setNewsFormSending(false);
     }
   }
 
   // ---- Owner: admin management handlers ----
-  async function loadAdminList() {
+  const loadAdminList = useCallback(async () => {
+    const requestId = ++adminListRequestRef.current;
     setAdminListLoading(true);
     try {
-      const { data } = await getSupabaseClient()
+      const { data, error } = await getSupabaseClient()
         .rpc("get_admin_list");
+      if (error) throw error;
+      if (!isMountedRef.current || requestId !== adminListRequestRef.current) return;
       setAdminList((data as any[]) ?? []);
-    } catch {
+    } catch (error) {
+      if (!isMountedRef.current || requestId !== adminListRequestRef.current) return;
       setAdminList([]);
+      setAddAdminStatus(`管理员列表加载失败：${getErrorMessage(error, "请稍后重试。")}`);
     } finally {
+      if (!isMountedRef.current || requestId !== adminListRequestRef.current) return;
       setAdminListLoading(false);
     }
-  }
+  }, []);
 
   async function handleAddAdmin() {
     const emailTrimmed = newAdminEmail.trim().toLowerCase();
@@ -547,18 +643,19 @@ export default function AdminPage() {
     setAddAdminLoading(true);
     setAddAdminStatus("");
     try {
-      const { data: ok } = await getSupabaseClient()
+      const { data: ok, error } = await getSupabaseClient()
         .rpc("add_admin_by_email", { target_email: emailTrimmed });
+      if (error) throw error;
       if (ok) {
         setNewAdminEmail("");
         setAddAdminStatus("已添加管理员。");
         addAudit("添加管理员", emailTrimmed);
-        void loadAdminList();
+        await Promise.all([loadAdminList(), loadUsers()]);
       } else {
         setAddAdminStatus("添加失败：未找到该邮箱对应的用户，或用户尚未注册。");
       }
-    } catch {
-      setAddAdminStatus("添加失败，请重试。");
+    } catch (error) {
+      setAddAdminStatus(`添加失败：${getErrorMessage(error, "请重试。")}`);
     } finally {
       setAddAdminLoading(false);
     }
@@ -566,17 +663,18 @@ export default function AdminPage() {
 
   async function handleRemoveAdmin(userId: string, adminEmail: string) {
     try {
-      const { data: ok } = await getSupabaseClient()
+      const { data: ok, error } = await getSupabaseClient()
         .rpc("remove_admin", { target_user_id: userId });
+      if (error) throw error;
       if (ok) {
         setAddAdminStatus("已移除管理员。");
         addAudit("移除管理员", adminEmail);
-        void loadAdminList();
+        await Promise.all([loadAdminList(), loadUsers()]);
       } else {
         setAddAdminStatus("移除失败：不能移除站主。");
       }
-    } catch {
-      setAddAdminStatus("移除失败，请重试。");
+    } catch (error) {
+      setAddAdminStatus(`移除失败：${getErrorMessage(error, "请重试。")}`);
     }
   }
 
@@ -585,11 +683,11 @@ export default function AdminPage() {
     if (!isOwner || activeTab !== "admins") return;
     void loadAdminList();
      
-  }, [isOwner, activeTab]);
+  }, [isOwner, activeTab, loadAdminList]);
 
   const pendingSubmissions = submissions.filter((item) => item.status === "pending");
   const reviewedSubmissions = submissions.filter((item) => item.status !== "pending");
-  const totalStations = 14; // from stationLinkMap
+  const totalStations = stations.length;
 
   // ---- Permission gate ----
   if (!isConnected && adminChecked) {
@@ -798,10 +896,7 @@ export default function AdminPage() {
                   </p>
                   <button
                     className="rounded-full bg-[var(--color-soft)] px-4 py-2 text-sm font-bold text-[var(--color-brand-deep)] transition hover:bg-[var(--color-brand-soft)]"
-                    onClick={() => {
-                      setForumHistory([]);
-                      setForumHistoryLoaded(false);
-                    }}
+                    onClick={() => void refreshForumHistory()}
                     type="button"
                   >
                     刷新
@@ -860,7 +955,8 @@ export default function AdminPage() {
                             {new Date(item.time).toLocaleString("zh-CN")}
                           </p>
                           <button
-                            className="rounded-full bg-[#fff1f2] px-3 py-1 text-xs font-bold text-[#be123c] transition hover:bg-[#ffe4e6]"
+                            className="rounded-full bg-[#fff1f2] px-3 py-1 text-xs font-bold text-[#be123c] transition hover:bg-[#ffe4e6] disabled:cursor-not-allowed disabled:opacity-50"
+                            disabled={deletingPostId === item.id}
                             onClick={() => {
                               if (window.confirm("确定要删除这条帖子吗？此操作不可撤销。")) {
                                 void handleDeletePost(item.id);
@@ -868,7 +964,7 @@ export default function AdminPage() {
                             }}
                             type="button"
                           >
-                            删除
+                            {deletingPostId === item.id ? "删除中..." : "删除"}
                           </button>
                         </div>
                       </article>
@@ -935,34 +1031,15 @@ export default function AdminPage() {
                   </div>
                   <button
                     className="rounded-full bg-[var(--color-soft)] px-4 py-2 text-sm font-bold text-[var(--color-brand-deep)] transition hover:bg-[var(--color-brand-soft)]"
-                    onClick={async () => {
-                      setPendingNewsLoading(true);
-                      setApprovedNewsLoading(true);
-                      try {
-                        const { data: pdata } = await getSupabaseClient()
-                          .from("ai_news")
-                          .select("id, title, summary, source, author, body, created_at")
-                          .eq("is_approved", false)
-                          .order("created_at", { ascending: false });
-                        setPendingNews((pdata as any[]) ?? []);
-                      } catch { /* ignore */ }
-                      setPendingNewsLoading(false);
-                      try {
-                        const { data: adata } = await getSupabaseClient()
-                          .from("ai_news")
-                          .select("id, title, summary, source, author, body, created_at, is_hidden")
-                          .eq("is_approved", true)
-                          .order("created_at", { ascending: false })
-                          .limit(50);
-                        setApprovedNews((adata as any[]) ?? []);
-                      } catch { /* ignore */ }
-                      setApprovedNewsLoading(false);
-                    }}
+                    onClick={() => void Promise.all([refreshPendingNews(), refreshApprovedNews()])}
                     type="button"
                   >
                     刷新
                   </button>
                 </div>
+                {newsStatus && (
+                  <p className="mt-4 text-sm text-[var(--color-muted)]">{newsStatus}</p>
+                )}
                 <div className="mt-5 space-y-4">
                   {pendingNewsLoading ? (
                     <div className="rounded-[24px] bg-[var(--color-soft)] px-4 py-5 text-sm leading-7 text-[var(--color-muted)]">
@@ -994,14 +1071,16 @@ export default function AdminPage() {
                         </div>
                         <div className="mt-4 flex flex-wrap gap-3">
                           <button
-                            className="rounded-full bg-[var(--color-brand)] px-5 py-3 text-sm font-bold text-[var(--color-on-brand)] transition hover:bg-[var(--color-brand-deep)]"
+                            className="rounded-full bg-[var(--color-brand)] px-5 py-3 text-sm font-bold text-[var(--color-on-brand)] transition hover:bg-[var(--color-brand-deep)] disabled:cursor-not-allowed disabled:opacity-50"
+                            disabled={newsActionId === item.id}
                             onClick={() => void handleApproveNews(item.id)}
                             type="button"
                           >
-                            通过
+                            {newsActionId === item.id ? "处理中..." : "通过"}
                           </button>
                           <button
-                            className="rounded-full bg-[#fff1f2] px-5 py-3 text-sm font-bold text-[#be123c] transition hover:bg-[#ffe4e6]"
+                            className="rounded-full bg-[#fff1f2] px-5 py-3 text-sm font-bold text-[#be123c] transition hover:bg-[#ffe4e6] disabled:cursor-not-allowed disabled:opacity-50"
+                            disabled={newsActionId === item.id}
                             onClick={() => {
                               if (window.confirm("确定要驳回这条新闻吗？它将从数据库中删除。")) {
                                 void handleRejectNews(item.id);
@@ -1094,6 +1173,9 @@ export default function AdminPage() {
                   已审核新闻
                 </p>
                 <h2 className="mt-2 text-2xl font-black">管理已发布的新闻</h2>
+                {newsStatus && (
+                  <p className="mt-4 text-sm text-[var(--color-muted)]">{newsStatus}</p>
+                )}
                 <div className="mt-5 space-y-3">
                   {approvedNewsLoading ? (
                     <div className="rounded-[24px] bg-[var(--color-soft)] px-4 py-5 text-sm leading-7 text-[var(--color-muted)]">
@@ -1136,15 +1218,16 @@ export default function AdminPage() {
                         </div>
                         <div className="mt-3">
                           <button
-                            className={`rounded-full px-4 py-2 text-xs font-bold transition ${
+                            className={`rounded-full px-4 py-2 text-xs font-bold transition disabled:cursor-not-allowed disabled:opacity-50 ${
                               item.is_hidden
                                 ? "bg-[var(--color-soft)] text-[var(--color-brand-deep)] hover:bg-[var(--color-brand-soft)]"
                                 : "bg-[#fff1f2] text-[#be123c] hover:bg-[#ffe4e6]"
                             }`}
+                            disabled={newsActionId === item.id}
                             onClick={() => void handleToggleHideNews(item.id, item.is_hidden)}
                             type="button"
                           >
-                            {item.is_hidden ? "取消隐藏" : "隐藏"}
+                            {newsActionId === item.id ? "处理中..." : item.is_hidden ? "取消隐藏" : "隐藏"}
                           </button>
                         </div>
                       </article>
@@ -1571,16 +1654,20 @@ export default function AdminPage() {
                     {isOwner && (
                       <button
                         className="rounded-full border border-[var(--color-line)] px-3 py-1 text-[10px] font-bold text-[var(--color-brand-deep)] transition hover:bg-[var(--color-brand-soft)]"
+                        disabled={togglingUserId === user.id}
                         onClick={() => toggleAdmin(user.id, !user.isAdmin)}
                         type="button"
                       >
-                        {user.isAdmin ? "取消管理员" : "升级为管理员"}
+                        {togglingUserId === user.id ? "处理中..." : user.isAdmin ? "取消管理员" : "升级为管理员"}
                       </button>
                     )}
                   </div>
                 ))
             )}
           </div>
+          {userActionStatus && (
+            <p className="mt-4 text-sm text-[var(--color-muted)]">{userActionStatus}</p>
+          )}
         </div>
       )}
 

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 
 import { AiNewsPanel } from "@/components/ai-news-panel";
@@ -5,7 +6,9 @@ import { AuthButton } from "@/components/auth-button";
 import { OnlineIndicator } from "@/components/online-indicator";
 import { NotificationBell } from "@/components/notification-bell";
 import { QqGroupModalButton } from "@/components/qq-group-modal-button";
+import { RelayNetworkCanvas } from "@/components/relay-network-canvas";
 import { StationRowLink } from "@/components/station-row-link";
+import { FavoriteButton } from "@/components/favorite-button";
 import {
   prioritizedStationNames,
   resourceLinks,
@@ -13,6 +16,33 @@ import {
   stationLinkMap,
   tickerItems,
 } from "@/lib/site-data";
+
+export const metadata: Metadata = {
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    url: "/",
+  },
+};
+
+const decisionRoutes = [
+  {
+    title: "先比价格和倍率",
+    description: "已经有目标模型时，直接去榜单页比真实成本。",
+    href: "/stations",
+  },
+  {
+    title: "先看社区反馈",
+    description: "想避坑或补线索时，先看最近讨论和群友口径。",
+    href: "/community",
+  },
+  {
+    title: "先定模型方向",
+    description: "还没想清楚用什么模型时，先走模型择优页。",
+    href: "/models",
+  },
+];
 
 export default function Home() {
   type StationRow = (typeof stationComparisonRows)[number];
@@ -22,6 +52,18 @@ export default function Home() {
   const moreRows = stationComparisonRows.filter(
     (row) => !prioritizedStationNames.includes(row.name),
   );
+  const featuredLead = topRows[0] ?? null;
+  const lowRateCount = stationComparisonRows.filter((row) => {
+    const value = Number(row.multiplier.match(/(\d+(?:\.\d+)?)x/)?.[1] ?? Number.NaN);
+    return Number.isFinite(value) && value <= 0.15;
+  }).length;
+  const trialReadyCount = stationComparisonRows.filter(
+    (row) =>
+      row.badge.includes("试用") ||
+      row.badge.includes("免费") ||
+      row.note.includes("注册送") ||
+      row.price.includes("免费"),
+  ).length;
 
   return (
     <main className="min-h-screen bg-[var(--color-bg)] text-[var(--color-ink)]">
@@ -96,7 +138,7 @@ export default function Home() {
                   key={item.label}
                   className="flex items-center gap-2 transition hover:text-[var(--color-ink)]"
                   href={item.href}
-                  rel="noreferrer"
+                  rel="noopener noreferrer"
                   target="_blank"
                 >
                   <span
@@ -123,16 +165,157 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="relative overflow-hidden border-b border-[var(--color-line)]">
+        <RelayNetworkCanvas className="opacity-90" />
+        <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.72),rgba(244,247,251,0.28)_55%,rgba(219,234,254,0.62))]" />
+        <div className="relative mx-auto max-w-7xl px-6 py-10 lg:px-10 lg:py-14">
+          <div className="grid gap-8 lg:grid-cols-[1.12fr_0.88fr] lg:items-end">
+            <div className="max-w-3xl">
+              <p className="text-sm font-semibold uppercase tracking-[0.28em] text-[var(--color-brand-deep)]">
+                Relay Signal Desk
+              </p>
+              <h1 className="mt-5 max-w-4xl text-4xl font-black tracking-tight text-[var(--color-ink)] sm:text-5xl">
+                把中转站从“能用”，筛到“值得长期用”。
+              </h1>
+              <p className="mt-5 max-w-2xl text-base leading-8 text-[var(--color-muted)] sm:text-lg">
+                我们把倍率、真实入口、模型口径、社区备注和试用线索放进同一块观察面板里，
+                让你先做低成本验证，再决定谁适合长期放进工作流。
+              </p>
+              <div className="mt-7 flex flex-wrap gap-3">
+                <Link
+                  href="/stations"
+                  className="rounded-full bg-[var(--color-brand)] px-6 py-3 text-sm font-black text-[var(--color-on-brand)] shadow-[0_14px_34px_var(--color-panel-glow)] transition hover:scale-105 hover:bg-[var(--color-brand-deep)]"
+                >
+                  进入观察总表
+                </Link>
+                <Link
+                  href="/community"
+                  className="rounded-full border border-[var(--color-line)] bg-white/80 px-6 py-3 text-sm font-bold text-[var(--color-ink)] backdrop-blur transition hover:border-[var(--color-brand)] hover:text-[var(--color-brand-deep)]"
+                >
+                  去社区看实时反馈
+                </Link>
+              </div>
+              <div className="mt-7 grid gap-3 sm:grid-cols-3">
+                {decisionRoutes.map((route) => (
+                  <Link
+                    key={route.title}
+                    href={route.href}
+                    className="rounded-[22px] border border-white/70 bg-white/72 px-4 py-4 shadow-[0_16px_34px_rgba(15,23,42,0.06)] backdrop-blur transition hover:-translate-y-0.5 hover:border-[var(--color-brand)] hover:shadow-[0_18px_36px_rgba(15,23,42,0.10)]"
+                  >
+                    <p className="text-sm font-black text-[var(--color-ink)]">{route.title}</p>
+                    <p className="mt-2 text-sm leading-6 text-[var(--color-muted)]">{route.description}</p>
+                  </Link>
+                ))}
+              </div>
+              <div className="mt-8 grid gap-3 sm:grid-cols-3">
+                <div className="rounded-[20px] border border-white/70 bg-white/72 px-4 py-4 shadow-[0_16px_34px_rgba(15,23,42,0.06)] backdrop-blur">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
+                    收录站点
+                  </p>
+                  <p className="mt-2 text-3xl font-black">{stationComparisonRows.length}</p>
+                </div>
+                <div className="rounded-[20px] border border-white/70 bg-white/72 px-4 py-4 shadow-[0_16px_34px_rgba(15,23,42,0.06)] backdrop-blur">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
+                    低倍率样本
+                  </p>
+                  <p className="mt-2 text-3xl font-black">{lowRateCount}</p>
+                </div>
+                <div className="rounded-[20px] border border-white/70 bg-white/72 px-4 py-4 shadow-[0_16px_34px_rgba(15,23,42,0.06)] backdrop-blur">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
+                    可先试用
+                  </p>
+                  <p className="mt-2 text-3xl font-black">{trialReadyCount}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="relative overflow-hidden rounded-[28px] border border-white/70 bg-white/78 p-6 shadow-[0_22px_64px_rgba(15,23,42,0.08)] backdrop-blur">
+              <div className="absolute inset-x-0 top-0 h-28 bg-[radial-gradient(circle_at_top,rgba(37,99,235,0.16),transparent_70%)]" />
+              <div className="relative">
+                <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[var(--color-brand-deep)]">
+                  当前主观察面
+                </p>
+                {featuredLead ? (
+                  <>
+                    <div className="mt-4 flex items-start justify-between gap-4">
+                      <div>
+                        <h2 className="text-2xl font-black">{featuredLead.name}</h2>
+                        <p className="mt-2 text-sm leading-7 text-[var(--color-muted)]">
+                          {featuredLead.note}
+                        </p>
+                      </div>
+                      <span className="rounded-full bg-[var(--color-brand-soft)] px-3 py-1 text-xs font-bold text-[var(--color-brand-deep)]">
+                        {featuredLead.badge}
+                      </span>
+                    </div>
+                    <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                      <div className="rounded-[18px] border border-[var(--color-line)] bg-white/82 px-4 py-4">
+                        <p className="text-xs text-[var(--color-muted)]">价格 / 倍率</p>
+                        <p className="mt-2 text-lg font-black">{featuredLead.price}</p>
+                        <p className="mt-1 text-sm font-semibold text-[var(--color-brand-deep)]">
+                          {featuredLead.multiplier}
+                        </p>
+                      </div>
+                      <div className="rounded-[18px] border border-[var(--color-line)] bg-white/82 px-4 py-4">
+                        <p className="text-xs text-[var(--color-muted)]">一句判断</p>
+                        <p className="mt-2 text-sm leading-7 text-[var(--color-ink)]">
+                          {featuredLead.verdict}
+                        </p>
+                      </div>
+                    </div>
+                  </>
+                ) : null}
+                <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-[18px] border border-[var(--color-line)] bg-white/76 px-4 py-4">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
+                      先看什么
+                    </p>
+                    <p className="mt-2 text-sm leading-7 text-[var(--color-ink)]">
+                      先筛倍率和试用，再看群友备注，最后再决定值不值得长期充值。
+                    </p>
+                  </div>
+                  <div className="rounded-[18px] border border-[var(--color-line)] bg-white/76 px-4 py-4">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
+                      观察口径
+                    </p>
+                    <p className="mt-2 text-sm leading-7 text-[var(--color-ink)]">
+                      同站不同模型可能完全不是一个价格，像 GPT、Claude、Grok 要拆开判断。
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-5 rounded-[18px] border border-[var(--color-line)] bg-white/76 px-4 py-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
+                    三步判断
+                  </p>
+                  <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                    <div>
+                      <p className="text-sm font-black text-[var(--color-ink)]">01 先试用</p>
+                      <p className="mt-1 text-sm leading-6 text-[var(--color-muted)]">优先拿可试用、注册送额和低门槛入口做验证。</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-black text-[var(--color-ink)]">02 看备注</p>
+                      <p className="mt-1 text-sm leading-6 text-[var(--color-muted)]">重点看群友反馈、特殊口径、双档价格和模型分组。</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-black text-[var(--color-ink)]">03 再长期用</p>
+                      <p className="mt-1 text-sm leading-6 text-[var(--color-muted)]">稳定性、成本和口径都顺了，再决定谁进主工作流。</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="border-b border-[var(--color-line)]">
         <div className="surface-in mx-auto max-w-7xl px-6 py-8 lg:px-10 lg:py-10">
           <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[var(--color-brand-deep)]">
-                中转站榜单
+                本周精选
               </p>
-              <h1 className="mt-4 text-3xl font-black tracking-tight sm:text-4xl">
-                中转站榜单
-              </h1>
+              <h2 className="mt-4 text-3xl font-black tracking-tight sm:text-4xl">重点站点速览</h2>
             </div>
             <div className="flex flex-wrap gap-3">
               <Link
@@ -182,6 +365,7 @@ export default function Home() {
                       <div className="min-w-0">
                         <div className="flex items-center gap-3">
                           <h3 className="text-lg font-black">{row.name}</h3>
+                          <FavoriteButton stationName={row.name} />
                           <span className="hidden text-xs font-bold uppercase tracking-[0.18em] text-[var(--color-brand-deep)] md:inline">
                             {row.badge}
                           </span>
@@ -226,27 +410,40 @@ export default function Home() {
                     <a
                       className="mt-1 inline-flex text-base font-black text-[var(--color-brand-deep)] transition hover:scale-105 hover:text-[var(--color-brand)]"
                       href="https://github.com/hfeng620-cmd/timin_api_test_and_forum/discussions"
-                      rel="noreferrer"
+                      rel="noopener noreferrer"
                       target="_blank"
                     >
                       打开 GitHub Discussions
                     </a>
                   </div>
                   <div className="space-y-3">
-                    {resourceLinks.slice(0, 2).map((link) => (
-                      <a
-                        key={link.title}
-                        className="block border-b border-[var(--color-line)] pb-3 transition hover:border-[var(--color-brand)]"
-                        href={link.href}
-                        rel="noreferrer"
-                        target="_blank"
-                      >
-                        <p className="text-base font-black text-[var(--color-ink)]">{link.title}</p>
-                        <p className="mt-1 text-sm leading-6 text-[var(--color-muted)] line-clamp-2">
-                          {link.note}
-                        </p>
-                      </a>
-                    ))}
+                    {resourceLinks.slice(0, 2).map((link) =>
+                      link.href.startsWith("http") ? (
+                        <a
+                          key={link.title}
+                          className="block border-b border-[var(--color-line)] pb-3 transition hover:border-[var(--color-brand)]"
+                          href={link.href}
+                          rel="noopener noreferrer"
+                          target="_blank"
+                        >
+                          <p className="text-base font-black text-[var(--color-ink)]">{link.title}</p>
+                          <p className="mt-1 text-sm leading-6 text-[var(--color-muted)] line-clamp-2">
+                            {link.note}
+                          </p>
+                        </a>
+                      ) : (
+                        <Link
+                          key={link.title}
+                          className="block border-b border-[var(--color-line)] pb-3 transition hover:border-[var(--color-brand)]"
+                          href={link.href}
+                        >
+                          <p className="text-base font-black text-[var(--color-ink)]">{link.title}</p>
+                          <p className="mt-1 text-sm leading-6 text-[var(--color-muted)] line-clamp-2">
+                            {link.note}
+                          </p>
+                        </Link>
+                      ),
+                    )}
                   </div>
                 </div>
               </aside>
@@ -290,6 +487,7 @@ export default function Home() {
                   <div className="min-w-0">
                     <div className="flex items-center gap-3">
                       <h3 className="text-lg font-black">{row.name}</h3>
+                      <FavoriteButton stationName={row.name} />
                       <span className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--color-brand-deep)]">
                         {row.badge}
                       </span>
@@ -308,15 +506,13 @@ export default function Home() {
               );
 
               return url ? (
-                <a
+                <StationRowLink
                   key={`${row.name}-extended-${index}`}
                   className={linkClasses}
                   href={url}
-                  target="_blank"
-                  rel="noreferrer"
                 >
                   {content}
-                </a>
+                </StationRowLink>
               ) : (
                 <article
                   key={`${row.name}-extended-${index}`}
@@ -332,6 +528,3 @@ export default function Home() {
     </main>
   );
 }
-
-
-

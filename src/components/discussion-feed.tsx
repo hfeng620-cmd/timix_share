@@ -8,7 +8,6 @@ import {
   likeDiscussionPost,
   likeReply,
   loadComments,
-  loadDiscussionPosts,
   loadDiscussionPostsPaginated,
   pinDiscussionPost,
   replyDiscussionPost,
@@ -28,16 +27,85 @@ type DiscussionFeedProps = {
   limit?: number;
 };
 
-function CountDisplay({ count }: { count: number }) {
-  // Show raw number (no 万/k formatting) for exact count
-  return <>{count}</>;
+function getBookmarkKey(uid: string) {
+  return `timin-bookmarks-${uid}`;
 }
 
-/** Parse @username patterns and render them as highlighted spans with brand color.
- *  When highlightAuthor is provided, matching @mentions get a soft background highlight. */
-function renderBodyWithMentions(text: string, highlightAuthor?: string) {
-  const parts = text.split(/(@[\w一-鿿]+)/g);
+function loadBookmarksFromStorage(uid: string): Set<string> {
+  try {
+    const raw = localStorage.getItem(getBookmarkKey(uid));
+    if (raw) {
+      const arr = JSON.parse(raw) as string[];
+      return new Set(arr);
+    }
+  } catch {
+    // ignore corrupt data
+  }
+  return new Set();
+}
+
+function saveBookmarksToStorage(uid: string, ids: Set<string>) {
+  localStorage.setItem(getBookmarkKey(uid), JSON.stringify([...ids]));
+}
+
+function formatAbsoluteTime(date: Date): string {
+  const month = `${date.getMonth() + 1}`.padStart(2, "0");
+  const day = `${date.getDate()}`.padStart(2, "0");
+  const hour = `${date.getHours()}`.padStart(2, "0");
+  const minute = `${date.getMinutes()}`.padStart(2, "0");
+  return `${month}/${day} ${hour}:${minute}`;
+}
+
+function parsePostedAt(postedAt: string): Date | null {
+  if (postedAt === "刚刚") return new Date();
+
+  const shortMatch = postedAt.match(/^(\d{2})\/(\d{2})\s+(\d{2}):(\d{2})$/);
+  if (shortMatch) {
+    const [, month, day, hour, minute] = shortMatch;
+    const now = new Date();
+    let date = new Date(
+      now.getFullYear(),
+      Number.parseInt(month, 10) - 1,
+      Number.parseInt(day, 10),
+      Number.parseInt(hour, 10),
+      Number.parseInt(minute, 10),
+    );
+
+    if (date > now) {
+      date = new Date(
+        now.getFullYear() - 1,
+        Number.parseInt(month, 10) - 1,
+        Number.parseInt(day, 10),
+        Number.parseInt(hour, 10),
+        Number.parseInt(minute, 10),
+      );
+    }
+
+    return date;
+  }
+
+  const parsed = new Date(postedAt);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+/** Parse @username patterns and forum image markdown into renderable content. */
+function renderBodyContent(text: string, highlightAuthor?: string) {
+  const parts = text.split(/(!\[[^\]]*]\([^)]+\)|@[\w一-鿿]+)/g);
   return parts.map((part, i) => {
+    const imageMatch = part.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
+    if (imageMatch) {
+      const [, alt, src] = imageMatch;
+      return (
+        <img
+          key={i}
+          alt={alt || "帖子图片"}
+          className="my-3 max-h-96 w-auto max-w-full rounded-xl border border-[var(--color-line)] object-cover"
+          loading="lazy"
+          src={src}
+        />
+      );
+    }
+
     if (/^@[\w一-鿿]+$/.test(part)) {
       const name = part.slice(1);
       const isTarget = highlightAuthor && name === highlightAuthor;
@@ -57,14 +125,13 @@ function renderBodyWithMentions(text: string, highlightAuthor?: string) {
 function formatRelativeTime(postedAt: string): string {
   if (postedAt === "刚刚") return "刚刚";
 
-  const match = postedAt.match(/^(\d{2})\/(\d{2})\s+(\d{2}):(\d{2})$/);
-  if (!match) return postedAt;
+  const date = parsePostedAt(postedAt);
+  if (!date) return postedAt;
 
-  const [, month, day, hour, minute] = match;
   const now = new Date();
-  const date = new Date(now.getFullYear(), parseInt(month) - 1, parseInt(day), parseInt(hour), parseInt(minute));
-
   const diffMs = now.getTime() - date.getTime();
+  if (diffMs < 0) return formatAbsoluteTime(date);
+
   const diffMins = Math.floor(diffMs / 60000);
   const diffHours = Math.floor(diffMs / 3600000);
   const diffDays = Math.floor(diffMs / 86400000);
@@ -74,7 +141,7 @@ function formatRelativeTime(postedAt: string): string {
   if (diffHours < 24) return `${diffHours}小时前`;
   if (diffDays === 1) return "昨天";
   if (diffDays < 7) return `${diffDays}天前`;
-  return postedAt;
+  return formatAbsoluteTime(date);
 }
 
 function ActionIcon({ kind, liked }: { kind: "comment" | "like" | "bookmark" | "bookmarkFilled"; liked?: boolean }) {
@@ -157,7 +224,7 @@ export function DiscussionFeed({
   hideComposer = false,
   limit,
 }: DiscussionFeedProps) {
-  const { isConnected, displayName, adminUserIds, ownerUserIds, showAuthModal, user, isAdmin, isOwner, email } = useForumAuth();
+  const { isConnected, displayName, adminUserIds, ownerUserIds, showAuthModal, user, isAdmin } = useForumAuth();
 
   const [posts, setPosts] = useState<DiscussionPost[]>([]);
   const [commentsMap, setCommentsMap] = useState<Record<string, DiscussionReply[]>>({});
@@ -195,6 +262,8 @@ export function DiscussionFeed({
   const [loadingMore, setLoadingMore] = useState(false);
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [totalCount, setTotalCount] = useState(0);
+  const [feedCursor, setFeedCursor] = useState<string | null>(null);
+  const pageSize = limit ?? 20;
 
   // Execute server-side search with debounce
   const executeSearch = useCallback(
@@ -214,14 +283,18 @@ export function DiscussionFeed({
           query: query.trim() || undefined,
           tag: tag ?? undefined,
           sort: sort as "latest" | "mostReplies" | "mostLikes",
-          limit: 20,
+          limit: pageSize,
           cursor,
         });
-        if (append && searchResult) {
-          setSearchResult({
-            ...result,
-            posts: [...searchResult.posts, ...result.posts],
-          });
+        if (append) {
+          setSearchResult((current) =>
+            current
+              ? {
+                  ...result,
+                  posts: [...current.posts, ...result.posts],
+                }
+              : result,
+          );
         } else {
           setSearchResult(result);
           setTotalCount(result.totalCount);
@@ -235,7 +308,7 @@ export function DiscussionFeed({
         setLoadingMore(false);
       }
     },
-    [searchResult],
+    [pageSize],
   );
 
   // Debounced search effect
@@ -248,12 +321,15 @@ export function DiscussionFeed({
         executeSearch(searchQuery, selectedTag, sortOption);
       } else {
         setSearchResult(null);
+        setSearchCursor(null);
+        setHasMore(Boolean(feedCursor));
+        setTotalCount(0);
       }
     }, 300);
     return () => {
       if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
     };
-  }, [searchQuery, selectedTag, sortOption]);
+  }, [executeSearch, feedCursor, searchQuery, selectedTag, sortOption]);
 
   // ═══ Load more (pagination) ═══
   async function handleLoadMore() {
@@ -261,29 +337,9 @@ export function DiscussionFeed({
     if (searchQuery.trim() || selectedTag) {
       // Server-side search pagination
       await executeSearch(searchQuery, selectedTag, sortOption, searchCursor, true);
+    } else {
+      await loadMoreFeed();
     }
-  }
-
-  // --- bookmark localStorage helpers ---
-  function getBookmarkKey(uid: string) {
-    return `timin-bookmarks-${uid}`;
-  }
-
-  function loadBookmarksFromStorage(uid: string): Set<string> {
-    try {
-      const raw = localStorage.getItem(getBookmarkKey(uid));
-      if (raw) {
-        const arr = JSON.parse(raw) as string[];
-        return new Set(arr);
-      }
-    } catch {
-      // ignore corrupt data
-    }
-    return new Set();
-  }
-
-  function saveBookmarksToStorage(uid: string, ids: Set<string>) {
-    localStorage.setItem(getBookmarkKey(uid), JSON.stringify([...ids]));
   }
 
   // Load bookmarks on mount and when user changes
@@ -332,22 +388,40 @@ export function DiscussionFeed({
     setError(null);
 
     try {
-      const data = await loadDiscussionPosts();
-      setPosts(data);
+      const result = await loadDiscussionPostsPaginated(pageSize);
+      setPosts(result.posts);
+      setFeedCursor(result.nextCursor);
+      setHasMore(result.hasMore);
     } catch {
       setError("讨论暂时没有加载出来，可以重试或稍后再看。");
     } finally {
       if (setLoadingState) setLoading(false);
     }
-  }, []);
+  }, [pageSize]);
+
+  const loadMoreFeed = useCallback(async () => {
+    if (!feedCursor || loadingMore) return;
+    setLoadingMore(true);
+    try {
+      const result = await loadDiscussionPostsPaginated(pageSize, feedCursor);
+      setPosts((prev) => [...prev, ...result.posts]);
+      setFeedCursor(result.nextCursor);
+      setHasMore(result.hasMore);
+    } catch {
+      // ignore
+    }
+    setLoadingMore(false);
+  }, [feedCursor, loadingMore, pageSize]);
 
   useEffect(() => {
     let cancelled = false;
 
-    loadDiscussionPosts()
-      .then((data) => {
+    loadDiscussionPostsPaginated(pageSize)
+      .then((result) => {
         if (cancelled) return;
-        setPosts(data);
+        setPosts(result.posts);
+        setFeedCursor(result.nextCursor);
+        setHasMore(result.hasMore);
         setLoading(false);
       })
       .catch(() => {
@@ -359,7 +433,7 @@ export function DiscussionFeed({
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [pageSize]);
 
   const topTags = useMemo(() => {
     const counts = new Map<string, number>();
@@ -380,7 +454,6 @@ export function DiscussionFeed({
       if (bookmarksOnly) {
         result = result.filter((p) => bookmarkedIds.has(p.issueNumber));
       }
-      if (typeof limit === "number") return result.slice(0, limit);
       if (compact) return result.slice(0, 4);
       return result;
     }
@@ -414,8 +487,8 @@ export function DiscussionFeed({
       unpinned.sort((a, b) => b.likes - a.likes);
     }
     const sorted = [...pinned, ...unpinned];
-    return typeof limit === "number" ? sorted.slice(0, limit) : sorted;
-  }, [compact, limit, posts, selectedTag, searchQuery, sortOption, bookmarksOnly, bookmarkedIds, searchResult]);
+    return sorted;
+  }, [bookmarkedIds, bookmarksOnly, compact, posts, searchQuery, searchResult, selectedTag, sortOption]);
 
   async function handleSubmitPost() {
     if (!isConnected) {
@@ -505,7 +578,7 @@ export function DiscussionFeed({
 
   /** Open the reply box for a post. When replying to a specific author, auto-prepend @author
    *  and store the target reply body as a quote reference. */
-  function openReplyBox(postId: string, targetAuthor = "楼主") {
+  function openReplyBox(postId: string, targetAuthor = "楼主", targetReply?: DiscussionReply) {
     // Always expand the post and set reply target
     setExpandedPostId(postId);
     setReplyTargets((current) => ({ ...current, [postId]: targetAuthor }));
@@ -522,16 +595,11 @@ export function DiscussionFeed({
           return current;
         });
 
-        // Find the reply being replied to and store it as a quote
-        const currentComments = commentsMap[postId];
-        if (currentComments) {
-          const targetReply = currentComments.find((r) => r.author === targetAuthor);
-          if (targetReply) {
-            setReplyQuotes((current) => ({
-              ...current,
-              [postId]: { author: targetReply.author, body: targetReply.body },
-            }));
-          }
+        if (targetReply) {
+          setReplyQuotes((current) => ({
+            ...current,
+            [postId]: { author: targetReply.author, body: targetReply.body },
+          }));
         }
       } else {
         // Clear quote when replying to OP
@@ -981,9 +1049,11 @@ export function DiscussionFeed({
                   ) : post.body.length > 500 ? (
                     <>
                       <p className="mt-3 max-w-4xl text-[15px] leading-7 sm:text-base sm:leading-8 text-[var(--color-ink)]">
-                        {expandedBodies.has(post.issueNumber)
-                          ? renderBodyWithMentions(post.body)
-                          : renderBodyWithMentions(`${post.body.slice(0, 500)}...`)}
+                        <span className="whitespace-pre-wrap break-words">
+                          {expandedBodies.has(post.issueNumber)
+                            ? renderBodyContent(post.body)
+                            : renderBodyContent(`${post.body.slice(0, 500)}...`)}
+                        </span>
                       </p>
                       <button
                         className="mt-1 min-h-[44px] rounded-lg px-3 py-2 text-xs font-semibold text-[var(--color-brand-deep)] transition hover:bg-[var(--color-soft)] hover:text-[var(--color-brand)]"
@@ -1004,8 +1074,8 @@ export function DiscussionFeed({
                       </button>
                     </>
                   ) : (
-                    <p className="mt-3 max-w-4xl text-[15px] leading-7 sm:text-base sm:leading-8 text-[var(--color-ink)]">
-                      {renderBodyWithMentions(post.body)}
+                    <p className="mt-3 max-w-4xl whitespace-pre-wrap break-words text-[15px] leading-7 sm:text-base sm:leading-8 text-[var(--color-ink)]">
+                      {renderBodyContent(post.body)}
                     </p>
                   )}
                   <div className="mt-3 flex flex-wrap gap-2">
@@ -1085,12 +1155,14 @@ export function DiscussionFeed({
                                 <span className="text-[var(--color-muted)]">{formatRelativeTime(reply.postedAt)}</span>
                               </div>
                               <p className="mt-1 text-sm leading-7 text-[var(--color-ink)]">
-                                {renderBodyWithMentions(reply.body)}
+                                <span className="whitespace-pre-wrap break-words">
+                                  {renderBodyContent(reply.body)}
+                                </span>
                               </p>
                               <div className="mt-1 flex items-center gap-3">
                                 <button
                                   className="text-xs font-semibold text-[var(--color-muted)] transition hover:text-[var(--color-brand-deep)]"
-                                  onClick={() => openReplyBox(post.issueNumber, reply.author)}
+                                  onClick={() => openReplyBox(post.issueNumber, reply.author, reply)}
                                   type="button"
                                 >
                                   回复
@@ -1161,8 +1233,8 @@ export function DiscussionFeed({
         })}
       </div>
 
-      {/* Load more button (for server-side search results) */}
-      {searchResult && hasMore && !compact ? (
+      {/* Load more button */}
+      {hasMore && !compact ? (
         <div className="border-t border-[var(--color-line)] px-5 py-4 text-center">
           <button
             className="rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-6 py-3 text-sm font-bold text-[var(--color-brand-deep)] transition hover:bg-[var(--color-brand-soft)] hover:border-[var(--color-brand)] disabled:opacity-50"
@@ -1170,7 +1242,11 @@ export function DiscussionFeed({
             onClick={handleLoadMore}
             type="button"
           >
-            {loadingMore ? "加载中..." : `加载更多 (${visiblePosts.length} / ${totalCount})`}
+            {loadingMore
+              ? "加载中..."
+              : searchResult
+                ? `加载更多 (${visiblePosts.length} / ${totalCount})`
+                : "加载更多讨论"}
           </button>
         </div>
       ) : null}

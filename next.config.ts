@@ -10,6 +10,35 @@ const repoName = "timin_api_test_and_forum";
 
 const nextConfig: NextConfig = {
   devIndicators: false,
+  ...(isServerDeploy
+    ? {
+        async headers() {
+          return [
+            {
+              source: "/(.*)",
+              headers: [
+                {
+                  key: "X-Content-Type-Options",
+                  value: "nosniff",
+                },
+                {
+                  key: "X-Frame-Options",
+                  value: "SAMEORIGIN",
+                },
+                {
+                  key: "Referrer-Policy",
+                  value: "strict-origin-when-cross-origin",
+                },
+                {
+                  key: "Permissions-Policy",
+                  value: "camera=(), microphone=(), geolocation=()",
+                },
+              ],
+            },
+          ];
+        },
+      }
+    : {}),
 
   // Static-export settings — only active for GitHub Pages builds.
   // When DEPLOY_TARGET=server we omit `output` so Next.js runs its own server.

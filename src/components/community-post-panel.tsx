@@ -76,7 +76,7 @@ export function CommunityPostPanel({ onPostCreated }: CommunityPostPanelProps) {
     return {
       active: true,
       query: atMatch[1],
-      startIdx: cursor - atMatch[0].length + (atMatch[0].indexOf("@") > 0 ? 2 : 1),
+      startIdx: cursor - atMatch[1].length - 1,
     };
   }, [body]);
   /* eslint-enable react-hooks/refs */
@@ -97,6 +97,7 @@ export function CommunityPostPanel({ onPostCreated }: CommunityPostPanelProps) {
     const after = body.slice(textareaRef.current?.selectionStart ?? body.length);
     const newBody = `${before}@${name} ${after}`;
     setBody(newBody);
+    setMentionIndex(0);
 
     // Move cursor after the inserted mention
     const cursorPos = mentionState.startIdx + name.length + 2; // @name + space
@@ -204,7 +205,7 @@ export function CommunityPostPanel({ onPostCreated }: CommunityPostPanelProps) {
         <a
           className="rounded-full border border-[var(--color-line)] px-3 py-2 text-xs font-bold text-[var(--color-muted)] transition hover:border-[var(--color-brand)] hover:text-[var(--color-brand-deep)]"
           href="https://github.com/hfeng620-cmd/timin_api_test_and_forum/discussions"
-          rel="noreferrer"
+          rel="noopener noreferrer"
           target="_blank"
         >
           GitHub Discussions

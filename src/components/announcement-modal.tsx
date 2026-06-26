@@ -15,37 +15,49 @@ interface Announcement {
 export function AnnouncementModal() {
   const [announcement, setAnnouncement] = useState<Announcement | null>(null);
   const [visible, setVisible] = useState(false);
+  const [loadFailed, setLoadFailed] = useState(false);
 
   useEffect(() => {
-    if (!isSupabaseConfigured()) return;
+    if (!isSupabaseConfigured()) {
+      setAnnouncement(null);
+      setVisible(false);
+      setLoadFailed(false);
+      return;
+    }
 
-    // Check if already dismissed in this browser session
-    try {
-      const dismissed = localStorage.getItem(DISMISS_KEY);
-      if (dismissed) {
-        const ids = JSON.parse(dismissed) as string[];
-        // Only skip if we have recent dismissals
-      }
-    } catch { /* ignore */ }
-
+    let cancelled = false;
     const supabase = getSupabaseClient();
     const run = async () => {
-      const { data } = await supabase
+      setLoadFailed(false);
+      const { data, error } = await supabase
         .from("forum_posts")
         .select("id, title, body, created_at")
         .contains("tags", ["公告"])
         .eq("is_hidden", false)
         .order("created_at", { ascending: false })
         .limit(1);
+      if (error) throw error;
 
-      if (data && data.length > 0) {
+      if (cancelled) return;
+
+      if (!data || data.length === 0) {
+        setAnnouncement(null);
+        setVisible(false);
+        return;
+      }
+
+      if (data.length > 0) {
         const latest = data[0] as unknown as Announcement;
         // Check if this specific announcement was already dismissed
         try {
           const dismissed = localStorage.getItem(DISMISS_KEY);
           if (dismissed) {
             const ids = JSON.parse(dismissed) as string[];
-            if (ids.includes(latest.id)) return;
+            if (ids.includes(latest.id)) {
+              setAnnouncement(null);
+              setVisible(false);
+              return;
+            }
           }
         } catch { /* ignore */ }
 
@@ -53,7 +65,13 @@ export function AnnouncementModal() {
         setVisible(true);
       }
     };
-    run().catch(() => {});
+    run().catch(() => {
+      if (cancelled) return;
+      setLoadFailed(true);
+      setAnnouncement(null);
+      setVisible(false);
+    });
+    return () => { cancelled = true; };
   }, []);
 
   function handleDismiss() {
@@ -71,6 +89,7 @@ export function AnnouncementModal() {
     }
   }
 
+  if (loadFailed) return null;
   if (!visible || !announcement) return null;
 
   return (

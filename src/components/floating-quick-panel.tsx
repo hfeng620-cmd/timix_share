@@ -27,7 +27,6 @@ export function FloatingQuickPanel() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (window.localStorage.getItem(HINT_DISMISSED_KEY)) return;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setShowHint(true);
   }, []);
 
@@ -41,43 +40,82 @@ export function FloatingQuickPanel() {
   return (
     <div className="fixed bottom-20 left-4 z-[70] lg:bottom-4" data-selection-comments="off" ref={wrapperRef}>
       {open ? (
-        <div className="surface-in mb-3 w-[272px] overflow-hidden rounded-[20px] border border-[var(--color-line)] bg-[var(--surface-gradient)] p-4 shadow-[0_20px_60px_rgba(15,23,42,0.12)] backdrop-blur">
+        <div className="surface-in mb-3 w-[292px] overflow-hidden rounded-[24px] border border-[var(--color-line)] bg-[var(--surface-gradient)] p-4 shadow-[0_20px_60px_rgba(15,23,42,0.12)] backdrop-blur">
           <div className="border-b border-[var(--color-line)] pb-3">
-            <p className="text-sm font-bold text-[var(--color-ink)]">站点快捷入口</p>
+            <p className="text-sm font-bold text-[var(--color-ink)]">观察站导航台</p>
+            <p className="mt-1 text-xs leading-5 text-[var(--color-muted)]">
+              常用页面、外部协作入口和主题切换都放在这里。
+            </p>
           </div>
-          <div className="mt-4 grid gap-2">
-            <a
-              className="rounded-[14px] border border-[var(--color-line)] bg-[var(--color-soft)] px-3 py-3.5 text-sm font-semibold text-[var(--color-ink)] transition-all duration-300 hover:border-[var(--color-brand)] hover:bg-[var(--color-brand-soft)] hover:text-[var(--color-brand-deep)]"
-              href={siteLinks.pages}
-              rel="noreferrer"
-              target="_blank"
-            >
-              打开线上站点
-            </a>
-            <a
-              className="rounded-[14px] border border-[var(--color-line)] bg-[var(--color-soft)] px-3 py-3.5 text-sm font-semibold text-[var(--color-ink)] transition-all duration-300 hover:border-[var(--color-brand)] hover:bg-[var(--color-brand-soft)] hover:text-[var(--color-brand-deep)]"
-              href={siteLinks.discussions}
-              rel="noreferrer"
-              target="_blank"
-            >
-              打开 GitHub Discussions
-            </a>
-            <a
-              className="rounded-[14px] border border-[var(--color-line)] bg-[var(--color-soft)] px-3 py-3.5 text-sm font-semibold text-[var(--color-ink)] transition-all duration-300 hover:border-[var(--color-brand)] hover:bg-[var(--color-brand-soft)] hover:text-[var(--color-brand-deep)]"
-              href={siteLinks.repo}
-              rel="noreferrer"
-              target="_blank"
-            >
-              打开 GitHub 仓库
-            </a>
-            <Link
-              className="rounded-[14px] border border-[var(--color-line)] bg-[var(--color-soft)] px-3 py-3.5 text-sm font-semibold text-[var(--color-ink)] transition-all duration-300 hover:border-[var(--color-brand)] hover:bg-[var(--color-brand-soft)] hover:text-[var(--color-brand-deep)]"
-              href="/community"
-            >
-              打开站内讨论区
-            </Link>
-          </div>
+
           <div className="mt-4">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
+              站内页
+            </p>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              <Link
+                className="rounded-[14px] border border-[var(--color-line)] bg-[var(--color-soft)] px-3 py-3 text-sm font-semibold text-[var(--color-ink)] transition-all duration-300 hover:border-[var(--color-brand)] hover:bg-[var(--color-brand-soft)] hover:text-[var(--color-brand-deep)]"
+                href="/stations"
+              >
+                榜单页
+              </Link>
+              <Link
+                className="rounded-[14px] border border-[var(--color-line)] bg-[var(--color-soft)] px-3 py-3 text-sm font-semibold text-[var(--color-ink)] transition-all duration-300 hover:border-[var(--color-brand)] hover:bg-[var(--color-brand-soft)] hover:text-[var(--color-brand-deep)]"
+                href="/community"
+              >
+                讨论区
+              </Link>
+              <Link
+                className="rounded-[14px] border border-[var(--color-line)] bg-[var(--color-soft)] px-3 py-3 text-sm font-semibold text-[var(--color-ink)] transition-all duration-300 hover:border-[var(--color-brand)] hover:bg-[var(--color-brand-soft)] hover:text-[var(--color-brand-deep)]"
+                href="/guides"
+              >
+                指南页
+              </Link>
+              <Link
+                className="rounded-[14px] border border-[var(--color-line)] bg-[var(--color-soft)] px-3 py-3 text-sm font-semibold text-[var(--color-ink)] transition-all duration-300 hover:border-[var(--color-brand)] hover:bg-[var(--color-brand-soft)] hover:text-[var(--color-brand-deep)]"
+                href="/models"
+              >
+                模型页
+              </Link>
+            </div>
+          </div>
+
+          <div className="mt-4">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
+              外部入口
+            </p>
+            <div className="mt-2 grid gap-2">
+              <a
+                className="rounded-[14px] border border-[var(--color-line)] bg-[var(--color-soft)] px-3 py-3.5 text-sm font-semibold text-[var(--color-ink)] transition-all duration-300 hover:border-[var(--color-brand)] hover:bg-[var(--color-brand-soft)] hover:text-[var(--color-brand-deep)]"
+                href={siteLinks.pages}
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                打开线上站点
+              </a>
+              <a
+                className="rounded-[14px] border border-[var(--color-line)] bg-[var(--color-soft)] px-3 py-3.5 text-sm font-semibold text-[var(--color-ink)] transition-all duration-300 hover:border-[var(--color-brand)] hover:bg-[var(--color-brand-soft)] hover:text-[var(--color-brand-deep)]"
+                href={siteLinks.discussions}
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                GitHub Discussions
+              </a>
+              <a
+                className="rounded-[14px] border border-[var(--color-line)] bg-[var(--color-soft)] px-3 py-3.5 text-sm font-semibold text-[var(--color-ink)] transition-all duration-300 hover:border-[var(--color-brand)] hover:bg-[var(--color-brand-soft)] hover:text-[var(--color-brand-deep)]"
+                href={siteLinks.repo}
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                GitHub 仓库
+              </a>
+            </div>
+          </div>
+
+          <div className="mt-4">
+            <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
+              外观
+            </p>
             <ThemeToggleInline />
           </div>
         </div>
@@ -92,8 +130,8 @@ export function FloatingQuickPanel() {
         }}
         type="button"
       >
-        <span className="mr-1.5 text-base leading-none" aria-hidden="true">🎨</span>
-        配色
+        <span className="mr-1.5 text-base leading-none" aria-hidden="true">✦</span>
+        导航
       </button>
     </div>
   );

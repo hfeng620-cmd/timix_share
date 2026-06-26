@@ -4,6 +4,7 @@ import { useEffect } from "react";
 
 import type { Station } from "@/lib/station-storage";
 import { StationReviewPanel } from "@/components/station-review-panel";
+import { getSafeExternalHref } from "@/lib/url-safety";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -51,6 +52,7 @@ export function StationDetailModal({ station, open, onClose }: StationDetailModa
   }, [open, onClose]);
 
   if (!open || !station) return null;
+  const stationHref = getSafeExternalHref(station.url);
 
   return (
     <div
@@ -83,11 +85,11 @@ export function StationDetailModal({ station, open, onClose }: StationDetailModa
         </div>
 
         {/* ── Direct link to relay station ── */}
-        {station.url ? (
+        {stationHref ? (
           <a
             className="mt-3 inline-flex items-center gap-1.5 text-sm font-bold text-[var(--color-brand-deep)] transition hover:text-[var(--color-brand)]"
-            href={station.url}
-            rel="noreferrer"
+            href={stationHref}
+            rel="noopener noreferrer"
             target="_blank"
           >
             打开站点入口
@@ -199,7 +201,7 @@ export function StationDetailModal({ station, open, onClose }: StationDetailModa
           <a
             className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[var(--color-brand)] px-5 py-3 text-sm font-bold text-[var(--color-on-brand)] transition hover:bg-[var(--color-brand-deep)]"
             href={`https://github.com/hfeng620-cmd/timin_api_test_and_forum/discussions?discussions_q=${encodeURIComponent(station.name)}`}
-            rel="noreferrer"
+            rel="noopener noreferrer"
             target="_blank"
           >
             查看社区讨论
