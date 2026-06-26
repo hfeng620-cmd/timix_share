@@ -205,12 +205,15 @@ export function ForumAuthProvider({ children }: { children: React.ReactNode }) {
     if (!configured) return;
     const supabase = getSupabaseClient();
     let mounted = true;
-    supabase.from("site_owners").select("user_id")
-      .then(({ data }) => {
+    (async () => {
+      try {
+        const { data } = await supabase.from("site_owners").select("user_id");
         if (!mounted || !data) return;
         setOwnerUserIds(new Set((data as { user_id: string }[]).map((r) => r.user_id)));
-      })
-      .catch(() => { /* RLS may block */ });
+      } catch {
+        /* RLS may block */
+      }
+    })();
     return () => { mounted = false; };
   }, [configured]);
 
