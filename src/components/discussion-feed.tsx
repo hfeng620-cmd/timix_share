@@ -1008,6 +1008,7 @@ export function DiscussionFeed({
       ) : null}
 
       {/* Tag filters + bookmark toggle */}
+      {!hideHeader && (
       <div className="border-b border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-4 sm:px-6">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-wrap items-center gap-2.5">
@@ -1062,9 +1063,10 @@ export function DiscussionFeed({
           ) : null}
         </div>
       </div>
+      )}
 
       {/* Search loading indicator */}
-      {searchLoading && !loadingMore ? (
+      {!hideHeader && searchLoading && !loadingMore ? (
         <div className="border-b border-[var(--color-line)] bg-[var(--color-soft)]/70 px-5 py-3">
           <p className="text-sm text-[var(--color-muted)]">正在更新结果...</p>
         </div>
