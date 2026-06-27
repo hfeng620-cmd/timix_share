@@ -32,12 +32,10 @@ const utilityRoutes = [
   {
     label: "首页",
     href: "/",
-    description: "回到总览入口",
   },
   {
     label: "我的",
     href: "/profile",
-    description: "查看个人记录与收藏",
   },
 ] as const;
 
@@ -108,36 +106,31 @@ export function FloatingQuickPanel() {
 
   return (
     <>
-    <div className="fixed bottom-20 left-4 z-[70] lg:bottom-4" data-selection-comments="off" ref={wrapperRef}>
+    <div className="fixed bottom-20 left-3 z-[70] max-w-[calc(100vw-1.5rem)] sm:left-4 lg:bottom-4" data-selection-comments="off" ref={wrapperRef}>
       {open ? (
         <div
           aria-label="导航与快捷操作"
-          className="surface-in mb-3 w-[328px] overflow-hidden rounded-[28px] border border-[var(--color-line)] bg-[var(--surface-gradient)] p-4 shadow-[0_24px_80px_rgba(15,23,42,0.14)] backdrop-blur"
+          className="surface-in mb-2.5 w-[calc(100vw-1.5rem)] max-w-[272px] overflow-hidden rounded-[24px] border border-[var(--color-line)] bg-[var(--surface-gradient)] p-3 shadow-[0_18px_54px_rgba(15,23,42,0.12)] backdrop-blur"
           id="quick-panel-menu"
           role="navigation"
         >
           <div className="border-b border-[var(--color-line)] pb-3">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-sm font-bold text-[var(--color-ink)]">观察站导航台</p>
-                <p className="mt-1 text-xs leading-5 text-[var(--color-muted)]">
-                  常用入口、主题和配色都收在这里。
-                </p>
-              </div>
-              <span className="rounded-full border border-[var(--color-line)] bg-[var(--color-soft)] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-brand-deep)]">
-                UI
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm font-black text-[var(--color-ink)]">快捷启动</p>
+              <span className="rounded-full border border-[var(--color-line)] bg-[var(--color-soft)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-brand-deep)]">
+                Timix
               </span>
             </div>
-            <div className="mt-3 grid grid-cols-2 gap-2">
+            <div className="mt-2 grid grid-cols-2 gap-1.5">
               <button
-                className="rounded-[14px] border border-[var(--color-line)] bg-[var(--color-soft)] px-3 py-3 text-left text-sm font-bold text-[var(--color-ink)] transition hover:border-[var(--color-brand)] hover:bg-[var(--color-brand-soft)] hover:text-[var(--color-brand-deep)]"
+                className="rounded-[14px] border border-[var(--color-line)] bg-[var(--color-soft)] px-3 py-2 text-sm font-bold text-[var(--color-ink)] transition hover:border-[var(--color-brand)] hover:bg-[var(--color-brand-soft)] hover:text-[var(--color-brand-deep)]"
                 onClick={() => openAppearancePanel("theme")}
                 type="button"
               >
                 主题
               </button>
               <button
-                className="rounded-[14px] border border-[var(--color-line)] bg-[var(--color-soft)] px-3 py-3 text-left text-sm font-bold text-[var(--color-ink)] transition hover:border-[var(--color-brand)] hover:bg-[var(--color-brand-soft)] hover:text-[var(--color-brand-deep)]"
+                className="rounded-[14px] border border-[var(--color-line)] bg-[var(--color-soft)] px-3 py-2 text-sm font-bold text-[var(--color-ink)] transition hover:border-[var(--color-brand)] hover:bg-[var(--color-brand-soft)] hover:text-[var(--color-brand-deep)]"
                 onClick={() => openAppearancePanel("palette")}
                 type="button"
               >
@@ -146,11 +139,11 @@ export function FloatingQuickPanel() {
             </div>
           </div>
 
-          <div className="mt-4">
+          <div className="mt-3">
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
               主导航
             </p>
-            <div className="mt-2 grid grid-cols-2 gap-2">
+            <div className="mt-2 grid grid-cols-4 gap-1.5">
               {navigationRoutes.map((item) => {
                 const active = isRouteActive(pathname, item.href);
 
@@ -158,9 +151,9 @@ export function FloatingQuickPanel() {
                   <Link
                     key={item.href}
                     aria-current={active ? "page" : undefined}
-                    className={`rounded-[14px] border px-3 py-3 text-sm font-semibold transition-all duration-300 ${
+                    className={`rounded-[14px] border px-2 py-2 text-center text-sm font-bold transition-all duration-300 ${
                       active
-                        ? "border-[var(--color-brand)] bg-[var(--color-brand-soft)] text-[var(--color-brand-deep)] shadow-[0_10px_26px_rgba(37,99,235,0.12)]"
+                        ? "border-[var(--color-brand)] bg-[var(--color-brand-soft)] text-[var(--color-brand-deep)] shadow-[0_8px_20px_rgba(37,99,235,0.1)]"
                         : "border-[var(--color-line)] bg-[var(--color-soft)] text-[var(--color-ink)] hover:border-[var(--color-brand)] hover:bg-[var(--color-brand-soft)] hover:text-[var(--color-brand-deep)]"
                     }`}
                     href={item.href}
@@ -172,56 +165,55 @@ export function FloatingQuickPanel() {
             </div>
           </div>
 
-          <div className="mt-4">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
-              辅助入口
-            </p>
-            <div className="mt-2 grid grid-cols-2 gap-2">
-              {utilityRoutes.map((item) => {
-                const active = isRouteActive(pathname, item.href);
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
+                辅助入口
+              </p>
+              <div className="mt-2 grid gap-1.5">
+                {utilityRoutes.map((item) => {
+                  const active = isRouteActive(pathname, item.href);
 
-                return (
-                  <Link
-                    key={item.href}
-                    aria-current={active ? "page" : undefined}
-                    className={`rounded-[14px] border px-3 py-3 text-left transition-all duration-300 ${
-                      active
-                        ? "border-[var(--color-brand)] bg-[var(--color-brand-soft)] text-[var(--color-brand-deep)]"
-                        : "border-[var(--color-line)] bg-[var(--color-soft)] text-[var(--color-ink)] hover:border-[var(--color-brand)] hover:bg-[var(--color-brand-soft)] hover:text-[var(--color-brand-deep)]"
-                    }`}
-                    href={item.href}
-                  >
-                    <p className="text-sm font-semibold">{item.label}</p>
-                    <p className="mt-1 text-xs leading-5 text-[var(--color-muted)]">
-                      {item.description}
-                    </p>
-                  </Link>
-                );
-              })}
+                  return (
+                    <Link
+                      key={item.href}
+                      aria-current={active ? "page" : undefined}
+                      className={`rounded-[14px] border px-3 py-2 text-sm font-semibold transition-all duration-300 ${
+                        active
+                          ? "border-[var(--color-brand)] bg-[var(--color-brand-soft)] text-[var(--color-brand-deep)]"
+                          : "border-[var(--color-line)] bg-[var(--color-soft)] text-[var(--color-ink)] hover:border-[var(--color-brand)] hover:bg-[var(--color-brand-soft)] hover:text-[var(--color-brand-deep)]"
+                      }`}
+                      href={item.href}
+                    >
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </div>
             </div>
-          </div>
 
-          <div className="mt-4">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
-              协作入口
-            </p>
-            <div className="mt-2 grid gap-2">
-              <a
-                className="rounded-[14px] border border-[var(--color-line)] bg-[var(--color-soft)] px-3 py-3.5 text-sm font-semibold text-[var(--color-ink)] transition-all duration-300 hover:border-[var(--color-brand)] hover:bg-[var(--color-brand-soft)] hover:text-[var(--color-brand-deep)]"
-                href={siteLinks.discussions}
-                rel="noopener noreferrer"
-                target="_blank"
-              >
-                GitHub Discussions
-              </a>
-              <a
-                className="rounded-[14px] border border-[var(--color-line)] bg-[var(--color-soft)] px-3 py-3.5 text-sm font-semibold text-[var(--color-ink)] transition-all duration-300 hover:border-[var(--color-brand)] hover:bg-[var(--color-brand-soft)] hover:text-[var(--color-brand-deep)]"
-                href={siteLinks.repo}
-                rel="noopener noreferrer"
-                target="_blank"
-              >
-                GitHub 仓库
-              </a>
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
+                协作入口
+              </p>
+              <div className="mt-2 grid gap-1.5">
+                <a
+                  className="rounded-[14px] border border-[var(--color-line)] bg-[var(--color-soft)] px-3 py-2 text-sm font-semibold text-[var(--color-ink)] transition-all duration-300 hover:border-[var(--color-brand)] hover:bg-[var(--color-brand-soft)] hover:text-[var(--color-brand-deep)]"
+                  href={siteLinks.discussions}
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  讨论
+                </a>
+                <a
+                  className="rounded-[14px] border border-[var(--color-line)] bg-[var(--color-soft)] px-3 py-2 text-sm font-semibold text-[var(--color-ink)] transition-all duration-300 hover:border-[var(--color-brand)] hover:bg-[var(--color-brand-soft)] hover:text-[var(--color-brand-deep)]"
+                  href={siteLinks.repo}
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  仓库
+                </a>
+              </div>
             </div>
           </div>
         </div>

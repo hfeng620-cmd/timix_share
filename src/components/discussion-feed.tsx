@@ -812,38 +812,38 @@ export function DiscussionFeed({
   return (
     <section
       ref={sectionRef}
-      className={`card-lift overflow-hidden rounded-[24px] border border-[var(--color-line)] bg-[var(--color-panel)] shadow-[0_20px_60px_rgba(15,23,42,0.08)] transition-[opacity,transform,box-shadow] duration-700 ease-out motion-reduce:translate-y-0 motion-reduce:opacity-100 ${
+      className={`card-lift overflow-hidden rounded-[28px] border border-[var(--color-line)] bg-[var(--color-panel)] shadow-[0_20px_60px_rgba(15,23,42,0.08)] transition-[opacity,transform,box-shadow] duration-700 ease-out motion-reduce:translate-y-0 motion-reduce:opacity-100 ${
         isSectionRevealed ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0"
       }`}
       data-selection-comments="off"
     >
-      <div className="border-b border-[var(--color-line)] bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.98)_58%,rgba(255,247,237,0.84))] px-5 py-5">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+      <div className="border-b border-[var(--color-line)] bg-[linear-gradient(145deg,var(--color-header),var(--color-panel)_58%,var(--color-brand-soft))] px-5 py-5 sm:px-6">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--color-brand-deep)]">
               Discussion Workbench
             </p>
             <h2 className="mt-2 text-2xl font-black tracking-tight">{title}</h2>
-            <p className="mt-2 max-w-2xl text-sm text-[var(--color-muted)]">
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--color-muted)]">
               {stationFilter
                 ? `围绕 ${stationFilter} 聚合最新反馈，优先处理当下短流。`
                 : "把新动态、筛选和重点讨论收在同一工作台里。"}
             </p>
           </div>
           <div className="grid gap-2 sm:grid-cols-3">
-            <div className="rounded-[18px] border border-white/70 bg-white/80 px-4 py-3 shadow-[0_12px_30px_rgba(15,23,42,0.05)]">
+            <div className="rounded-[18px] border border-[var(--color-line)] bg-[color-mix(in_srgb,var(--color-panel)_76%,transparent)] px-4 py-3 shadow-[0_12px_30px_rgba(15,23,42,0.05)] backdrop-blur">
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
                 结果
               </p>
               <p className="mt-1 text-lg font-black text-[var(--color-ink)]">{resultCount}</p>
             </div>
-            <div className="rounded-[18px] border border-white/70 bg-white/80 px-4 py-3 shadow-[0_12px_30px_rgba(15,23,42,0.05)]">
+            <div className="rounded-[18px] border border-[var(--color-line)] bg-[color-mix(in_srgb,var(--color-panel)_76%,transparent)] px-4 py-3 shadow-[0_12px_30px_rgba(15,23,42,0.05)] backdrop-blur">
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
                 排序
               </p>
               <p className="mt-1 text-sm font-bold text-[var(--color-ink)]">{sortLabel}</p>
             </div>
-            <div className="rounded-[18px] border border-white/70 bg-white/80 px-4 py-3 shadow-[0_12px_30px_rgba(15,23,42,0.05)]">
+            <div className="rounded-[18px] border border-[var(--color-line)] bg-[color-mix(in_srgb,var(--color-panel)_76%,transparent)] px-4 py-3 shadow-[0_12px_30px_rgba(15,23,42,0.05)] backdrop-blur">
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
                 状态
               </p>
@@ -854,18 +854,18 @@ export function DiscussionFeed({
           </div>
         </div>
 
-        <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
+        <div className="mt-5 grid gap-3 rounded-[22px] border border-[var(--color-line)] bg-[color-mix(in_srgb,var(--color-panel)_64%,transparent)] p-3 backdrop-blur lg:grid-cols-[minmax(0,1fr)_auto]">
           <div className="relative min-w-0">
             <input
-              className="w-full rounded-full border border-[var(--color-line)] bg-white/88 pl-5 pr-4 py-3 text-sm outline-none transition focus:border-[var(--color-brand)] focus:bg-white"
+              className="w-full rounded-full border border-[var(--color-line)] bg-[var(--color-input)] py-3 pl-5 pr-4 text-sm text-[var(--color-ink)] outline-none transition placeholder:text-[var(--color-muted)] focus:border-[var(--color-brand)] focus:bg-[var(--color-panel)]"
               onChange={(event) => setSearchQuery(event.target.value)}
               placeholder="搜索内容、站点名或标签..."
               value={searchQuery}
             />
           </div>
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2">
             <select
-              className="rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-3 text-sm outline-none transition focus:border-[var(--color-brand)] cursor-pointer appearance-none text-[var(--color-ink)]"
+              className="cursor-pointer appearance-none rounded-full border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 text-sm text-[var(--color-ink)] outline-none transition focus:border-[var(--color-brand)]"
               value={sortOption}
               onChange={(e) => setSortOption(e.target.value as "latest" | "mostReplies" | "mostLikes")}
               style={{
@@ -881,7 +881,7 @@ export function DiscussionFeed({
             </select>
             {hasActiveFilters ? (
               <button
-                className="rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-3 text-sm font-semibold text-[var(--color-muted)] transition hover:border-[var(--color-brand)] hover:text-[var(--color-brand-deep)]"
+                className="rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-3 text-sm font-semibold text-[var(--color-muted)] transition hover:border-[var(--color-brand)] hover:bg-[var(--color-soft)] hover:text-[var(--color-brand-deep)]"
                 onClick={() => {
                   setSearchQuery("");
                   setSelectedTag(null);
@@ -904,7 +904,7 @@ export function DiscussionFeed({
               {activeFilters.map((item) => (
                 <span
                   key={item}
-                  className="rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-3 py-1.5 text-xs font-semibold text-[var(--color-ink)]"
+                  className="rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-3 py-1.5 text-xs font-semibold text-[var(--color-brand-deep)]"
                 >
                   {item}
                 </span>
@@ -919,10 +919,10 @@ export function DiscussionFeed({
       </div>
 
       {!hideComposer ? (
-        <div className="border-b border-[var(--color-line)] px-6 py-5">
-          <div className="rounded-[22px] border border-[var(--color-line)] bg-[linear-gradient(180deg,rgba(255,255,255,0.88),rgba(248,250,252,0.9))] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
+        <div className="border-b border-[var(--color-line)] bg-[var(--color-soft)]/40 px-5 py-5 sm:px-6">
+          <div className="rounded-[24px] border border-[var(--color-line)] bg-[linear-gradient(180deg,var(--color-panel),var(--color-soft))] p-5 shadow-[inset_0_1px_0_var(--color-panel)]">
             <textarea
-              className="min-h-28 w-full resize-none bg-transparent text-base leading-7 outline-none"
+              className="min-h-28 w-full resize-none bg-transparent text-base leading-7 text-[var(--color-ink)] outline-none placeholder:text-[var(--color-muted)]"
               onChange={(event) => setBody(event.target.value)}
               onPaste={async (e) => {
                 const items = e.clipboardData?.items;
@@ -1004,9 +1004,9 @@ export function DiscussionFeed({
       ) : null}
 
       {/* Tag filters + bookmark toggle */}
-      <div className="border-b border-[var(--color-line)] px-5 py-3">
+      <div className="border-b border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-4 sm:px-6">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2.5">
             <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
               高频标签
             </span>
@@ -1016,7 +1016,7 @@ export function DiscussionFeed({
                   className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition ${
                     selectedTag === null
                       ? "bg-[var(--color-brand)] text-[var(--color-on-brand)]"
-                      : "bg-[var(--color-soft)] text-[var(--color-muted)] hover:bg-[var(--color-hover)] hover:text-[var(--color-ink)]"
+                      : "border border-[var(--color-line)] bg-[var(--color-soft)] text-[var(--color-muted)] hover:bg-[var(--color-hover)] hover:text-[var(--color-ink)]"
                   }`}
                   onClick={() => setSelectedTag(null)}
                   type="button"
@@ -1029,7 +1029,7 @@ export function DiscussionFeed({
                     className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition ${
                       selectedTag === tag
                         ? "bg-[var(--color-brand)] text-[var(--color-on-brand)]"
-                        : "bg-[var(--color-soft)] text-[var(--color-muted)] hover:bg-[var(--color-hover)] hover:text-[var(--color-ink)]"
+                        : "border border-[var(--color-line)] bg-[var(--color-soft)] text-[var(--color-muted)] hover:bg-[var(--color-hover)] hover:text-[var(--color-ink)]"
                     }`}
                     onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
                     type="button"
@@ -1047,7 +1047,7 @@ export function DiscussionFeed({
               className={`inline-flex items-center self-start rounded-full px-3.5 py-1.5 text-xs font-semibold transition lg:self-auto ${
                 bookmarksOnly
                   ? "bg-[var(--color-brand)] text-[var(--color-on-brand)]"
-                  : "bg-[var(--color-soft)] text-[var(--color-muted)] hover:bg-[var(--color-hover)] hover:text-[var(--color-ink)]"
+                  : "border border-[var(--color-line)] bg-[var(--color-soft)] text-[var(--color-muted)] hover:bg-[var(--color-hover)] hover:text-[var(--color-ink)]"
               }`}
               onClick={() => setBookmarksOnly(!bookmarksOnly)}
               type="button"
@@ -1066,9 +1066,9 @@ export function DiscussionFeed({
         </div>
       ) : null}
 
-      <div className="divide-y divide-[var(--color-line)]">
+      <div className="space-y-4 bg-[var(--color-soft)]/35 p-4 sm:p-5">
         {visiblePosts.length === 0 ? (
-          <div className="bg-[linear-gradient(180deg,rgba(255,255,255,0.42),transparent)] px-5 py-10 text-center sm:px-6">
+          <div className="rounded-[22px] border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-10 text-center sm:px-6">
             {bookmarksOnly ? (
               <>
                 <p className="text-base font-bold text-[var(--color-ink)]">还没有收藏过帖子。</p>
@@ -1114,50 +1114,50 @@ export function DiscussionFeed({
           const replyQuote = replyQuotes[post.issueNumber];
 
           return (
-            <article id={post.issueNumber} key={post.issueNumber} className={`card-lift border-l-2 border-l-transparent px-5 py-5 transition-colors duration-200 hover:border-l-[var(--color-brand)] hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.9),rgba(248,250,252,0.88))] sm:px-6 ${
-                post.is_pinned ? "bg-[linear-gradient(180deg,rgba(255,247,237,0.86),rgba(255,255,255,0.9))]" : ""
+            <article id={post.issueNumber} key={post.issueNumber} className={`card-lift rounded-[24px] border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-4 transition duration-200 hover:border-[var(--color-brand)] hover:bg-[linear-gradient(180deg,var(--color-panel),var(--color-soft))] sm:px-5 ${
+                post.is_pinned ? "bg-[linear-gradient(180deg,var(--color-brand-soft),var(--color-panel))] shadow-[0_16px_44px_var(--color-panel-glow)]" : ""
               }`}>
               <div className="flex items-start gap-3 sm:gap-4">
                 {post.authorAvatarUrl ? (
                   <img
                     alt={post.author}
-                    className="h-9 w-9 shrink-0 cursor-pointer rounded-full object-cover transition hover:ring-2 hover:ring-[var(--color-brand)]"
+                    className="h-10 w-10 shrink-0 cursor-pointer rounded-full border border-[var(--color-line)] object-cover transition hover:ring-2 hover:ring-[var(--color-brand)]"
                     src={post.authorAvatarUrl}
                     onClick={(e) => handleAvatarClick(post.authorId, e)}
                   />
                 ) : (
                   <div
-                    className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full bg-[var(--color-soft)] text-sm font-bold text-[var(--color-muted)] transition hover:ring-2 hover:ring-[var(--color-brand)]"
+                    className="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full border border-[var(--color-line)] bg-[var(--color-soft)] text-sm font-bold text-[var(--color-muted)] transition hover:ring-2 hover:ring-[var(--color-brand)]"
                     onClick={(e) => handleAvatarClick(post.authorId, e)}
                   >
                     {post.author.charAt(0)}
                   </div>
                 )}
                 <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                     <h3
-                      className="cursor-pointer font-black transition hover:text-[var(--color-brand)]"
+                      className="cursor-pointer text-base font-black text-[var(--color-ink)] transition hover:text-[var(--color-brand)]"
                       onClick={(e) => handleAvatarClick(post.authorId, e)}
                     >
                       {post.author}
                     </h3>
                     {post.authorId && ownerUserIds.has(post.authorId) ? (
-                      <span className="rounded-full bg-[#dbeafe] px-2 py-0.5 text-[10px] font-bold text-[#1d4ed8] ring-1 ring-[#3b82f6]/30">
+                      <span className="rounded-full border border-[var(--color-brand)]/25 bg-[var(--color-brand-soft)] px-2 py-0.5 text-[10px] font-bold text-[var(--color-brand-deep)]">
                         站主
                       </span>
                     ) : post.authorId && adminUserIds.has(post.authorId) ? (
-                      <span className="rounded-full bg-[#fef3c7] px-2 py-0.5 text-[10px] font-bold text-[#b45309] ring-1 ring-[#f59e0b]/30">
+                      <span className="rounded-full border border-[var(--color-line)] bg-[var(--color-soft)] px-2 py-0.5 text-[10px] font-bold text-[var(--color-muted)]">
                         管理员
                       </span>
                     ) : null}
                     {post.is_pinned ? (
-                      <span className="rounded-full bg-[var(--color-brand-soft)] px-2 py-0.5 text-[10px] font-bold text-[var(--color-brand-deep)] ring-1 ring-[var(--color-brand)]/30">
+                      <span className="rounded-full bg-[var(--color-brand)] px-2 py-0.5 text-[10px] font-bold text-[var(--color-on-brand)] ring-1 ring-[var(--color-brand)]/30">
                         📌 置顶
                       </span>
                     ) : null}
                     {isAdmin ? (
                       <button
-                        className="inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[11px] font-semibold text-[#8b7355] transition hover:bg-[#f5f0e8] hover:text-[#6b5a45] disabled:opacity-50"
+                        className="inline-flex items-center gap-0.5 rounded-full border border-[var(--color-line)] bg-[var(--color-soft)] px-2 py-0.5 text-[11px] font-semibold text-[var(--color-brand-deep)] transition hover:bg-[var(--color-brand-soft)] disabled:opacity-50"
                         disabled={pinSaving}
                         onClick={() => handlePinPost(post.issueNumber, !post.is_pinned)}
                         title={post.is_pinned ? "取消置顶" : "置顶"}
@@ -1169,7 +1169,7 @@ export function DiscussionFeed({
                     {isConnected && user?.id === post.authorId && editingPostId !== post.issueNumber ? (
                       <>
                         <button
-                          className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] font-semibold text-[#8b7355] transition hover:bg-[#f5f0e8] hover:text-[#6b5a45]"
+                          className="inline-flex items-center gap-1 rounded-full border border-[var(--color-line)] bg-[var(--color-soft)] px-2 py-0.5 text-[11px] font-semibold text-[var(--color-brand-deep)] transition hover:bg-[var(--color-brand-soft)]"
                           onClick={() => handleStartEdit(post)}
                           title="编辑"
                           type="button"
@@ -1180,7 +1180,7 @@ export function DiscussionFeed({
                           编辑
                         </button>
                         <button
-                          className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] font-semibold text-[#8b7355] transition hover:bg-[#f5f0e8] hover:text-[#6b5a45]"
+                          className="inline-flex items-center gap-1 rounded-full border border-[var(--color-line)] bg-[var(--color-soft)] px-2 py-0.5 text-[11px] font-semibold text-[var(--color-brand-deep)] transition hover:bg-[var(--color-brand-soft)]"
                           onClick={() => handleDeletePost(post.issueNumber)}
                           title="删除"
                           type="button"
@@ -1201,15 +1201,13 @@ export function DiscussionFeed({
                         const updated = new Date(post.updatedAt).getTime();
                         const diffMs = updated - created;
                         if (diffMs > 60000) {
-                          return (
-                            <span className="text-[11px] font-semibold text-[#8b7355]">(已编辑)</span>
-                          );
+                          return <span className="text-[11px] font-semibold text-[var(--color-brand-deep)]">(已编辑)</span>;
                         }
                         return null;
                       })()
                     ) : null}
                     {post.station ? (
-                      <span className="rounded-full bg-[var(--color-soft)] px-2.5 py-1 text-xs font-bold text-[var(--color-brand-deep)]">
+                      <span className="rounded-full border border-[var(--color-line)] bg-[var(--color-soft)] px-2.5 py-1 text-xs font-bold text-[var(--color-brand-deep)]">
                         {post.station}
                       </span>
                     ) : null}
@@ -1221,12 +1219,12 @@ export function DiscussionFeed({
                       </span>
                     ) : null}
                     {post.replyCount > 0 ? (
-                      <span className="rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-2.5 py-1">
+                      <span className="rounded-full border border-[var(--color-line)] bg-[var(--color-soft)] px-2.5 py-1">
                         {post.replyCount} 条回复
                       </span>
                     ) : null}
                     {post.likes > 0 ? (
-                      <span className="rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-2.5 py-1">
+                      <span className="rounded-full border border-[var(--color-line)] bg-[var(--color-soft)] px-2.5 py-1">
                         {post.likes} 个赞
                       </span>
                     ) : null}
@@ -1234,13 +1232,13 @@ export function DiscussionFeed({
                   {editingPostId === post.issueNumber ? (
                     <div className="mt-3">
                       <textarea
-                        className="min-h-32 w-full resize-none rounded-lg border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 text-base leading-7 outline-none transition focus:border-[#8b7355]"
+                        className="min-h-32 w-full resize-none rounded-[18px] border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 text-base leading-7 text-[var(--color-ink)] outline-none transition focus:border-[var(--color-brand)]"
                         onChange={(event) => setEditBody(event.target.value)}
                         value={editBody}
                       />
                       <div className="mt-2 flex items-center gap-3">
                         <button
-                          className="rounded-full bg-[#8b7355] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#6b5a45] disabled:opacity-50"
+                          className="rounded-full bg-[var(--color-brand)] px-4 py-2 text-xs font-bold text-[var(--color-on-brand)] transition hover:bg-[var(--color-brand-deep)] disabled:opacity-50"
                           disabled={editSaving}
                           onClick={() => handleSaveEdit(post.issueNumber)}
                           type="button"
@@ -1259,7 +1257,7 @@ export function DiscussionFeed({
                     </div>
                   ) : post.body.length > 500 ? (
                     <>
-                      <p className="mt-3 max-w-4xl text-[15px] leading-7 sm:text-base sm:leading-8 text-[var(--color-ink)]">
+                      <p className="mt-4 max-w-4xl text-[15px] leading-7 text-[var(--color-ink)] sm:text-base sm:leading-8">
                         <span className="whitespace-pre-wrap break-words">
                           {expandedBodies.has(post.issueNumber)
                             ? renderBodyContent(post.body)
@@ -1285,18 +1283,18 @@ export function DiscussionFeed({
                       </button>
                     </>
                   ) : (
-                    <p className="mt-3 max-w-4xl whitespace-pre-wrap break-words text-[15px] leading-7 sm:text-base sm:leading-8 text-[var(--color-ink)]">
+                    <p className="mt-4 max-w-4xl whitespace-pre-wrap break-words text-[15px] leading-7 text-[var(--color-ink)] sm:text-base sm:leading-8">
                       {renderBodyContent(post.body)}
                     </p>
                   )}
-                  <div className="mt-3 flex flex-wrap gap-2">
+                  <div className="mt-4 flex flex-wrap gap-2">
                     {post.tags.map((tag) => (
                       <button
                         key={`${post.issueNumber}-${tag}`}
-                        className={`rounded-full px-2.5 py-0.5 text-xs font-semibold transition ${
+                        className={`rounded-full px-2.5 py-1 text-xs font-semibold transition ${
                           selectedTag === tag
                             ? "bg-[var(--color-brand)] text-[var(--color-on-brand)]"
-                            : "bg-[var(--color-soft)] text-[var(--color-muted)] hover:bg-[var(--color-hover)] hover:text-[var(--color-ink)]"
+                            : "border border-[var(--color-line)] bg-[var(--color-soft)] text-[var(--color-muted)] hover:bg-[var(--color-hover)] hover:text-[var(--color-ink)]"
                         }`}
                         onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
                         type="button"
@@ -1305,7 +1303,7 @@ export function DiscussionFeed({
                       </button>
                     ))}
                   </div>
-                  <div className="mt-4 flex flex-wrap items-center gap-2 sm:gap-3">
+                  <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-[var(--color-line)] pt-3 sm:gap-3">
                     <button
                       className="rounded-full bg-[var(--color-brand)] px-4 py-2.5 text-sm font-bold text-[var(--color-on-brand)] shadow-[0_10px_24px_var(--color-panel-glow)] transition hover:bg-[var(--color-brand-deep)]"
                       onClick={() => openReplyBox(post.issueNumber)}
@@ -1317,7 +1315,7 @@ export function DiscussionFeed({
                     <ActionButton count={post.likes} icon="like" liked={likedPosts.has(post.issueNumber)} onClick={() => handleLike(post.issueNumber)} />
                     {/* Bookmark button */}
                     <button
-                      className="inline-flex items-center gap-2 text-[15px] text-[var(--color-muted)] transition hover:text-[var(--color-ink)] min-h-[44px] min-w-[44px]"
+                      className="inline-flex min-h-[44px] min-w-[44px] items-center gap-2 rounded-full px-2 text-[15px] text-[var(--color-muted)] transition hover:bg-[var(--color-soft)] hover:text-[var(--color-ink)]"
                       onClick={() => handleToggleBookmark(post.issueNumber)}
                       type="button"
                       title={isBookmarked ? "取消收藏" : "收藏"}
@@ -1328,7 +1326,7 @@ export function DiscussionFeed({
                     {/* Sync to main discussion button (only in station view) */}
                     {showSyncButton && stationFilter && (
                       <a
-                        className="inline-flex items-center gap-1.5 min-h-[44px] min-w-[44px] rounded-lg px-3 py-2 text-xs font-bold text-[var(--color-brand-deep)] transition hover:bg-[var(--color-brand-soft)]"
+                        className="inline-flex min-h-[44px] min-w-[44px] items-center gap-1.5 rounded-full px-3 py-2 text-xs font-bold text-[var(--color-brand-deep)] transition hover:bg-[var(--color-brand-soft)]"
                         href="/community"
                         title="同步到站内讨论区"
                       >
@@ -1352,7 +1350,7 @@ export function DiscussionFeed({
               </div>
 
               {expanded ? (
-                <div className="mt-4 origin-top animate-[discussionExpand_220ms_ease-out] border-l-2 border-[var(--color-line)] pl-4 motion-reduce:animate-none">
+                <div className="mt-4 origin-top animate-[discussionExpand_220ms_ease-out] rounded-[20px] border border-[var(--color-line)] bg-[var(--color-soft)]/70 p-4 motion-reduce:animate-none">
                   <div className="space-y-4">
                     {comments === undefined ? (
                       <p className="text-sm text-[var(--color-muted)]">正在加载回复...</p>
@@ -1386,11 +1384,11 @@ export function DiscussionFeed({
                                   {reply.author}
                                 </span>
                                 {reply.authorId && ownerUserIds.has(reply.authorId) ? (
-                                  <span className="rounded-full bg-[#dbeafe] px-2 py-0.5 text-[10px] font-bold text-[#1d4ed8] ring-1 ring-[#3b82f6]/30">
+                                  <span className="rounded-full border border-[var(--color-brand)]/25 bg-[var(--color-brand-soft)] px-2 py-0.5 text-[10px] font-bold text-[var(--color-brand-deep)]">
                                     站主
                                   </span>
                                 ) : reply.authorId && adminUserIds.has(reply.authorId) ? (
-                                  <span className="rounded-full bg-[#fef3c7] px-2 py-0.5 text-[10px] font-bold text-[#b45309] ring-1 ring-[#f59e0b]/30">
+                                  <span className="rounded-full border border-[var(--color-line)] bg-[var(--color-soft)] px-2 py-0.5 text-[10px] font-bold text-[var(--color-muted)]">
                                     管理员
                                   </span>
                                 ) : null}
