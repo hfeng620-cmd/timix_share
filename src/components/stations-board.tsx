@@ -1671,7 +1671,7 @@ export function StationsBoard() {
             <div className="flex-1 overflow-y-auto overflow-x-hidden">
               <div className="p-4">
                 <DiscussionFeed
-                  hideComposer={true}
+                  hideComposer={false}
                   hideHeader={true}
                   title={`${discussionStation.name} 讨论`}
                   stationFilter={discussionStation.name}
