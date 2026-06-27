@@ -109,6 +109,28 @@ const EMPTY_FORM: Partial<Station> = {
   groupName: "",
 };
 
+const STATIC_STATIONS: Station[] = stationComparisonRows.map((row, i) => ({
+  id: `static-${i}`,
+  name: row.name,
+  url: stationLinkMap[row.name] ?? "",
+  price: row.price,
+  multiplier: row.multiplier,
+  entry: row.entry ?? "",
+  packageType: row.packageType ?? "",
+  status: row.status ?? "",
+  models: row.models ?? "",
+  uptime: row.uptime ?? "",
+  latency: row.latency ?? "",
+  source: row.source ?? "",
+  verdict: row.verdict ?? "",
+  note: row.note ?? "",
+  advantage: row.advantage ?? "",
+  risk: row.risk ?? "",
+  badge: row.badge ?? "",
+  groupName: row.group ?? "",
+  sortOrder: i + 1,
+}));
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -192,8 +214,8 @@ export function StationsBoard() {
   const canDeleteStations = isAdmin || isOwner;
 
   // ---- data ---------------------------------------------------------------
-  const [stations, setStations] = useState<Station[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [stations, setStations] = useState<Station[]>(STATIC_STATIONS);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // ---- filters ------------------------------------------------------------
@@ -231,7 +253,7 @@ export function StationsBoard() {
     setError(null);
     try {
       const data = await loadStations();
-      setStations(data);
+      setStations(data.length === 0 ? STATIC_STATIONS : data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "加载站点数据失败");
     } finally {
@@ -255,33 +277,7 @@ export function StationsBoard() {
         clearTimeout(timeout);
         if (!cancelled) {
           resolved = true;
-          if (data.length === 0) {
-            // Fallback to static data when Supabase has no stations yet
-            const staticStations: Station[] = stationComparisonRows.map((row, i) => ({
-              id: `static-${i}`,
-              name: row.name,
-              url: stationLinkMap[row.name] ?? "",
-              price: row.price,
-              multiplier: row.multiplier,
-              entry: row.entry ?? "",
-              packageType: row.packageType ?? "",
-              status: row.status ?? "",
-              models: row.models ?? "",
-              uptime: row.uptime ?? "",
-              latency: row.latency ?? "",
-              source: row.source ?? "",
-              verdict: row.verdict ?? "",
-              note: row.note ?? "",
-              advantage: row.advantage ?? "",
-              risk: row.risk ?? "",
-              badge: row.badge ?? "",
-              groupName: row.group ?? "",
-              sortOrder: i + 1,
-            }));
-            setStations(staticStations);
-          } else {
-            setStations(data);
-          }
+          setStations(data.length === 0 ? STATIC_STATIONS : data);
           setLoading(false);
         }
       })
@@ -718,17 +714,17 @@ export function StationsBoard() {
   // Loading / error states
   // =========================================================================
 
-  if (loading) {
+  if (loading && stations.length === 0) {
     return (
-      <section className="mx-auto max-w-7xl px-6 py-20 text-center lg:px-10">
+      <section className="mx-auto max-w-7xl px-6 py-8 text-center lg:px-10">
         <p className="text-lg font-bold text-[var(--color-muted)]">正在加载站点数据...</p>
       </section>
     );
   }
 
-  if (error) {
+  if (error && stations.length === 0) {
     return (
-      <section className="mx-auto max-w-7xl px-6 py-20 text-center lg:px-10">
+      <section className="mx-auto max-w-7xl px-6 py-8 text-center lg:px-10">
         <p className="text-lg font-bold text-red-500">加载失败</p>
         <p className="mt-2 text-sm text-[var(--color-muted)]">{error}</p>
         <button
@@ -749,60 +745,60 @@ export function StationsBoard() {
   return (
     <>
       {/* ---- Hero + Filters ---- */}
-      <section className="relative mx-auto max-w-[1680px] px-4 py-5 sm:px-5 lg:px-8 lg:py-6">
-        <div className="border-b border-[var(--color-line)] pb-4">
-          <div className="flex flex-wrap items-start justify-between gap-6">
-            <div className="max-w-4xl">
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-brand-deep)]">
+      <section className="relative mx-auto max-w-[1760px] px-3 py-3 sm:px-5 lg:px-6 lg:py-4">
+        <div className="rounded-[24px] border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-3 shadow-[var(--shadow-card)] sm:px-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="max-w-3xl">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-brand-deep)]">
                 API Relay Index
               </p>
-              <h1 className="mt-2 text-3xl font-black tracking-tight sm:text-4xl">
+              <h1 className="mt-1 text-xl font-black tracking-tight sm:text-2xl">
                 中转站榜单
               </h1>
-              <p className="mt-3 max-w-3xl text-sm leading-7 text-[var(--color-muted)] sm:text-base">
+              <p className="mt-1 max-w-2xl text-sm leading-6 text-[var(--color-muted)]">
                 先用这张工作台缩出 2 到 3 个候选，再回社区补变化和风险，不用在多页之间来回切。
               </p>
             </div>
 
-            <div className="grid w-full grid-cols-3 gap-2 rounded-[22px] border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-3 text-sm shadow-[var(--shadow-card)] sm:w-auto sm:min-w-[280px] sm:gap-3 sm:px-5 sm:py-3.5">
+            <div className="grid w-full grid-cols-3 gap-2 rounded-[18px] border border-[var(--color-line)] bg-[var(--color-soft)] px-3 py-2 text-xs sm:w-auto sm:min-w-[240px] sm:px-4">
               <div>
                 <p className="text-[var(--color-muted)]">站点</p>
-                <p className="mt-1 text-2xl font-black">{stations.length}</p>
+                <p className="mt-0.5 text-xl font-black">{stations.length}</p>
               </div>
               <div>
                 <p className="text-[var(--color-muted)]">最低</p>
-                <p className="mt-1 text-2xl font-black">{lowestMultiplier}</p>
+                <p className="mt-0.5 text-xl font-black">{lowestMultiplier}</p>
               </div>
               <div>
                 <p className="text-[var(--color-muted)]">试用</p>
-                <p className="mt-1 text-2xl font-black">{trialCount}+</p>
+                <p className="mt-0.5 text-xl font-black">{trialCount}+</p>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="mt-6 grid gap-4 xl:grid-cols-[minmax(0,1fr)_300px] xl:items-start">
+        <div className="mt-3 grid gap-3 xl:grid-cols-[minmax(0,1fr)_280px] xl:items-start">
           {featuredStations.length > 0 ? (
-            <div className="grid items-start gap-3 md:grid-cols-2 2xl:grid-cols-4">
+            <div className="grid items-start gap-3 sm:grid-cols-2 2xl:grid-cols-4">
               {featuredStations.map((station, index) => {
                 const stationHref = getSafeExternalHref(station.url);
                 const cardContent = (
                   <>
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <p className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--color-muted)]">
+                        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--color-muted)]">
                           {rankingBadge(index)} · 首批候选
                         </p>
-                        <h2 className="mt-1.5 text-xl font-black sm:text-2xl">{station.name}</h2>
+                        <h2 className="mt-1 text-lg font-black sm:text-xl">{station.name}</h2>
                       </div>
                       <span className="shrink-0 rounded-full bg-[var(--color-brand-soft)] px-2.5 py-1 text-xs font-bold text-[var(--color-brand-deep)]">
                         {station.badge}
                       </span>
                     </div>
 
-                    <p className="mt-2 line-clamp-2 text-sm leading-6 text-[var(--color-muted)]">{station.note}</p>
+                    <p className="mt-2 line-clamp-1 text-sm leading-5 text-[var(--color-muted)]">{station.note}</p>
 
-                    <div className="mt-3 grid grid-cols-3 gap-2 border-t border-[var(--color-line)] pt-3 text-sm">
+                    <div className="mt-2 grid grid-cols-3 gap-2 border-t border-[var(--color-line)] pt-2 text-xs">
                       <div>
                         <p className="text-[var(--color-muted)]">价格</p>
                         <p className="mt-1 font-black">{station.price}</p>
@@ -817,16 +813,16 @@ export function StationsBoard() {
                       </div>
                     </div>
 
-                    <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                    <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
                       {stationHref ? (
-                        <div className="inline-flex items-center text-sm font-bold text-[var(--color-brand-deep)]">
+                        <div className="inline-flex items-center text-xs font-bold text-[var(--color-brand-deep)]">
                           打开站点入口
                           <span className="ml-2 transition-all duration-300 group-hover:translate-x-1.5">→</span>
                         </div>
                       ) : null}
 
                       <button
-                        className="inline-flex items-center gap-1.5 rounded-full bg-[var(--color-soft)] px-3 py-1.5 text-xs font-semibold text-[var(--color-muted)] transition hover:bg-[var(--color-brand-soft)] hover:text-[var(--color-brand-deep)]"
+                        className="inline-flex items-center gap-1.5 rounded-full bg-[var(--color-soft)] px-2.5 py-1 text-xs font-semibold text-[var(--color-muted)] transition hover:bg-[var(--color-brand-soft)] hover:text-[var(--color-brand-deep)]"
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
@@ -850,7 +846,7 @@ export function StationsBoard() {
                       href={stationHref}
                       rel="noopener noreferrer"
                       target="_blank"
-                      className="stagger-in card-lift group min-h-0 self-start rounded-[22px] border border-[var(--color-line)] bg-[var(--surface-gradient)] p-4 shadow-[var(--shadow-card)] transition-all duration-300 hover:-translate-y-[3px] hover:border-[var(--color-brand)] hover:shadow-[0_28px_72px_rgba(15,23,42,0.10)] sm:p-[18px]"
+                      className="card-lift group min-h-0 self-start rounded-[20px] border border-[var(--color-line)] bg-[var(--surface-gradient)] p-3.5 shadow-[var(--shadow-card)] transition-all duration-300 hover:-translate-y-[3px] hover:border-[var(--color-brand)] hover:shadow-[0_28px_72px_rgba(15,23,42,0.10)] sm:p-4"
                     >
                       {cardContent}
                     </a>
@@ -860,7 +856,7 @@ export function StationsBoard() {
                 return (
                   <div
                     key={`${station.id}-hero`}
-                    className="stagger-in card-lift group min-h-0 self-start rounded-[22px] border border-[var(--color-line)] bg-[var(--surface-gradient)] p-4 shadow-[var(--shadow-card)] transition-all duration-300 hover:-translate-y-[3px] hover:border-[var(--color-brand)] hover:shadow-[0_28px_72px_rgba(15,23,42,0.10)] sm:p-[18px]"
+                    className="card-lift group min-h-0 self-start rounded-[20px] border border-[var(--color-line)] bg-[var(--surface-gradient)] p-3.5 shadow-[var(--shadow-card)] transition-all duration-300 hover:-translate-y-[3px] hover:border-[var(--color-brand)] hover:shadow-[0_28px_72px_rgba(15,23,42,0.10)] sm:p-4"
                   >
                     {cardContent}
                   </div>
@@ -871,13 +867,13 @@ export function StationsBoard() {
             <div />
           )}
 
-          <aside className="surface-in self-start rounded-[24px] border border-[var(--color-line)] bg-[linear-gradient(180deg,var(--color-panel),color-mix(in_srgb,var(--color-brand-soft)_34%,var(--color-panel)))] p-3.5 shadow-[var(--shadow-card)]">
+          <aside className="self-start rounded-[20px] border border-[var(--color-line)] bg-[linear-gradient(180deg,var(--color-panel),color-mix(in_srgb,var(--color-brand-soft)_34%,var(--color-panel)))] p-3 shadow-[var(--shadow-card)]">
             <div className="flex items-start gap-3">
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-[var(--color-brand)] text-sm font-black text-[var(--color-on-brand)]">
                 3
               </span>
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
                   先这样看
                 </p>
                 <p className="mt-1 text-base font-black leading-6 text-[var(--color-ink)]">
@@ -923,30 +919,30 @@ export function StationsBoard() {
           </aside>
         </div>
 
-        <div className="surface-in mt-5 rounded-[26px] border border-[var(--color-line)] bg-[var(--color-panel)] p-4 shadow-[var(--shadow-card)] backdrop-blur sm:p-5">
-          <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_280px] xl:items-start">
+        <div className="mt-3 rounded-[22px] border border-[var(--color-line)] bg-[var(--color-panel)] p-3 shadow-[var(--shadow-card)] backdrop-blur sm:p-4">
+          <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_260px] lg:items-start">
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
                 快速查找
               </p>
-              <h2 className="mt-2 text-2xl font-black">搜索 / 筛选</h2>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--color-muted)]">
+              <h2 className="mt-1 text-xl font-black">搜索 / 筛选</h2>
+              <p className="mt-1 max-w-2xl text-sm leading-6 text-[var(--color-muted)]">
                 先把结果收成可比较的一批，再往下看总表，不要在第一屏就读完所有备注。
               </p>
             </div>
-            <div className="grid gap-3">
-              <div className="rounded-[20px] border border-[var(--color-line)] bg-[var(--color-soft)] px-4 py-3.5 text-sm">
+            <div className="hidden gap-2 lg:grid">
+              <div className="rounded-[16px] border border-[var(--color-line)] bg-[var(--color-soft)] px-3 py-2.5 text-sm">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--color-muted)]">
                   当前结果面
                 </p>
-                <p className="mt-2 text-lg font-black text-[var(--color-ink)]">
+                <p className="mt-1 text-base font-black text-[var(--color-ink)]">
                   找到 {filteredRows.length} 个站点
                 </p>
                 <p className="mt-1 text-sm text-[var(--color-muted)]">
                   先看前 {Math.min(visibleRows.length, filteredRows.length)} 条，再决定要不要展开更多。
                 </p>
               </div>
-              <div className="rounded-[20px] border border-[var(--color-line)] bg-[var(--color-panel-strong)] px-4 py-3.5 text-sm">
+              <div className="rounded-[16px] border border-[var(--color-line)] bg-[var(--color-panel-strong)] px-3 py-2.5 text-sm">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--color-muted)]">
                   当前筛选
                 </p>
@@ -965,7 +961,7 @@ export function StationsBoard() {
               <input
                 id="station-search"
                 ref={searchInputRef}
-                className="w-full rounded-[20px] border border-[var(--color-line)] bg-[var(--color-soft)] py-3.5 pl-5 pr-[88px] text-sm outline-none transition focus:border-[var(--color-brand)] focus:bg-white sm:rounded-full"
+                className="w-full rounded-[18px] border border-[var(--color-line)] bg-[var(--color-soft)] py-3 pl-4 pr-[88px] text-sm outline-none transition focus:border-[var(--color-brand)] focus:bg-white sm:rounded-full"
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="搜站点名、倍率、试用、免费、Claude、Grok、入口域名都可以"
                 value={query}
@@ -987,7 +983,7 @@ export function StationsBoard() {
               </div>
             </div>
             <select
-              className="w-full cursor-pointer appearance-none rounded-[20px] border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-3.5 pr-9 text-sm text-[var(--color-ink)] outline-none transition focus:border-[var(--color-brand)] sm:w-auto sm:rounded-full"
+              className="w-full cursor-pointer appearance-none rounded-[18px] border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-3 pr-9 text-sm text-[var(--color-ink)] outline-none transition focus:border-[var(--color-brand)] sm:w-auto sm:rounded-full"
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as SortOption)}
               style={{
@@ -1006,7 +1002,7 @@ export function StationsBoard() {
             {filters.map((filter) => (
               <button
                 key={filter.id}
-                className={`rounded-full px-4 py-2.5 text-sm font-semibold transition ${
+                className={`rounded-full px-3 py-2 text-sm font-semibold transition ${
                   activeFilter === filter.id
                     ? "pill-pulse bg-[var(--color-brand)] text-[var(--color-on-brand)] shadow-[0_10px_24px_var(--color-panel-glow)]"
                     : "border border-[var(--color-line)] bg-[var(--color-panel)] text-[var(--color-muted)] hover:border-[var(--color-brand)] hover:text-[var(--color-brand-deep)]"
@@ -1019,41 +1015,41 @@ export function StationsBoard() {
             ))}
           </div>
 
-          <div className="mt-4 flex flex-wrap gap-2 text-sm text-[var(--color-muted)]">
+          <div className="mt-3 hidden flex-wrap gap-2 text-xs text-[var(--color-muted)] lg:flex">
             {filters
               .filter((filter) => filter.id !== "all")
               .map((filter) => (
-                <span key={`${filter.id}-desc`} className="rounded-full bg-[var(--color-soft)] px-3 py-2">
+                <span key={`${filter.id}-desc`} className="rounded-full bg-[var(--color-soft)] px-2.5 py-1.5">
                   {filter.label}：{filter.description}
                 </span>
               ))}
           </div>
 
-          <div className="mt-4 grid gap-3 border-t border-[var(--color-line)] pt-4 lg:grid-cols-4">
-            <div className="rounded-[18px] bg-[var(--color-soft)] px-4 py-3.5">
+          <div className="mt-3 hidden gap-2 border-t border-[var(--color-line)] pt-3 lg:grid lg:grid-cols-4">
+            <div className="rounded-[16px] bg-[var(--color-soft)] px-3 py-2.5">
               <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--color-muted)]">结果</p>
-              <p className="mt-2 text-lg font-black text-[var(--color-ink)]">{filteredRows.length} 个站点</p>
+              <p className="mt-1 text-base font-black text-[var(--color-ink)]">{filteredRows.length} 个站点</p>
             </div>
-            <div className="rounded-[18px] bg-[var(--color-soft)] px-4 py-3.5">
+            <div className="rounded-[16px] bg-[var(--color-soft)] px-3 py-2.5">
               <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--color-muted)]">本周更新</p>
-              <p className="mt-2 text-lg font-black text-[var(--color-ink)]">{freshnessStats.updatedThisWeek} 个</p>
+              <p className="mt-1 text-base font-black text-[var(--color-ink)]">{freshnessStats.updatedThisWeek} 个</p>
             </div>
-            <div className="rounded-[18px] bg-[var(--color-soft)] px-4 py-3.5">
+            <div className="rounded-[16px] bg-[var(--color-soft)] px-3 py-2.5">
               <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--color-muted)]">最低倍率</p>
-              <p className="mt-2 text-lg font-black text-[var(--color-ink)]">{lowestMultiplier}</p>
+              <p className="mt-1 text-base font-black text-[var(--color-ink)]">{lowestMultiplier}</p>
             </div>
-            <div className="rounded-[18px] bg-[var(--color-brand-soft)] px-4 py-3.5">
+            <div className="rounded-[16px] bg-[var(--color-brand-soft)] px-3 py-2.5">
               <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--color-muted)]">下一步</p>
-              <p className="mt-2 text-lg font-black text-[var(--color-ink)]">缩候选，再补反馈</p>
+              <p className="mt-1 text-base font-black text-[var(--color-ink)]">缩候选，再补反馈</p>
             </div>
           </div>
         </div>
       </section>
 
       {/* ---- Table ---- */}
-      <section className="relative mx-auto max-w-[1680px] px-4 pb-12 sm:px-5 lg:px-8">
-        <div className="grid gap-4 2xl:grid-cols-[minmax(0,1fr)_300px] 2xl:items-start">
-          <div className="surface-in overflow-hidden rounded-[26px] border border-[var(--color-line)] bg-[var(--color-panel)] shadow-[var(--shadow-card)]">
+      <section className="relative mx-auto max-w-[1760px] px-3 pb-6 sm:px-5 lg:px-6">
+        <div className="grid gap-3 2xl:grid-cols-[minmax(0,1fr)_280px] 2xl:items-start">
+          <div className="overflow-hidden rounded-[22px] border border-[var(--color-line)] bg-[var(--color-panel)] shadow-[var(--shadow-card)]">
           {/* Table header */}
           <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--color-line)] px-5 py-4">
             <div>
@@ -1134,7 +1130,7 @@ export function StationsBoard() {
                       {/* Header row: rank + name + badge */}
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0 flex-1">
-                          <p className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--color-muted)]">
+                          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--color-muted)]">
                             {rankingBadge(index)}
                           </p>
                           <button
@@ -1367,7 +1363,7 @@ export function StationsBoard() {
                             {station.entry || stationHref}
                           </a>
                         ) : (
-                          <p className="mt-2 line-clamp-2 text-sm leading-6 text-[var(--color-muted)]">
+                          <p className="mt-2 line-clamp-1 text-sm leading-5 text-[var(--color-muted)]">
                             {station.groupName || station.entry}
                           </p>
                         )}
@@ -1505,7 +1501,7 @@ export function StationsBoard() {
                   <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--color-muted)]">
                     当前显示
                   </p>
-                  <p className="mt-2 text-lg font-black text-[var(--color-ink)]">
+                  <p className="mt-1 text-base font-black text-[var(--color-ink)]">
                     {visibleRows.length} / {filteredRows.length} 条
                   </p>
                   <p className="mt-1 text-sm leading-6 text-[var(--color-muted)]">
@@ -1577,7 +1573,7 @@ export function StationsBoard() {
       </section>
 
       {/* ---- Submission ---- */}
-      <section className="relative mx-auto max-w-[1680px] px-4 pb-16 sm:px-5 lg:px-8">
+      <section className="relative mx-auto max-w-[1760px] px-3 pb-8 sm:px-5 lg:px-6">
         <div className="grid gap-4 xl:grid-cols-[minmax(0,1.08fr)_minmax(320px,0.52fr)] xl:items-start">
           <SubmissionPanel />
 

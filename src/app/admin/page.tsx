@@ -29,6 +29,12 @@ import {
   approvePendingEdit,
   rejectPendingEdit,
 } from "@/lib/station-storage";
+import {
+  loadPendingGuides,
+  approveGuide,
+  rejectGuide,
+  type UserGuide,
+} from "@/lib/guide-storage";
 
 type AdminTab = "posts" | "stations" | "import" | "news" | "admins" | "users";
 
@@ -159,6 +165,12 @@ export default function AdminPage() {
   const [pendingEditsLoading, setPendingEditsLoading] = useState(false);
   const [pendingEditsStatus, setPendingEditsStatus] = useState("");
   const [processingEditId, setProcessingEditId] = useState<string | null>(null);
+
+  // ---- Pending guides state ----
+  const [pendingGuides, setPendingGuides] = useState<UserGuide[]>([]);
+  const [pendingGuidesLoading, setPendingGuidesLoading] = useState(false);
+  const [pendingGuidesStatus, setPendingGuidesStatus] = useState("");
+  const [processingGuideId, setProcessingGuideId] = useState<string | null>(null);
 
   // ---- User management state ----
   const [userList, setUserList] = useState<
@@ -495,6 +507,53 @@ export default function AdminPage() {
       setPendingEditsStatus(`拒绝失败: ${getErrorMessage(error, "请稍后重试。")}`);
     } finally {
       setProcessingEditId(null);
+    }
+  }
+
+  // ---- Load pending guides ----
+  const refreshPendingGuides = useCallback(async () => {
+    if (!adminOk) return;
+    setPendingGuidesLoading(true);
+    try {
+      const guides = await loadPendingGuides();
+      setPendingGuides(guides);
+    } catch (error) {
+      setPendingGuidesStatus(`加载待审核指南失败: ${getErrorMessage(error, "请稍后重试。")}`);
+    } finally {
+      setPendingGuidesLoading(false);
+    }
+  }, [adminOk]);
+
+  useEffect(() => {
+    if (!adminOk) return;
+    void refreshPendingGuides();
+  }, [adminOk, refreshPendingGuides]);
+
+  async function handleApproveGuide(guideId: string) {
+    setProcessingGuideId(guideId);
+    try {
+      await approveGuide(guideId);
+      setPendingGuides((prev) => prev.filter((g) => g.id !== guideId));
+      setPendingGuidesStatus("已通过审核。");
+      addAudit("通过指南", guideId);
+    } catch (error) {
+      setPendingGuidesStatus(`审核失败: ${getErrorMessage(error, "请稍后重试。")}`);
+    } finally {
+      setProcessingGuideId(null);
+    }
+  }
+
+  async function handleRejectGuide(guideId: string) {
+    setProcessingGuideId(guideId);
+    try {
+      await rejectGuide(guideId);
+      setPendingGuides((prev) => prev.filter((g) => g.id !== guideId));
+      setPendingGuidesStatus("已拒绝该指南。");
+      addAudit("拒绝指南", guideId);
+    } catch (error) {
+      setPendingGuidesStatus(`拒绝失败: ${getErrorMessage(error, "请稍后重试。")}`);
+    } finally {
+      setProcessingGuideId(null);
     }
   }
 
@@ -1719,6 +1778,90 @@ export default function AdminPage() {
                             className="rounded-full bg-[#fff1f2] px-4 py-2 text-sm font-bold text-[#be123c] transition hover:bg-[#ffe4e6] disabled:opacity-50"
                             disabled={processingEditId === edit.id}
                             onClick={() => handleRejectEdit(edit.id)}
+                            type="button"
+                          >
+                            驳回
+                          </button>
+                        </div>
+                      </article>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              {/* Pending guides */}
+              <div className="rounded-[34px] border border-[var(--color-line)] bg-white p-6 shadow-[0_18px_60px_rgba(13,25,48,0.07)]">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div>
+                    <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
+                      待审核指南
+                    </p>
+                    <h2 className="mt-2 text-2xl font-black">用户投稿的指南需要审核</h2>
+                  </div>
+                  <span className="rounded-full bg-[var(--color-brand-soft)] px-3 py-1 text-xs font-bold text-[var(--color-brand-deep)]">
+                    {pendingGuides.length} 条待处理
+                  </span>
+                </div>
+                {pendingGuidesStatus && (
+                  <p className="mt-2 text-sm text-[var(--color-muted)]">{pendingGuidesStatus}</p>
+                )}
+                <div className="mt-5 space-y-4">
+                  {pendingGuidesLoading ? (
+                    <p className="text-sm text-[var(--color-muted)]">加载中...</p>
+                  ) : pendingGuides.length === 0 ? (
+                    <div className="rounded-[24px] bg-[var(--color-soft)] px-4 py-5 text-sm leading-7 text-[var(--color-muted)]">
+                      暂无待审核的指南。用户投稿后会进入这里。
+                    </div>
+                  ) : (
+                    pendingGuides.map((guide) => (
+                      <article
+                        key={guide.id}
+                        className="rounded-[24px] bg-[var(--color-soft)] px-5 py-4"
+                      >
+                        <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--color-muted)]">
+                          <span className="rounded-full bg-[var(--color-brand)]/10 px-2.5 py-1 font-bold text-[var(--color-brand-deep)]">
+                            {guide.category}
+                          </span>
+                          <span>·</span>
+                          <span className="font-bold text-[var(--color-ink)]">{guide.authorName}</span>
+                          <span>·</span>
+                          <span>{new Date(guide.createdAt).toLocaleString("zh-CN")}</span>
+                        </div>
+                        <h3 className="mt-3 text-lg font-bold text-[var(--color-ink)]">{guide.title}</h3>
+                        <p className="mt-2 text-sm text-[var(--color-muted)]">{guide.summary}</p>
+                        <details className="mt-3">
+                          <summary className="cursor-pointer text-sm font-semibold text-[var(--color-brand-deep)]">
+                            查看完整内容
+                          </summary>
+                          <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-[var(--color-ink)]">
+                            {guide.body}
+                          </p>
+                        </details>
+                        {guide.tags.length > 0 && (
+                          <div className="mt-3 flex flex-wrap gap-1.5">
+                            {guide.tags.map((tag) => (
+                              <span
+                                key={tag}
+                                className="rounded-full bg-[var(--color-panel)] px-2 py-0.5 text-[10px] font-semibold text-[var(--color-muted)]"
+                              >
+                                #{tag}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        <div className="mt-4 flex flex-wrap gap-3">
+                          <button
+                            className="rounded-full bg-[var(--color-brand)] px-4 py-2 text-sm font-bold text-[var(--color-on-brand)] transition hover:bg-[var(--color-brand-deep)] disabled:opacity-50"
+                            disabled={processingGuideId === guide.id}
+                            onClick={() => handleApproveGuide(guide.id)}
+                            type="button"
+                          >
+                            {processingGuideId === guide.id ? "处理中..." : "通过"}
+                          </button>
+                          <button
+                            className="rounded-full bg-[#fff1f2] px-4 py-2 text-sm font-bold text-[#be123c] transition hover:bg-[#ffe4e6] disabled:opacity-50"
+                            disabled={processingGuideId === guide.id}
+                            onClick={() => handleRejectGuide(guide.id)}
                             type="button"
                           >
                             驳回
