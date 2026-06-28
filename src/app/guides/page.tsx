@@ -10,6 +10,7 @@ import { Navbar } from "@/components/navbar";
 import { lockBodyScroll } from "@/lib/body-scroll-lock";
 import { useForumAuth } from "@/lib/forum-auth";
 import { loadFolders, loadAllPosts, createFolder, createSharePost, deleteSharePost, updateFolder, updateSharePost, getFolderCreator, getFolderContributors, loadEditLogs, type ShareFolder, type SharePost, type Contributor, type EditLogEntry } from "@/lib/share-storage";
+import { EditPanelModal } from "@/components/edit-panel-modal";
 import { ShareCreateModal, type CreateMode } from "@/components/share-create-modal";
 
 /* ──────────────────────────────────────────────
@@ -166,18 +167,30 @@ function PostCard({ post, onClick, onEdit, onDelete }: { post: PostNode; onClick
           <h3 className="text-base font-heading italic text-white truncate">{post.title}</h3>
           <p className="mt-1.5 text-sm leading-relaxed text-white/45 font-body line-clamp-2">{post.summary}</p>
         </div>
-        <div className="flex shrink-0 items-center gap-0.5 opacity-0 group-hover:opacity-100 transition">
-          {onEdit && (
-            <span className="rounded-lg p-1.5 text-white/30 hover:text-white hover:bg-white/10 transition cursor-pointer" onClick={(e) => { e.stopPropagation(); onEdit(); }} title="更改">
-              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-            </span>
-          )}
-          {onDelete && (
-            <span className="rounded-lg p-1.5 text-red-400/30 hover:text-red-400 hover:bg-red-400/10 transition cursor-pointer" onClick={(e) => { e.stopPropagation(); onDelete(); }} title="删除">
-              <Trash2 className="h-3.5 w-3.5" />
-            </span>
-          )}
-        </div>
+        {(onEdit || onDelete) && (
+          <div className="relative shrink-0 opacity-0 group-hover:opacity-100 transition" onClick={(e) => e.stopPropagation()}>
+            <button className="rounded-lg p-1.5 text-white/30 hover:text-white hover:bg-white/10 transition" title="更多操作" type="button"
+              onClick={(e) => { e.stopPropagation(); const menu = (e.currentTarget as HTMLElement).nextElementSibling as HTMLElement; if (menu) menu.classList.toggle('hidden'); }}>
+              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+            </button>
+            <div className="hidden absolute right-0 top-full mt-1 w-28 rounded-xl border border-white/10 bg-black/90 backdrop-blur py-1 shadow-xl z-30">
+              {onEdit && (
+                <button className="flex w-full items-center gap-2 px-3 py-2 text-xs text-white/60 hover:bg-white/10 hover:text-white transition font-body" type="button"
+                  onClick={(e) => { e.stopPropagation(); onEdit(); }}>
+                  <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                  编辑
+                </button>
+              )}
+              {onDelete && (
+                <button className="flex w-full items-center gap-2 px-3 py-2 text-xs text-red-400 hover:bg-red-400/10 hover:text-red-300 transition font-body" type="button"
+                  onClick={(e) => { e.stopPropagation(); if (window.confirm("确认删除？此操作不可撤销。")) onDelete(); }}>
+                  <Trash2 className="h-3.5 w-3.5" />
+                  删除
+                </button>
+              )}
+            </div>
+          </div>
+        )}
       </div>
       <div className="mt-3 flex items-center gap-5 text-xs text-white/30 font-body">
         <span className="inline-flex items-center gap-1"><Heart className="h-3 w-3" />{post.likes >= 1000 ? `${(post.likes / 1000).toFixed(1)}k` : post.likes}</span>
@@ -610,21 +623,15 @@ export default function GuidesPage() {
             )}
 
             {/* Edit folder modal */}
-            {editingFolder && (
-              <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/50 backdrop-blur-sm px-4" onClick={() => setEditingFolder(false)}>
-                <div className="w-full max-w-sm rounded-2xl border border-white/10 bg-black/80 p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-                  <h3 className="text-base font-heading italic text-white mb-4">更改板块信息</h3>
-                  <div className="space-y-3">
-                    <input className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white outline-none placeholder:text-white/25 font-body" value={editFolderName} onChange={(e) => setEditFolderName(e.target.value)} placeholder="板块名称" />
-                    <textarea className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white outline-none placeholder:text-white/25 font-body resize-none" rows={2} value={editFolderDesc} onChange={(e) => setEditFolderDesc(e.target.value)} placeholder="板块简介" />
-                  </div>
-                  <div className="flex justify-end gap-2 mt-4">
-                    <button onClick={() => setEditingFolder(false)} className="rounded-full px-4 py-2 text-xs text-white/40 hover:text-white font-body">取消</button>
-                    <button onClick={saveEditFolder} disabled={editSaving} className="rounded-full bg-white/15 px-4 py-2 text-xs text-white hover:bg-white/25 disabled:opacity-50 font-body">{editSaving ? "保存中..." : "保存"}</button>
-                  </div>
-                </div>
-              </div>
-            )}
+            <EditPanelModal
+              open={editingFolder}
+              mode="folder"
+              targetId={(dbFolders ?? []).find((f) => f.name === currentFolder.name)?.id ?? ""}
+              initialName={currentFolder.name === "root" ? "" : currentFolder.name}
+              initialDesc={(currentFolder as any).desc ?? ""}
+              onClose={() => setEditingFolder(false)}
+              onSaved={() => { triggerRefresh(); setEditingFolder(false); }}
+            />
 
             {/* Root view: folders or empty state */}
             {isRoot && subFolders.length === 0 && !hasRealData && (
@@ -748,20 +755,17 @@ export default function GuidesPage() {
 
       {/* Edit post modal */}
       {editingPost && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/50 backdrop-blur-sm px-4" onClick={() => setEditingPost(null)}>
-          <div className="w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl border border-white/10 bg-black/80 p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-lg font-heading italic text-white mb-4">更改帖子</h3>
-            <div className="space-y-4">
-              <input className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white outline-none placeholder:text-white/25 font-body" value={editPostTitle} onChange={(e) => setEditPostTitle(e.target.value)} placeholder="帖子标题" />
-              <textarea className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white outline-none placeholder:text-white/25 font-body resize-none" rows={2} value={editPostSummary} onChange={(e) => setEditPostSummary(e.target.value)} placeholder="帖子简介" />
-              <textarea className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white outline-none placeholder:text-white/25 font-body resize-none" rows={6} value={editPostBody} onChange={(e) => setEditPostBody(e.target.value)} placeholder="帖子内容" />
-            </div>
-            <div className="flex justify-end gap-2 mt-4">
-              <button onClick={() => setEditingPost(null)} className="rounded-full px-4 py-2 text-xs text-white/40 hover:text-white font-body">取消</button>
-              <button onClick={saveEditPost} disabled={editSaving} className="rounded-full bg-white/15 px-4 py-2 text-xs text-white hover:bg-white/25 disabled:opacity-50 font-body">{editSaving ? "保存中..." : "保存"}</button>
-            </div>
-          </div>
-        </div>
+        <EditPanelModal
+          open={!!editingPost}
+          mode="post"
+          targetId={editingPost.id}
+          initialName={editingPost.title}
+          initialDesc={editingPost.summary}
+          initialBody={(editingPost as any).body ?? editingPost.summary}
+          initialLink=""
+          onClose={() => setEditingPost(null)}
+          onSaved={() => { triggerRefresh(); setEditingPost(null); }}
+        />
       )}
     </div>
   );
