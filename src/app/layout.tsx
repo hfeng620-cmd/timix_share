@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { AnnouncementModal } from "@/components/announcement-modal";
 import { BackgroundSliderWrapper } from "@/components/background-slider-wrapper";
 import { ErrorBoundary } from "@/components/error-boundary";
+import { RegisterCounter } from "@/components/register-counter";
 import { FloatingQuickPanel } from "@/components/floating-quick-panel";
 import { ToastContainer } from "@/components/toast-container";
 import { VpsFallbackBanner } from "@/components/vps-fallback-banner";
@@ -69,6 +70,7 @@ export default function RootLayout({
         </ForumAuthProvider>
         <AnnouncementModal />
         <FloatingQuickPanel />
+        <RegisterCounter />
         <VpsFallbackBanner />
       </body>
     </html>
