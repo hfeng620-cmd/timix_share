@@ -151,10 +151,45 @@ export async function updateFolder(id: string, name: string, desc: string): Prom
   if (!isSupabaseConfigured()) throw new Error("Supabase 未配置。");
   const { error } = await getSupabaseClient().from("shared_folders").update({ name: name.trim(), description: desc.trim() }).eq("id", id);
   if (error) throw new Error(`更新板块失败: ${error.message}`);
+  await logEdit("folder", id, "更新了板块信息");
 }
 
 export async function updateSharePost(id: string, title: string, summary: string, body: string, link: string): Promise<void> {
   if (!isSupabaseConfigured()) throw new Error("Supabase 未配置。");
   const { error } = await getSupabaseClient().from("shared_posts").update({ title: title.trim(), summary: summary.trim(), body: body.trim(), url: link.trim() || null }).eq("id", id);
   if (error) throw new Error(`更新帖子失败: ${error.message}`);
+  await logEdit("post", id, "更新了帖子内容");
+}
+
+export type EditLogEntry = {
+  id: string;
+  actionSummary: string;
+  createdAt: string;
+  editorId: string;
+  editorName: string;
+  editorAvatar: string | null;
+  totalContributions: number;
+};
+
+export async function logEdit(targetType: "folder" | "post", targetId: string, actionSummary: string): Promise<void> {
+  if (!isSupabaseConfigured()) throw new Error("Supabase 未配置。");
+  const { data: userData } = await getSupabaseClient().auth.getUser();
+  if (!userData.user) throw new Error("请先登录后再操作。");
+  const { error } = await getSupabaseClient().from("edit_logs").insert({
+    target_type: targetType, target_id: targetId, editor_id: userData.user.id, action_summary: actionSummary,
+  });
+  if (error) throw new Error(`记录编辑日志失败: ${error.message}`);
+}
+
+export async function loadEditLogs(targetId: string, targetType: "folder" | "post"): Promise<EditLogEntry[]> {
+  if (!isSupabaseConfigured()) return [];
+  try {
+    const { data, error } = await getSupabaseClient().rpc("get_edit_logs", { p_target_id: targetId, p_target_type: targetType });
+    if (error || !data) return [];
+    return (data as any[]).map((r) => ({
+      id: r.id as string, actionSummary: r.action_summary as string, createdAt: r.created_at as string,
+      editorId: r.editor_id as string, editorName: (r.editor_name as string) ?? "匿名用户",
+      editorAvatar: (r.editor_avatar as string) ?? null, totalContributions: (r.total_contributions as number) ?? 0,
+    }));
+  } catch { return []; }
 }

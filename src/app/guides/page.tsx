@@ -4,10 +4,12 @@ import { useCallback, useEffect, useState } from "react";
 import {
   Heart, MessageCircle, Bookmark, Plus, Flame, X,
   Folder, ChevronRight, Trash2, Send, Loader2,
+  Clock, Pencil,
 } from "lucide-react";
 import { Navbar } from "@/components/navbar";
 import { lockBodyScroll } from "@/lib/body-scroll-lock";
-import { loadFolders, loadAllPosts, createFolder, createSharePost, deleteSharePost, updateFolder, updateSharePost, getFolderCreator, getFolderContributors, type ShareFolder, type SharePost, type Contributor } from "@/lib/share-storage";
+import { useForumAuth } from "@/lib/forum-auth";
+import { loadFolders, loadAllPosts, createFolder, createSharePost, deleteSharePost, updateFolder, updateSharePost, getFolderCreator, getFolderContributors, loadEditLogs, type ShareFolder, type SharePost, type Contributor, type EditLogEntry } from "@/lib/share-storage";
 import { ShareCreateModal, type CreateMode } from "@/components/share-create-modal";
 
 /* ──────────────────────────────────────────────
@@ -34,6 +36,8 @@ type PostNode = {
   likes: number;
   comments: number;
   bookmarks: number;
+  authorId: string;
+  body: string;
 };
 
 const emptyRoot: FolderNode = { type: "folder", name: "root", children: [] };
@@ -55,14 +59,14 @@ function buildTreeFromDb(dbFolders: ShareFolder[], dbPosts: SharePost[]): Folder
     const childFolders = (childrenMap.get(f.id) ?? []).map(convertFolder);
     const childPosts: PostNode[] = (postsByFolder.get(f.id) ?? []).map((p) => ({
       type: "post", id: p.id, title: p.title, summary: p.summary,
-      tag: f.name, likes: p.likesCount, comments: p.commentsCount, bookmarks: 0,
+      tag: f.name, likes: p.likesCount, comments: p.commentsCount, bookmarks: 0, authorId: p.authorId, body: p.body,
     }));
     return { type: "folder", name: f.name, desc: f.description || undefined, children: [...childFolders, ...childPosts] };
   }
   const rootFolders = (childrenMap.get(null) ?? []).map(convertFolder);
   const rootPosts: PostNode[] = (postsByFolder.get("__root__") ?? []).map((p) => ({
     type: "post", id: p.id, title: p.title, summary: p.summary,
-    tag: "root", likes: p.likesCount, comments: p.commentsCount, bookmarks: 0,
+    tag: "root", likes: p.likesCount, comments: p.commentsCount, bookmarks: 0, authorId: p.authorId, body: p.body,
   }));
   return { type: "folder", name: "root", children: [...rootFolders, ...rootPosts] };
 }
@@ -77,7 +81,7 @@ const OLD_MOCK: FolderNode = {
             {
               type: "post", id: "p1", title: "Codex CLI 实战：用自然语言操控终端",
               summary: "OpenAI Codex 命令行工具深度体验，附常用 prompt 模板和避坑记录。",
-              tag: "Codex", likes: 2340, comments: 156, bookmarks: 892,
+              tag: "Codex", likes: 2340, comments: 156, bookmarks: 892, authorId: "", body: "",
             },
           ],
         },
@@ -86,7 +90,7 @@ const OLD_MOCK: FolderNode = {
             {
               type: "post", id: "p2", title: "Claude Code 终极配置指南",
               summary: "从零搭建 Claude Code 开发环境，MCP 插件、自定义 hooks 与快捷键映射。",
-              tag: "ClaudeCode", likes: 1890, comments: 98, bookmarks: 654,
+              tag: "ClaudeCode", likes: 1890, comments: 98, bookmarks: 654, authorId: "", body: "",
             },
           ],
         },
@@ -102,7 +106,7 @@ const OLD_MOCK: FolderNode = {
             {
               type: "post", id: "p3", title: "Tauri 2.0 桌面应用开发指南",
               summary: "基于 Rust 的轻量级跨平台桌面应用框架，替代 Electron 的首选方案。",
-              tag: "前端", likes: 2780, comments: 187, bookmarks: 940,
+              tag: "前端", likes: 2780, comments: 187, bookmarks: 940, authorId: "", body: "",
             },
           ],
         },
@@ -186,15 +190,31 @@ function PostCard({ post, onClick, onEdit, onDelete }: { post: PostNode; onClick
 
 /* ── Post modal ── */
 
-function PostModal({ post, onClose }: { post: PostNode; onClose: () => void }) {
+function PostModal({ post, onClose, onEdit }: { post: PostNode; onClose: () => void; onEdit?: () => void }) {
   const [liked, setLiked] = useState(false);
   const [saved, setSaved] = useState(false);
   const [commentOpen, setCommentOpen] = useState(false);
   const [commentText, setCommentText] = useState("");
   const [replyingTo, setReplyingTo] = useState<number | null>(null);
   const [replyText, setReplyText] = useState("");
+  const [editLogs, setEditLogs] = useState<EditLogEntry[]>([]);
+  const [logsLoading, setLogsLoading] = useState(true);
+  const { user, isAdmin, isOwner } = useForumAuth();
+  const canEdit = !!(user && (isAdmin || isOwner || user.id === post.authorId));
 
   useEffect(() => { const unlock = lockBodyScroll(); return unlock; }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function fetchLogs() {
+      setLogsLoading(true);
+      try { const logs = await loadEditLogs(post.id, "post"); if (!cancelled) setEditLogs(logs); }
+      catch { if (!cancelled) setEditLogs([]); }
+      finally { if (!cancelled) setLogsLoading(false); }
+    }
+    fetchLogs();
+    return () => { cancelled = true; };
+  }, [post.id]);
 
   const mockComments = [
     { id: 1, username: "噜噜", timestamp: "2 小时前", content: "这个项目太棒了！已经在我自己的项目里用上了，CLI 体验非常流畅。" },
@@ -202,76 +222,96 @@ function PostModal({ post, onClose }: { post: PostNode; onClose: () => void }) {
     { id: 3, username: "AI探索者", timestamp: "1 天前", content: "有没有人遇到过 OOM 的问题？我在处理大文件时内存占用很高。" },
   ];
 
-  function handleReplyClick(commentId: number, username: string) {
-    setReplyingTo(commentId);
-    setReplyText(`@${username} `);
+  function handleReplyClick(commentId: number, username: string) { setReplyingTo(commentId); setReplyText(`@${username} `); }
+
+  function relativeTime(dateStr: string): string {
+    const d = new Date(dateStr); const mins = Math.floor((Date.now() - d.getTime()) / 60000);
+    if (isNaN(mins)) return dateStr;
+    if (mins < 1) return "刚刚"; if (mins < 60) return `${mins} 分钟前`;
+    const hrs = Math.floor(mins / 60); if (hrs < 24) return `${hrs} 小时前`;
+    const days = Math.floor(hrs / 24); if (days < 30) return `${days} 天前`;
+    return `${Math.floor(days / 30)} 个月前`;
   }
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-xl px-4" onClick={onClose}>
-      <div className="relative w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-3xl border border-white/15 bg-white/6 shadow-2xl backdrop-blur-xl" onClick={(e) => e.stopPropagation()}>
-        <button onClick={onClose} className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white/50 hover:bg-white/20 hover:text-white transition z-10" type="button" aria-label="关闭">
-          <X className="h-4 w-4" />
-        </button>
+      <div className="relative w-full max-w-6xl max-h-[85vh] overflow-hidden rounded-3xl border border-white/15 bg-white/6 shadow-2xl backdrop-blur-xl" onClick={(e) => e.stopPropagation()}>
+        <button onClick={onClose} className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white/50 hover:bg-white/20 hover:text-white transition z-20" type="button" aria-label="关闭"><X className="h-4 w-4" /></button>
 
-        <div className="p-6 sm:p-8">
-          <span className="inline-block rounded-full bg-white/10 px-3 py-1 text-xs text-white/50 font-body mb-4">{post.tag}</span>
-          <h2 className="text-2xl font-heading italic text-white md:text-3xl">{post.title}</h2>
-          <p className="mt-4 text-sm leading-relaxed text-white/60 font-body">{post.summary}</p>
-          <div className="mt-6 space-y-3 text-sm leading-relaxed text-white/40 font-body">
-            <p>项目详细说明内容。包含安装步骤、使用示例、API 文档和常见问题解答。</p>
-            <p>社区成员可在评论区补充心得、提交反馈或分享改进方案。欢迎更多开发者参与共建。</p>
+        <div className="grid grid-cols-1 lg:grid-cols-[7fr_3fr] max-h-[85vh]">
+          {/* Left: content (70%) */}
+          <div className="overflow-y-auto max-h-[85vh] p-6 sm:p-8">
+            <span className="inline-block rounded-full bg-white/10 px-3 py-1 text-xs text-white/50 font-body mb-4">{post.tag}</span>
+            <div className="flex items-start gap-2">
+              <h2 className="text-2xl font-heading italic text-white md:text-3xl flex-1 min-w-0">{post.title}</h2>
+              {canEdit && onEdit && (
+                <button onClick={onEdit} className="shrink-0 mt-1.5 rounded-lg p-1.5 text-white/30 hover:text-white hover:bg-white/10 transition" title="编辑帖子" type="button"><Pencil className="h-4 w-4" /></button>
+              )}
+            </div>
+            <p className="mt-4 text-sm leading-relaxed text-white/60 font-body">{post.summary}</p>
+            <div className="mt-6 space-y-3 text-sm leading-relaxed text-white/40 font-body">
+              {post.body ? post.body.split("\n").map((para, i) => <p key={i}>{para}</p>) : (
+                <><p>项目详细说明内容。包含安装步骤、使用示例、API 文档和常见问题解答。</p><p>社区成员可在评论区补充心得、提交反馈或分享改进方案。</p></>
+              )}
+            </div>
+            <div className="mt-8 space-y-5 border-t border-white/10 pt-5">
+              <div className="flex items-center gap-6">
+                <button onClick={() => setLiked(!liked)} className={`inline-flex items-center gap-2 text-sm transition font-body ${liked ? "text-rose-400" : "text-white/40 hover:text-rose-300"}`} type="button"><Heart className={`h-5 w-5 transition ${liked ? "fill-current" : ""}`} />{liked ? post.likes + 1 : post.likes >= 1000 ? `${(post.likes / 1000).toFixed(1)}k` : post.likes}</button>
+                <button onClick={() => setCommentOpen(!commentOpen)} className="inline-flex items-center gap-2 text-sm text-white/40 hover:text-sky-300 transition font-body" type="button"><MessageCircle className="h-5 w-5" />{post.comments}</button>
+                <button onClick={() => setSaved(!saved)} className={`inline-flex items-center gap-2 text-sm transition font-body ml-auto ${saved ? "text-amber-400" : "text-white/40 hover:text-amber-300"}`} type="button"><Bookmark className={`h-5 w-5 transition ${saved ? "fill-current" : ""}`} />{saved ? "已收藏" : "收藏"}</button>
+              </div>
+              {commentOpen && (
+                <div className="space-y-4">
+                  {mockComments.map((c) => (
+                    <div key={c.id} className="rounded-xl bg-white/5 border border-white/10 p-4">
+                      <div className="flex items-start gap-3">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10 text-xs font-bold text-white/50">{c.username.charAt(0)}</div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2"><span className="text-sm font-semibold text-white/80 font-body">{c.username}</span><span className="text-[11px] text-white/30 font-body">{c.timestamp}</span></div>
+                          <p className="mt-1.5 text-sm leading-relaxed text-white/55 font-body">{c.content}</p>
+                          <button onClick={() => handleReplyClick(c.id, c.username)} className="mt-2 inline-flex items-center gap-1 text-xs text-white/35 hover:text-white/70 transition font-body" type="button"><MessageCircle className="h-3 w-3" />回复</button>
+                          {replyingTo === c.id && (
+                            <div className="mt-3 flex items-start gap-2 rounded-lg bg-white/5 border border-white/10 p-3">
+                              <textarea className="flex-1 min-h-[40px] resize-none bg-transparent text-sm text-white font-body outline-none placeholder:text-white/25" value={replyText} onChange={(e) => setReplyText(e.target.value)} autoFocus />
+                              <div className="flex items-center gap-1.5 shrink-0"><button className="rounded-full bg-white/10 px-3 py-1.5 text-xs text-white/50 hover:bg-white/20 hover:text-white transition font-body" onClick={() => { setReplyingTo(null); setReplyText(""); }} type="button">取消</button><button className="rounded-full bg-white/15 p-1.5 text-white/50 hover:bg-white/25 hover:text-white transition disabled:opacity-30" onClick={() => { setReplyingTo(null); setReplyText(""); }} type="button" disabled={!replyText.trim()}><Send className="h-3.5 w-3.5" /></button></div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  <div className="flex items-start gap-3 rounded-xl bg-white/5 border border-white/10 p-3">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10 text-xs font-bold text-white/50">U</div>
+                    <div className="flex-1 flex items-start gap-2"><textarea className="flex-1 min-h-[60px] resize-none bg-transparent text-sm text-white font-body outline-none placeholder:text-white/25" placeholder="写下你的评论..." value={commentText} onChange={(e) => setCommentText(e.target.value)} /><button className="shrink-0 mt-1 rounded-full bg-white/15 p-2 text-white/50 hover:bg-white/25 hover:text-white transition disabled:opacity-30" type="button" onClick={() => setCommentText("")} disabled={!commentText.trim()}><Send className="h-4 w-4" /></button></div>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
-          <div className="mt-8 space-y-5 border-t border-white/10 pt-5">
-            <div className="flex items-center gap-6">
-              <button onClick={() => setLiked(!liked)} className={`inline-flex items-center gap-2 text-sm transition font-body ${liked ? "text-rose-400" : "text-white/40 hover:text-rose-300"}`} type="button">
-                <Heart className={`h-5 w-5 transition ${liked ? "fill-current" : ""}`} />
-                {liked ? post.likes + 1 : post.likes >= 1000 ? `${(post.likes / 1000).toFixed(1)}k` : post.likes}
-              </button>
-              <button onClick={() => setCommentOpen(!commentOpen)} className="inline-flex items-center gap-2 text-sm text-white/40 hover:text-sky-300 transition font-body" type="button">
-                <MessageCircle className="h-5 w-5" />{post.comments}
-              </button>
-              <button onClick={() => setSaved(!saved)} className={`inline-flex items-center gap-2 text-sm transition font-body ml-auto ${saved ? "text-amber-400" : "text-white/40 hover:text-amber-300"}`} type="button">
-                <Bookmark className={`h-5 w-5 transition ${saved ? "fill-current" : ""}`} />{saved ? "已收藏" : "收藏"}
-              </button>
-            </div>
-
-            {commentOpen && (
-              <div className="space-y-4">
-                {mockComments.map((c) => (
-                  <div key={c.id} className="rounded-xl bg-white/5 border border-white/10 p-4">
-                    <div className="flex items-start gap-3">
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10 text-xs font-bold text-white/50">{c.username.charAt(0)}</div>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-semibold text-white/80 font-body">{c.username}</span>
-                          <span className="text-[11px] text-white/30 font-body">{c.timestamp}</span>
-                        </div>
-                        <p className="mt-1.5 text-sm leading-relaxed text-white/55 font-body">{c.content}</p>
-                        <button onClick={() => handleReplyClick(c.id, c.username)} className="mt-2 inline-flex items-center gap-1 text-xs text-white/35 hover:text-white/70 transition font-body" type="button">
-                          <MessageCircle className="h-3 w-3" />回复
-                        </button>
-                        {replyingTo === c.id && (
-                          <div className="mt-3 flex items-start gap-2 rounded-lg bg-white/5 border border-white/10 p-3">
-                            <textarea className="flex-1 min-h-[40px] resize-none bg-transparent text-sm text-white font-body outline-none placeholder:text-white/25" value={replyText} onChange={(e) => setReplyText(e.target.value)} autoFocus />
-                            <div className="flex items-center gap-1.5 shrink-0">
-                              <button className="rounded-full bg-white/10 px-3 py-1.5 text-xs text-white/50 hover:bg-white/20 hover:text-white transition font-body" onClick={() => { setReplyingTo(null); setReplyText(""); }} type="button">取消</button>
-                              <button className="rounded-full bg-white/15 p-1.5 text-white/50 hover:bg-white/25 hover:text-white transition disabled:opacity-30" onClick={() => { setReplyingTo(null); setReplyText(""); }} type="button" disabled={!replyText.trim()}><Send className="h-3.5 w-3.5" /></button>
-                            </div>
-                          </div>
-                        )}
+          {/* Right: Edit History (30%) */}
+          <div className="overflow-y-auto max-h-[85vh] bg-white/[0.02] border-l border-white/10 p-6">
+            <div className="flex items-center gap-2 mb-6"><Clock className="h-4 w-4 text-white/40" /><h3 className="text-sm font-heading italic text-white/70">修改日志</h3></div>
+            {logsLoading ? (
+              <div className="flex items-center justify-center py-12"><Loader2 className="h-5 w-5 text-white/30 animate-spin" /></div>
+            ) : editLogs.length === 0 ? (
+              <p className="text-sm text-white/30 font-body">暂无修改记录</p>
+            ) : (
+              <div className="relative pl-6 border-l border-white/10">
+                {editLogs.map((log) => (
+                  <div key={log.id} className="relative pb-6 last:pb-0">
+                    <div className="absolute -left-[9px] top-1 h-[18px] w-[18px] rounded-full border-2 border-white/20 bg-black" />
+                    <div className="space-y-1.5">
+                      <span className="text-[11px] text-white/30 font-body">{relativeTime(log.createdAt)}</span>
+                      <div className="flex items-center gap-2">
+                        {log.editorAvatar ? <img src={log.editorAvatar} className="w-5 h-5 rounded-full ring-1 ring-white/10" alt="" /> : <span className="flex w-5 h-5 items-center justify-center rounded-full bg-white/10 text-[10px] text-white/50">{log.editorName.charAt(0)}</span>}
+                        <span className="text-xs text-white/60 font-body">{log.editorName}</span>
                       </div>
+                      <p className="text-xs text-white/40 font-body">{log.actionSummary}</p>
+                      {log.totalContributions > 0 && <span className="inline-block rounded-full bg-white/10 px-2 py-0.5 text-[10px] text-white/50 font-body">累计贡献 {log.totalContributions} 次</span>}
                     </div>
                   </div>
                 ))}
-                <div className="flex items-start gap-3 rounded-xl bg-white/5 border border-white/10 p-3">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10 text-xs font-bold text-white/50">U</div>
-                  <div className="flex-1 flex items-start gap-2">
-                    <textarea className="flex-1 min-h-[60px] resize-none bg-transparent text-sm text-white font-body outline-none placeholder:text-white/25" placeholder="写下你的评论..." value={commentText} onChange={(e) => setCommentText(e.target.value)} />
-                    <button className="shrink-0 mt-1 rounded-full bg-white/15 p-2 text-white/50 hover:bg-white/25 hover:text-white transition disabled:opacity-30" type="button" onClick={() => setCommentText("")} disabled={!commentText.trim()}><Send className="h-4 w-4" /></button>
-                  </div>
-                </div>
               </div>
             )}
           </div>
@@ -598,7 +638,7 @@ export default function GuidesPage() {
               <div className="grid gap-4 sm:grid-cols-2">
                 {subFolders.map((folder, i) => (
                   <button
-                    key={folder.name}
+                    key={`${folder.name}-${i}`}
                     onClick={() => navigateToChild(i)}
                     type="button"
                     className="liquid-glass rounded-2xl p-6 text-left hover:bg-white/10 transition-all duration-200 group"
@@ -626,7 +666,7 @@ export default function GuidesPage() {
                     <div className="grid gap-3 sm:grid-cols-2">
                       {subFolders.map((folder, i) => (
                         <button
-                          key={folder.name}
+                          key={`${folder.name}-${i}`}
                           onClick={() => navigateToChild(i)}
                           type="button"
                           className="liquid-glass rounded-xl p-4 text-left hover:bg-white/10 transition group"
@@ -695,7 +735,7 @@ export default function GuidesPage() {
         </div>
       </div>
 
-      {modalPost && <PostModal post={modalPost} onClose={() => setModalPost(null)} />}
+      {modalPost && <PostModal post={modalPost} onClose={() => setModalPost(null)} onEdit={() => openEditPost(modalPost)} />}
       <ShareCreateModal
         open={createOpen}
         mode={createMode}
