@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { AnnouncementModal } from "@/components/announcement-modal";
 import { BackgroundSliderWrapper } from "@/components/background-slider-wrapper";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { FloatingQuickPanel } from "@/components/floating-quick-panel";
@@ -66,6 +67,7 @@ export default function RootLayout({
             <ToastContainer />
           </ToastProvider>
         </ForumAuthProvider>
+        <AnnouncementModal />
         <FloatingQuickPanel />
         <VpsFallbackBanner />
       </body>

@@ -1273,9 +1273,10 @@ export default function AdminPage() {
                     className="min-h-28 w-full rounded-2xl border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 outline-none transition focus:border-[var(--color-brand)]"
                     maxLength={ANNOUNCEMENT_LIMITS.body}
                     onChange={(e) => setAnnounceBody(e.target.value)}
-                    placeholder="输入公告正文..."
+                    placeholder={`输入公告正文...&#10;图片: ![描述](图片URL)&#10;链接: [文字](链接URL)`}
                     value={announceBody}
                   />
+                  <p className="text-[11px] text-[var(--color-muted)]">支持图片和链接：<code className="bg-[var(--color-soft)] px-1 rounded">![描述](图片URL)</code> <code className="bg-[var(--color-soft)] px-1 rounded">[文字](链接URL)</code></p>
                 </label>
                 <div className="mt-4 flex flex-wrap items-center gap-4">
                   <button
