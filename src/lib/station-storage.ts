@@ -38,6 +38,13 @@ export type StationEditRecord = {
   createdAt: string;
 };
 
+export const STATIONS_CHANGED_EVENT = "timix:stations-changed";
+
+export function notifyStationsChanged() {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new Event(STATIONS_CHANGED_EVENT));
+}
+
 // ---------------------------------------------------------------------------
 // Internal helpers
 // ---------------------------------------------------------------------------
@@ -154,6 +161,22 @@ function normalizeStationUrl(url?: string) {
   return normalizeEditableExternalHref(url);
 }
 
+function isUuidLike(value: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
+
+function isPermissionError(error: { code?: string; message?: string }) {
+  const message = error.message ?? "";
+  return (
+    error.code === "42501" ||
+    /row-level security|permission denied|not authorized|violates row-level/i.test(message)
+  );
+}
+
+function stationWritePermissionMessage(action: string) {
+  return `数据库暂时还没放开登录用户${action}正式榜单，请先执行 supabase/station-open-editing-migration.sql 后再试。`;
+}
+
 // ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
@@ -161,17 +184,16 @@ function normalizeStationUrl(url?: string) {
 /** Load all approved stations (from the view), ordered by sort_order. */
 export async function loadStations(): Promise<Station[]> {
   if (!isSupabaseConfigured()) return [];
-  try {
-    const { data, error } = await getSupabaseClient()
-      .from("stations_with_editor")
-      .select("*")
-      .order("sort_order", { ascending: true });
+  const { data, error } = await getSupabaseClient()
+    .from("stations_with_editor")
+    .select("*")
+    .order("sort_order", { ascending: true });
 
-    if (error) throw error;
-    return ((data ?? []) as Record<string, unknown>[]).map(stationFromRow);
-  } catch {
-    return [];
+  if (error) {
+    console.error("[loadStations] Error:", error);
+    throw new Error(`加载站点数据失败: ${error.message}`);
   }
+  return ((data ?? []) as Record<string, unknown>[]).map(stationFromRow);
 }
 
 /** Get a single station by id (from the view). */
@@ -211,6 +233,7 @@ export async function createStation(input: {
   risk?: string;
   badge?: string;
   groupName?: string;
+  sortOrder?: number;
 }): Promise<Station> {
   if (!isSupabaseConfigured()) {
     throw new Error("Supabase 未配置，无法创建站点。请先配置 Supabase 环境变量。");
@@ -253,7 +276,7 @@ export async function createStation(input: {
       risk: input.risk ?? null,
       badge: input.badge ?? null,
       group_name: input.groupName ?? null,
-      sort_order: nextSortOrder,
+      sort_order: input.sortOrder ?? nextSortOrder,
     };
 
     const { data, error } = await supabase
@@ -262,7 +285,12 @@ export async function createStation(input: {
       .select("*")
       .single();
 
-    if (error) throw error;
+    if (error) {
+      if (isPermissionError(error)) {
+        throw new Error(stationWritePermissionMessage("新增"));
+      }
+      throw error;
+    }
     return stationFromRow(data as Record<string, unknown>);
   } catch (e) {
     throw e instanceof Error ? e : new Error("创建站点失败，请稍后重试。");
@@ -270,21 +298,7 @@ export async function createStation(input: {
 }
 
 /**
- * Check if current user is admin or site owner.
- */
-async function isCurrentUserAdmin(): Promise<boolean> {
-  const supabase = getSupabaseClient();
-  const { data: userData } = await supabase.auth.getUser();
-  if (!userData.user) return false;
-
-  const { data } = await supabase.rpc("is_forum_admin", {
-    check_user_id: userData.user.id,
-  });
-  return Boolean(data);
-}
-
-/**
- * Update a station. Admins update directly, regular users submit for review.
+ * Update a station in the official board and record the field-level history.
  */
 export async function updateStation(
   id: string,
@@ -297,6 +311,10 @@ export async function updateStation(
   const supabase = getSupabaseClient();
 
   try {
+    if (!isUuidLike(id)) {
+      throw new Error("这条站点还没有进入正式榜单，请先保存为正式站点后再修改。");
+    }
+
     const normalizedUpdates: Partial<Station> = { ...updates };
     if (updates.url !== undefined) {
       normalizedUpdates.url = normalizeStationUrl(updates.url);
@@ -322,9 +340,6 @@ export async function updateStation(
       throw new Error("请先登录后再修改站点。");
     }
     const editorId = userData.user.id;
-
-    // Check if user is admin
-    const isAdmin = await isCurrentUserAdmin();
 
     // Build edit records for each changed field
     const editInserts: Array<{
@@ -362,49 +377,31 @@ export async function updateStation(
       return { needsReview: false }; // No changes
     }
 
-    if (isAdmin) {
-      // Admin: update directly
-      const updateRow = stationToUpdate(normalizedUpdates);
-      if (Object.keys(updateRow).length > 0) {
-        const { error: updateError } = await supabase
-          .from("stations")
-          .update(updateRow)
-          .eq("id", id);
+    const updateRow = stationToUpdate(normalizedUpdates);
+    if (Object.keys(updateRow).length > 0) {
+      const { error: updateError } = await supabase
+        .from("stations")
+        .update(updateRow)
+        .eq("id", id);
 
-        if (updateError) {
-          console.error("[updateStation] Update error:", updateError);
-          throw new Error(`更新站点失败: ${updateError.message}`);
+      if (updateError) {
+        console.error("[updateStation] Update error:", updateError);
+        if (isPermissionError(updateError)) {
+          throw new Error(stationWritePermissionMessage("修改"));
         }
+        throw new Error(`更新站点失败: ${updateError.message}`);
       }
-
-      // Record edits
-      const { error: editError } = await supabase
-        .from("station_edits")
-        .insert(editInserts);
-
-      if (editError) {
-        console.error("[updateStation] Edit insert error:", editError);
-      }
-
-      return { needsReview: false };
-    } else {
-      // Regular user: submit for review
-      const pendingInserts = editInserts.map((edit) => ({
-        ...edit,
-        status: "pending",
-      }));
-
-      const { error: pendingError } = await supabase
-        .from("station_pending_edits")
-        .insert(pendingInserts);
-
-      if (pendingError) {
-        console.error("[updateStation] Pending insert error:", pendingError);
-        throw new Error(`提交审核失败: ${pendingError.message}`);
-      }
-
-      return { needsReview: true };
     }
+
+    const { error: editError } = await supabase
+      .from("station_edits")
+      .insert(editInserts);
+
+    if (editError) {
+      console.error("[updateStation] Edit insert error:", editError);
+    }
+
+    return { needsReview: false };
   } catch (e) {
     console.error("[updateStation] Exception:", e);
     throw e instanceof Error ? e : new Error("更新站点失败，请稍后重试。");

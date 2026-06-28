@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { ThemeToggleInline, type ThemeToggleView } from "@/components/theme-toggle";
+import { useForumAuth } from "@/lib/forum-auth";
 import { siteLinks } from "@/lib/site-links";
 
 const HINT_DISMISSED_KEY = "relay-theme-hint-seen";
@@ -54,6 +55,8 @@ export function FloatingQuickPanel() {
   const panelRef = useRef<HTMLDivElement | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const pathname = usePathname();
+  const { isAdmin, isOwner } = useForumAuth();
+  const canOpenAdmin = isAdmin || isOwner;
 
   useEffect(() => {
     function handlePointerDown(event: MouseEvent) {
@@ -193,6 +196,19 @@ export function FloatingQuickPanel() {
                     </Link>
                   );
                 })}
+                {canOpenAdmin ? (
+                  <Link
+                    aria-current={isRouteActive(pathname, "/admin") ? "page" : undefined}
+                    className={`rounded-[14px] border px-3 py-2 text-sm font-semibold transition-all duration-300 ${
+                      isRouteActive(pathname, "/admin")
+                        ? "border-[var(--color-brand)] bg-[var(--color-brand-soft)] text-[var(--color-brand-deep)]"
+                        : "border-[var(--color-line)] bg-[var(--color-soft)] text-[var(--color-ink)] hover:border-[var(--color-brand)] hover:bg-[var(--color-brand-soft)] hover:text-[var(--color-brand-deep)]"
+                    }`}
+                    href="/admin"
+                  >
+                    管理面板
+                  </Link>
+                ) : null}
               </div>
             </div>
 

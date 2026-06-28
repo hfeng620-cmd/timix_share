@@ -7,13 +7,15 @@ import { OnlineIndicator } from "@/components/online-indicator";
 import { NotificationBell } from "@/components/notification-bell";
 import { QqGroupModalButton } from "@/components/qq-group-modal-button";
 import { RelayNetworkCanvas } from "@/components/relay-network-canvas";
-import { StationRowLink } from "@/components/station-row-link";
-import { FavoriteButton } from "@/components/favorite-button";
 import {
-  prioritizedStationNames,
+  LiveFeaturedLead,
+  LiveMoreStationRows,
+  LiveStationStats,
+  LiveStationSummaryChips,
+  LiveTopStationRows,
+} from "@/components/home-live-stations";
+import {
   resourceLinks,
-  stationComparisonRows,
-  stationLinkMap,
   tickerItems,
 } from "@/lib/site-data";
 
@@ -103,26 +105,6 @@ const homeVerseLines = [
 ];
 
 export default function Home() {
-  type StationRow = (typeof stationComparisonRows)[number];
-  const topRows = prioritizedStationNames
-    .map((name) => stationComparisonRows.find((row) => row.name === name))
-    .filter((row): row is StationRow => Boolean(row));
-  const moreRows = stationComparisonRows.filter(
-    (row) => !prioritizedStationNames.includes(row.name),
-  );
-  const featuredLead = topRows[0] ?? null;
-  const lowRateCount = stationComparisonRows.filter((row) => {
-    const value = Number(row.multiplier.match(/(\d+(?:\.\d+)?)x/)?.[1] ?? Number.NaN);
-    return Number.isFinite(value) && value <= 0.15;
-  }).length;
-  const trialReadyCount = stationComparisonRows.filter(
-    (row) =>
-      row.badge.includes("试用") ||
-      row.badge.includes("免费") ||
-      row.note.includes("注册送") ||
-      row.price.includes("免费"),
-  ).length;
-
   return (
     <main className="theme-stage min-h-screen bg-transparent text-[var(--color-ink)]">
       <style>{`
@@ -515,26 +497,7 @@ export default function Home() {
                 ))}
                 </div>
               </div>
-              <div className="home-flow-tight mt-7 grid gap-3 sm:grid-cols-3">
-                <div className="home-card-sheen home-soft-panel rounded-[20px] border px-4 py-4 backdrop-blur">
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
-                    收录站点
-                  </p>
-                  <p className="mt-2 text-3xl font-black">{stationComparisonRows.length}</p>
-                </div>
-                <div className="home-card-sheen home-soft-panel rounded-[20px] border px-4 py-4 backdrop-blur">
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
-                    低倍率样本
-                  </p>
-                  <p className="mt-2 text-3xl font-black">{lowRateCount}</p>
-                </div>
-                <div className="home-card-sheen home-soft-panel rounded-[20px] border px-4 py-4 backdrop-blur">
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
-                    可先试用
-                  </p>
-                  <p className="mt-2 text-3xl font-black">{trialReadyCount}</p>
-                </div>
-              </div>
+              <LiveStationStats />
             </div>
 
             <div className="home-reveal home-delay-2 home-glass-edge home-card-sheen home-command-card relative h-fit self-start overflow-clip rounded-[30px] border p-5 backdrop-blur sm:p-6">
@@ -563,36 +526,7 @@ export default function Home() {
                     </p>
                   </div>
                 </div>
-                {featuredLead ? (
-                  <>
-                    <div className="mt-4 flex items-start justify-between gap-4">
-                      <div>
-                        <h2 className="text-2xl font-black">{featuredLead.name}</h2>
-                        <p className="mt-2 text-sm leading-7 text-[var(--color-muted)]">
-                          {featuredLead.note}
-                        </p>
-                      </div>
-                      <span className="home-chip rounded-full px-3 py-1 text-xs font-bold">
-                        {featuredLead.badge}
-                      </span>
-                    </div>
-                    <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                      <div className="home-info-tile rounded-[18px] border px-4 py-4">
-                        <p className="text-xs text-[var(--color-muted)]">价格 / 倍率</p>
-                        <p className="mt-2 text-lg font-black">{featuredLead.price}</p>
-                        <p className="mt-1 text-sm font-semibold text-[var(--color-brand-deep)]">
-                          {featuredLead.multiplier}
-                        </p>
-                      </div>
-                      <div className="home-info-tile rounded-[18px] border px-4 py-4">
-                        <p className="text-xs text-[var(--color-muted)]">一句判断</p>
-                        <p className="mt-2 text-sm leading-7 text-[var(--color-ink)]">
-                          {featuredLead.verdict}
-                        </p>
-                      </div>
-                    </div>
-                  </>
-                ) : null}
+                <LiveFeaturedLead />
                 <div className="home-flow-tight mt-5 grid gap-3 sm:grid-cols-2">
                   <div className="home-info-tile rounded-[18px] border px-4 py-4">
                     <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
@@ -680,17 +614,7 @@ export default function Home() {
 
             <aside className="home-reveal home-delay-2 home-command-card relative overflow-clip rounded-[30px] border p-5 sm:p-6 lg:p-7">
               <div className="pointer-events-none absolute -right-16 top-12 h-40 w-40 rounded-full bg-[radial-gradient(circle,rgba(var(--theme-glow-rgb),0.18),transparent_70%)] blur-xl" />
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="home-chip rounded-full px-3 py-1 text-xs font-bold">
-                  已收录 {stationComparisonRows.length} 个站点
-                </span>
-                <span className="home-chip rounded-full px-3 py-1 text-xs font-bold">
-                  {lowRateCount} 个低倍率样本
-                </span>
-                <span className="home-chip rounded-full px-3 py-1 text-xs font-bold">
-                  {trialReadyCount} 个可先试用
-                </span>
-              </div>
+              <LiveStationSummaryChips />
               <h2 className="mt-4 text-2xl font-black tracking-tight sm:text-3xl">
                 当前值得先看的线索
               </h2>
@@ -784,41 +708,7 @@ export default function Home() {
                 </div>
 
                 <div className="mt-1">
-                  {topRows.map((row, index) => (
-                    <StationRowLink
-                      key={`${row.name}-${index}`}
-                      href={stationLinkMap[row.name]}
-                      className="stagger-in grid cursor-pointer gap-4 border-b border-[var(--color-line)] py-5 transition hover:bg-[var(--color-hover)] md:grid-cols-[0.55fr_1fr_0.95fr_0.75fr_1.35fr] md:items-start"
-                    >
-                      <div className="flex min-w-0 items-center justify-between gap-3 md:block">
-                        <span className="text-sm font-bold text-[var(--color-muted)] md:pt-1">
-                          {(index + 1).toString().padStart(2, "0")}
-                        </span>
-                        <span className="rounded-full bg-[var(--color-brand-soft)] px-3 py-1 text-xs font-bold text-[var(--color-brand-deep)] md:hidden">
-                          {row.badge}
-                        </span>
-                      </div>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-3">
-                          <h3 className="text-lg font-black">{row.name}</h3>
-                          <FavoriteButton stationName={row.name} />
-                          <span className="hidden text-xs font-bold uppercase tracking-[0.18em] text-[var(--color-brand-deep)] md:inline">
-                            {row.badge}
-                          </span>
-                        </div>
-                        <p className="mt-2 truncate text-sm leading-6 text-[var(--color-muted)]">{row.group}</p>
-                      </div>
-                      <div className="min-w-0">
-                        <p className="truncate text-base font-black">{row.price}</p>
-                        <p className="mt-2 truncate text-sm leading-6 text-[var(--color-brand-deep)]">{row.entry}</p>
-                      </div>
-                      <p className="min-w-0 truncate pt-1 text-base font-black">{row.multiplier}</p>
-                      <div className="min-w-0">
-                        <p className="truncate text-base font-black">{row.verdict}</p>
-                        <p className="mt-2 line-clamp-2 text-sm leading-6 text-[var(--color-muted)]">{row.note}</p>
-                      </div>
-                    </StationRowLink>
-                  ))}
+                  <LiveTopStationRows />
                 </div>
               </div>
 
@@ -915,53 +805,7 @@ export default function Home() {
             </Link>
           </div>
           <div data-reveal className="mt-5 overflow-clip rounded-[26px] border border-[var(--color-line)] bg-[var(--surface-gradient)] px-4 shadow-[0_18px_46px_rgba(15,23,42,0.055)] sm:px-5">
-            {moreRows.map((row, index) => {
-              const url = stationLinkMap[row.name];
-              const baseClasses =
-                "stagger-in card-lift grid gap-3 border-b border-[var(--color-line)] py-5 transition md:grid-cols-[0.9fr_0.9fr_0.6fr_1.4fr]";
-              const linkClasses = `${baseClasses} cursor-pointer hover:bg-[var(--color-hover)]`;
-              const plainClasses = `${baseClasses} hover:bg-[var(--color-hover)]`;
-
-              const content = (
-                <>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-3">
-                      <h3 className="text-lg font-black">{row.name}</h3>
-                      <FavoriteButton stationName={row.name} />
-                      <span className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--color-brand-deep)]">
-                        {row.badge}
-                      </span>
-                    </div>
-                    <p className="mt-2 truncate text-sm leading-6 text-[var(--color-muted)]">{row.group}</p>
-                  </div>
-                  <div className="min-w-0">
-                    <p className="truncate font-black">{row.price}</p>
-                    <p className="mt-2 truncate text-sm leading-6 text-[var(--color-muted)]">
-                      {row.packageType}
-                    </p>
-                  </div>
-                  <p className="min-w-0 truncate font-black">{row.multiplier}</p>
-                  <p className="min-w-0 text-sm leading-6 text-[var(--color-muted)] line-clamp-2">{row.note}</p>
-                </>
-              );
-
-              return url ? (
-                <StationRowLink
-                  key={`${row.name}-extended-${index}`}
-                  className={linkClasses}
-                  href={url}
-                >
-                  {content}
-                </StationRowLink>
-              ) : (
-                <article
-                  key={`${row.name}-extended-${index}`}
-                  className={plainClasses}
-                >
-                  {content}
-                </article>
-              );
-            })}
+            <LiveMoreStationRows />
           </div>
           <div data-reveal className="home-reveal home-delay-2 home-card-sheen home-command-card mt-8 rounded-[28px] border px-5 py-6 sm:px-6">
             <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">

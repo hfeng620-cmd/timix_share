@@ -15,6 +15,7 @@ import {
   deleteStation,
   loadStationEditHistory,
   loadStations,
+  notifyStationsChanged,
   updateStation,
   type Station,
   type StationEditRecord,
@@ -205,6 +206,33 @@ function fieldLabel(snakeName: string): string {
   return FIELD_LABELS[snakeName] ?? snakeName;
 }
 
+function isStaticStationId(id: string | null | undefined) {
+  return Boolean(id?.startsWith("static-"));
+}
+
+function stationFormToCreateInput(form: Partial<Station>) {
+  return {
+    name: form.name?.trim() ?? "",
+    url: form.url,
+    price: form.price,
+    multiplier: form.multiplier,
+    entry: form.entry,
+    packageType: form.packageType,
+    status: form.status,
+    models: form.models,
+    uptime: form.uptime,
+    latency: form.latency,
+    source: form.source,
+    verdict: form.verdict,
+    note: form.note,
+    advantage: form.advantage,
+    risk: form.risk,
+    badge: form.badge,
+    groupName: form.groupName,
+    sortOrder: form.sortOrder,
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
@@ -214,8 +242,8 @@ export function StationsBoard() {
   const canDeleteStations = isAdmin || isOwner;
 
   // ---- data ---------------------------------------------------------------
-  const [stations, setStations] = useState<Station[]>(STATIC_STATIONS);
-  const [loading, setLoading] = useState(false);
+  const [stations, setStations] = useState<Station[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // ---- filters ------------------------------------------------------------
@@ -254,8 +282,15 @@ export function StationsBoard() {
     try {
       const data = await loadStations();
       setStations(data.length === 0 ? STATIC_STATIONS : data);
+      setDetailStation((current) =>
+        current ? data.find((station) => station.id === current.id) ?? current : current,
+      );
+      setDiscussionStation((current) =>
+        current ? data.find((station) => station.id === current.id) ?? current : current,
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : "加载站点数据失败");
+      setStations([]);
     } finally {
       setLoading(false);
     }
@@ -278,13 +313,18 @@ export function StationsBoard() {
         if (!cancelled) {
           resolved = true;
           setStations(data.length === 0 ? STATIC_STATIONS : data);
+          setError(null);
           setLoading(false);
         }
       })
       .catch(() => {
         clearTimeout(timeout);
         resolved = true;
-        if (!cancelled) { setError("数据暂时加载失败，请稍后刷新重试。"); setLoading(false); }
+        if (!cancelled) {
+          setError("数据暂时加载失败，请稍后刷新重试。");
+          setStations([]);
+          setLoading(false);
+        }
       });
     return () => { cancelled = true; clearTimeout(timeout); };
   }, []);
@@ -443,15 +483,26 @@ export function StationsBoard() {
 
   const saveEdit = useCallback(async () => {
     if (!editingId) return;
+    if (!editForm.name?.trim()) {
+      alert("站点名不能为空。");
+      return;
+    }
     const editorName = displayName || "匿名用户";
     setSaving(true);
     try {
-      const result = await updateStation(editingId, editForm, editorName);
-      if (result.needsReview) {
-        alert("已提交巡查队列，站主或管理员确认后会生效。");
+      if (isStaticStationId(editingId)) {
+        await createStation(stationFormToCreateInput(editForm));
+        alert("已把这条本地兜底数据保存为正式站点。");
       } else {
-        await refreshStations();
+        const result = await updateStation(editingId, editForm, editorName);
+        if (result.needsReview) {
+          alert("已提交巡查队列，站主或管理员确认后会生效。");
+        } else {
+          alert("已保存到正式榜单。");
+        }
       }
+      await refreshStations();
+      notifyStationsChanged();
       setEditingId(null);
       setEditForm({});
     } catch (err) {
@@ -463,10 +514,15 @@ export function StationsBoard() {
 
   const handleDelete = useCallback(
     async (id: string) => {
+      if (isStaticStationId(id)) {
+        alert("这是本地兜底数据，还没有进入正式榜单；先保存为正式站点后再删除。");
+        return;
+      }
       if (!window.confirm("确定要删除这个站点吗？此操作不可撤销。")) return;
       try {
         await deleteStation(id);
         await refreshStations();
+        notifyStationsChanged();
         if (editingId === id) {
           setEditingId(null);
           setEditForm({});
@@ -516,6 +572,7 @@ export function StationsBoard() {
         groupName: editForm.groupName,
       });
       await refreshStations();
+      notifyStationsChanged();
       setAddingNew(false);
       setEditForm({});
     } catch (err) {
@@ -577,7 +634,11 @@ export function StationsBoard() {
             onClick={saveEdit}
             type="button"
           >
-            {saving ? "保存中..." : "保存修改"}
+            {saving
+              ? "保存中..."
+              : isStaticStationId(editingId)
+                ? "保存为正式站点"
+                : "保存修改"}
           </button>
           <button
             className="rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-2.5 text-sm font-bold text-[var(--color-muted)] transition hover:border-[var(--color-brand)] hover:text-[var(--color-brand-deep)]"

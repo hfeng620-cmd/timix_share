@@ -64,6 +64,7 @@ export function AuthButton() {
         </Link>
         {(isAdmin || isOwner) && (
           <Link
+            aria-label="打开管理面板"
             className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] text-[var(--color-muted)] transition hover:border-[var(--color-brand)] hover:bg-[var(--color-brand-soft)] hover:text-[var(--color-brand-deep)]"
             href="/admin"
             title="管理面板"
