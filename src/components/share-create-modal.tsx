@@ -131,6 +131,7 @@ export function ShareCreateModal({ open, mode, currentFolder, folders, onClose, 
                     <label className="block text-xs text-white/40 font-body mb-1.5">相关项目链接</label>
                     <input type="url" value={link} onChange={(e) => { setLink(e.target.value); setError(""); }}
                       placeholder="https://github.com/... (选填)" className={inputClass} />
+                    <p className="text-[10px] text-white/25 font-body">选填，可以不填</p>
                   </div>
                   <div>
                     <label className="block text-xs text-white/40 font-body mb-1.5">帖子简介</label>
