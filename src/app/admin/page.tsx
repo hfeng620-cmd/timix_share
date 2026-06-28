@@ -871,7 +871,7 @@ export default function AdminPage() {
           author_id: authorId,
           title,
           body,
-          station: station || null,
+          station: station || "",
           tags,
           is_hidden: false,
           is_pinned: true,
