@@ -147,6 +147,18 @@ export async function deleteSharePost(postId: string): Promise<void> {
   if (error) throw new Error(`删除失败: ${error.message}`);
 }
 
+export async function deleteFolder(folderId: string): Promise<void> {
+  if (!isSupabaseConfigured()) throw new Error("Supabase 未配置。");
+  // Check if folder has sub-items
+  const { count: postCount } = await getSupabaseClient().from("shared_posts").select("*", { count: "exact", head: true }).eq("folder_id", folderId);
+  const { count: childCount } = await getSupabaseClient().from("shared_folders").select("*", { count: "exact", head: true }).eq("parent_id", folderId);
+  if ((postCount ?? 0) > 0 || (childCount ?? 0) > 0) {
+    throw new Error("板块不为空，请先清空内部帖子和子板块后再删除。");
+  }
+  const { error } = await getSupabaseClient().from("shared_folders").delete().eq("id", folderId);
+  if (error) throw new Error(`删除板块失败: ${error.message}`);
+}
+
 export async function updateFolder(id: string, name: string, desc: string): Promise<void> {
   if (!isSupabaseConfigured()) throw new Error("Supabase 未配置。");
   const { error } = await getSupabaseClient().from("shared_folders").update({ name: name.trim(), description: desc.trim() }).eq("id", id);

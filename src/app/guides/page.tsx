@@ -9,7 +9,7 @@ import {
 import { Navbar } from "@/components/navbar";
 import { lockBodyScroll } from "@/lib/body-scroll-lock";
 import { useForumAuth } from "@/lib/forum-auth";
-import { loadFolders, loadAllPosts, createFolder, createSharePost, deleteSharePost, updateFolder, updateSharePost, getFolderCreator, getFolderContributors, loadEditLogs, type ShareFolder, type SharePost, type Contributor, type EditLogEntry } from "@/lib/share-storage";
+import { loadFolders, loadAllPosts, createFolder, createSharePost, deleteSharePost, deleteFolder, updateFolder, updateSharePost, getFolderCreator, getFolderContributors, loadEditLogs, type ShareFolder, type SharePost, type Contributor, type EditLogEntry } from "@/lib/share-storage";
 import { EditPanelModal } from "@/components/edit-panel-modal";
 import { ShareCreateModal, type CreateMode } from "@/components/share-create-modal";
 
@@ -25,6 +25,7 @@ type FolderNode = {
   type: "folder";
   name: string;
   desc?: string;
+  dbId?: string;
   children: TreeNode[];
 };
 
@@ -62,7 +63,7 @@ function buildTreeFromDb(dbFolders: ShareFolder[], dbPosts: SharePost[]): Folder
       type: "post", id: p.id, title: p.title, summary: p.summary,
       tag: f.name, likes: p.likesCount, comments: p.commentsCount, bookmarks: 0, authorId: p.authorId, body: p.body,
     }));
-    return { type: "folder", name: f.name, desc: f.description || undefined, children: [...childFolders, ...childPosts] };
+    return { type: "folder", name: f.name, desc: f.description || undefined, dbId: f.id, children: [...childFolders, ...childPosts] };
   }
   const rootFolders = (childrenMap.get(null) ?? []).map(convertFolder);
   const rootPosts: PostNode[] = (postsByFolder.get("__root__") ?? []).map((p) => ({
@@ -486,6 +487,11 @@ export default function GuidesPage() {
   const handleDeletePost = useCallback(async (id: string) => {
     await deleteSharePost(id); triggerRefresh();
   }, []);
+  const handleDeleteFolder = useCallback(async (id: string, name: string) => {
+    if (!window.confirm(`确认删除板块「${name}」？\n\n板块必须为空才能删除（无帖子和子板块）。`)) return;
+    try { await deleteFolder(id); triggerRefresh(); }
+    catch (e: any) { alert(e?.message || "删除失败"); }
+  }, []);
 
   const rootTree = hasRealData ? buildTreeFromDb(dbFolders!, dbPosts!) : emptyRoot;
   const currentFolder = resolvePath(rootTree, path) ?? rootTree;
@@ -643,23 +649,42 @@ export default function GuidesPage() {
             )}
             {isRoot && subFolders.length > 0 && (
               <div className="grid gap-4 sm:grid-cols-2">
-                {subFolders.map((folder, i) => (
-                  <button
+                {subFolders.map((folder, i) => {
+                  const dbId = (folder as any).dbId;
+                  return (
+                  <div
                     key={`${folder.name}-${i}`}
+                    className="liquid-glass rounded-2xl p-6 text-left hover:bg-white/10 transition-all duration-200 group cursor-pointer relative"
                     onClick={() => navigateToChild(i)}
-                    type="button"
-                    className="liquid-glass rounded-2xl p-6 text-left hover:bg-white/10 transition-all duration-200 group"
                   >
                     <Folder className="h-7 w-7 text-white/50 group-hover:text-white/80 transition mb-3" />
                     <h2 className="text-xl font-heading italic text-white">{folder.name}</h2>
-                    {folder.desc && (
-                      <p className="mt-2 text-sm text-white/35 font-body">{folder.desc}</p>
+                    {folder.desc && <p className="mt-2 text-sm text-white/35 font-body">{folder.desc}</p>}
+                    <p className="mt-4 text-xs text-white/25 font-body">{folder.children.length} 个子项</p>
+
+                    {/* Three-dot menu — only on real DB folders */}
+                    {hasRealData && dbId && (
+                      <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition" onClick={(e) => e.stopPropagation()}>
+                        <button className="rounded-lg p-1.5 text-white/30 hover:text-white hover:bg-white/10 transition" type="button"
+                          onClick={(e) => { e.stopPropagation(); const menu = (e.currentTarget as HTMLElement).nextElementSibling as HTMLElement; if (menu) menu.classList.toggle('hidden'); }}>
+                          <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+                        </button>
+                        <div className="hidden absolute right-0 top-full mt-1 w-28 rounded-xl border border-white/10 bg-black/90 backdrop-blur py-1 shadow-xl z-30">
+                          <button className="flex w-full items-center gap-2 px-3 py-2 text-xs text-white/60 hover:bg-white/10 hover:text-white transition font-body" type="button"
+                            onClick={(e) => { e.stopPropagation(); openEditFolder(); }}>
+                            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                            编辑
+                          </button>
+                          <button className="flex w-full items-center gap-2 px-3 py-2 text-xs text-red-400 hover:bg-red-400/10 hover:text-red-300 transition font-body" type="button"
+                            onClick={(e) => { e.stopPropagation(); handleDeleteFolder(dbId, folder.name); }}>
+                            <Trash2 className="h-3.5 w-3.5" />
+                            删除
+                          </button>
+                        </div>
+                      </div>
                     )}
-                    <p className="mt-4 text-xs text-white/25 font-body">
-                      {folder.children.length} 个子项
-                    </p>
-                  </button>
-                ))}
+                  </div>
+                )})}
               </div>
             )}
 
