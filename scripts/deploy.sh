@@ -20,6 +20,7 @@ HEALTH_CHECK_RETRIES="${HEALTH_CHECK_RETRIES:-10}"
 HEALTH_CHECK_DELAY="${HEALTH_CHECK_DELAY:-2}"
 ROLLBACK_ENABLED="${ROLLBACK_ENABLED:-true}"
 BACKUP_DIR=".deploy-backups"
+DEPLOY_BRANCH="${DEPLOY_BRANCH:-main}"
 
 # ---- 颜色输出 ------------------------------------------------
 RED='\033[0;31m'
@@ -265,7 +266,7 @@ else
   STASHED="false"
 fi
 
-if git pull origin master; then
+if git pull origin "${DEPLOY_BRANCH}"; then
   log_info "代码已更新到最新 ✓"
 else
   log_error "git pull 失败，请检查网络或仓库状态"

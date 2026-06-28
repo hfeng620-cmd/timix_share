@@ -489,7 +489,7 @@ name: 部署到服务器
 on:
   push:
     branches:
-      - master
+      - main
   workflow_dispatch:   # 允许手动触发
 
 jobs:
@@ -505,7 +505,7 @@ jobs:
           port: ${{ secrets.SSH_PORT || 22 }}
           script: |
             cd /opt/timin_api_test_and_forum
-            git pull origin master
+            git pull origin main
             export DEPLOY_TARGET=server
             npm ci --production
             npm run build
