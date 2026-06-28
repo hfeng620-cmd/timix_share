@@ -14,7 +14,7 @@ module.exports = {
       script: "node_modules/next/dist/bin/next",
 
       // CLI arguments passed to the script
-      args: "dev -p 3000",
+      args: "start -p 3000",
 
       // Run single instance in fork mode
       instances: 1,
