@@ -699,7 +699,7 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
                     关闭
                   </button>
                   <button
-                    className="w-full rounded-full border border-red-200 bg-[#fff1f2] px-5 py-3 text-sm font-bold text-[#be123c] transition hover:bg-[#ffe4e6]"
+                    className="w-full rounded-full border border-red-500/30 bg-red-500/10 px-5 py-3 text-sm font-bold text-red-400 transition hover:bg-red-500/20"
                     onClick={() => void signOut()}
                     type="button"
                   >

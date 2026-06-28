@@ -3,8 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 
-import { AuthButton } from "@/components/auth-button";
-import { NotificationBell } from "@/components/notification-bell";
+import { Navbar } from "@/components/navbar";
 import {
   getUserLikedPosts,
   getUserPosts,
@@ -691,82 +690,10 @@ export default function ProfilePage() {
   const { ref: archiveRef, isVisible: archiveVisible } = useRevealInView<HTMLDivElement>(0.12);
 
   return (
-    <main className="theme-stage min-h-screen bg-transparent text-[var(--color-ink)]">
-      <section className="border-b border-[var(--color-line)] bg-[var(--color-header)] backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4 lg:px-10">
-          <div className="flex items-center gap-4">
-            <Link
-              className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--color-brand)] text-xl font-black text-[var(--color-on-brand)] shadow-[0_10px_30px_var(--color-panel-glow)]"
-              href="/"
-            >
-              T
-            </Link>
-            <div>
-              <p className="text-2xl font-black tracking-tight">Timix观察站</p>
-              <p className="text-sm text-[var(--color-muted)]">个人主页</p>
-            </div>
-          </div>
+    <div className="min-h-screen text-white">
+      <Navbar />
 
-          <div className="flex items-center gap-3">
-            {/* 移动端导航 */}
-            <nav aria-label="页面导航" className="flex items-center gap-1.5 md:hidden">
-              <Link
-                className="rounded-full px-3 py-2 text-xs font-semibold text-[var(--color-muted)] transition hover:bg-[var(--color-soft)] hover:text-[var(--color-ink)]"
-                href="/"
-              >
-                首页
-              </Link>
-              <Link
-                className="rounded-full px-3 py-2 text-xs font-semibold text-[var(--color-muted)] transition hover:bg-[var(--color-soft)] hover:text-[var(--color-ink)]"
-                href="/stations"
-              >
-                榜单
-              </Link>
-              <Link
-                className="rounded-full px-3 py-2 text-xs font-semibold text-[var(--color-muted)] transition hover:bg-[var(--color-soft)] hover:text-[var(--color-ink)]"
-                href="/community"
-              >
-                社区
-              </Link>
-              <Link
-                className="rounded-full px-3 py-2 text-xs font-semibold text-[var(--color-muted)] transition hover:bg-[var(--color-soft)] hover:text-[var(--color-ink)]"
-                href="/guides"
-              >
-                指南
-              </Link>
-            </nav>
-            {/* 桌面端导航 */}
-            <nav className="hidden items-center gap-2 rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] p-1 md:flex">
-              <Link
-                className="rounded-full px-4 py-2 text-sm font-semibold text-[var(--color-muted)] transition hover:bg-[var(--color-soft)] hover:text-[var(--color-ink)]"
-                href="/"
-              >
-                首页
-              </Link>
-              <Link
-                className="rounded-full px-4 py-2 text-sm font-semibold text-[var(--color-muted)] transition hover:bg-[var(--color-soft)] hover:text-[var(--color-ink)]"
-                href="/stations"
-              >
-                中转站榜单
-              </Link>
-              <Link
-                className="rounded-full px-4 py-2 text-sm font-semibold text-[var(--color-muted)] transition hover:bg-[var(--color-soft)] hover:text-[var(--color-ink)]"
-                href="/community"
-              >
-                论坛入口
-              </Link>
-              <span className="rounded-full bg-[var(--color-brand)] px-4 py-2 text-sm font-semibold text-[var(--color-on-brand)] shadow-[0_10px_24px_var(--color-panel-glow)]">
-                个人主页
-              </span>
-            </nav>
-
-            <NotificationBell />
-            <AuthButton />
-          </div>
-        </div>
-      </section>
-
-      <section className="relative overflow-hidden border-b border-[var(--color-line)]">
+      <div className="mx-auto max-w-7xl px-4 pt-28 sm:px-6 lg:px-10">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,var(--color-brand-soft),transparent_34%),radial-gradient(circle_at_85%_20%,var(--color-panel-glow),transparent_22%),linear-gradient(180deg,var(--color-panel),var(--color-soft))]" />
         <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-10 lg:py-10">
           {!isConnected ? (
@@ -1242,7 +1169,6 @@ export default function ProfilePage() {
             </div>
           )}
         </div>
-      </section>
 
       {isConnected ? (
         <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-10 lg:py-10">
@@ -1548,6 +1474,7 @@ export default function ProfilePage() {
           }
         }
       `}</style>
-    </main>
+    </div>
+    </div>
   );
 }

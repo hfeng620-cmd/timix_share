@@ -611,7 +611,7 @@ export function StationsBoard() {
           {EDITABLE_FIELDS.map(({ key, label, type }) => {
             const value = editForm[key] ?? "";
             const inputClass =
-              "w-full rounded-xl border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-2.5 text-sm outline-none transition focus:border-[var(--color-brand)] focus:bg-white";
+              "w-full rounded-xl border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-2.5 text-sm outline-none transition focus:border-[var(--color-brand)] focus:bg-white/[0.08]";
 
             return (
               <div key={key} className={type === "textarea" ? "sm:col-span-2 lg:col-span-3" : ""}>
@@ -684,7 +684,7 @@ export function StationsBoard() {
           {EDITABLE_FIELDS.map(({ key, label, type }) => {
             const value = editForm[key] ?? "";
             const inputClass =
-              "w-full rounded-xl border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-2.5 text-sm outline-none transition focus:border-[var(--color-brand)] focus:bg-white";
+              "w-full rounded-xl border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-2.5 text-sm outline-none transition focus:border-[var(--color-brand)] focus:bg-white/[0.08]";
 
             return (
               <div key={key} className={type === "textarea" ? "sm:col-span-2 lg:col-span-3" : ""}>
@@ -1032,7 +1032,7 @@ export function StationsBoard() {
               <input
                 id="station-search"
                 ref={searchInputRef}
-                className="w-full rounded-[18px] border border-[var(--color-line)] bg-[var(--color-soft)] py-3 pl-4 pr-[88px] text-sm outline-none transition focus:border-[var(--color-brand)] focus:bg-white sm:rounded-full"
+                className="w-full rounded-[18px] border border-[var(--color-line)] bg-[var(--color-soft)] py-3 pl-4 pr-[88px] text-sm outline-none transition focus:border-[var(--color-brand)] focus:bg-white/[0.08] sm:rounded-full"
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="搜站点名、倍率、试用、免费、Claude、Grok、入口域名都可以"
                 value={query}

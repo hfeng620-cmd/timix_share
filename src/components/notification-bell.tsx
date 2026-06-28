@@ -170,11 +170,25 @@ export function NotificationBell({
 
   function handleNotificationClick(item: NotificationItem) {
     markAsRead(item.id);
-    if (item.type === "new_reply" || item.type === "new_like" || item.type === "post_approved") {
-      setOpen(false);
+    setOpen(false);
+    if (item.postId) {
+      router.push(`/community#${item.postId}`);
+    } else {
       router.push("/community");
     }
   }
+
+  // Auto-mark visible notifications as read when modal opens
+  useEffect(() => {
+    if (!open || notifications.length === 0) return;
+    const unreadIds = notifications.filter((n) => !n.read).map((n) => n.id);
+    if (unreadIds.length === 0) return;
+    const timer = setTimeout(() => {
+      setNotifications((prev) => prev.map((n) => (unreadIds.includes(n.id) ? { ...n, read: true } : n)));
+      markAllNotificationsRead().catch(() => {});
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, [open]);
 
   if (!mounted) {
     return (

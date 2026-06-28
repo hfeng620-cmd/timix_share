@@ -39,7 +39,7 @@ export function FeaturedStationsPanel({ initialStations }: Props) {
   }
 
   return (
-    <div className="rounded-[34px] border border-[var(--color-line)] bg-white p-6 shadow-[0_18px_60px_rgba(13,25,48,0.07)]">
+    <div className="rounded-[34px] border border-[var(--color-line)] bg-white/[0.04] p-6 shadow-[0_18px_60px_rgba(13,25,48,0.07)]">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
@@ -60,7 +60,7 @@ export function FeaturedStationsPanel({ initialStations }: Props) {
             {isEditing ? "退出编辑" : "管理员编辑"}
           </button>
           <button
-            className="rounded-full border border-[var(--color-line)] bg-white px-4 py-2 text-sm font-bold text-[var(--color-ink)] transition hover:bg-[var(--color-soft)]"
+            className="rounded-full border border-[var(--color-line)] bg-white/[0.06] px-4 py-2 text-sm font-bold text-white transition hover:bg-[var(--color-soft)]"
             onClick={resetChanges}
             type="button"
           >
@@ -80,7 +80,7 @@ export function FeaturedStationsPanel({ initialStations }: Props) {
           <article
             key={station.name}
             className={`grid grid-cols-[1fr_0.8fr_0.7fr_1.2fr] items-start gap-3 px-4 py-4 ${
-              index % 2 === 0 ? "bg-white" : "bg-[#f9fbfe]"
+              index % 2 === 0 ? "bg-white/[0.03]" : "bg-white/[0.01]"
             }`}
           >
             <div>
@@ -92,7 +92,7 @@ export function FeaturedStationsPanel({ initialStations }: Props) {
               </div>
               {isEditing ? (
                 <textarea
-                  className="mt-3 min-h-24 w-full rounded-2xl border border-[var(--color-line)] bg-white px-3 py-3 text-sm leading-6 text-[var(--color-muted)] outline-none transition focus:border-[var(--color-brand)]"
+                  className="mt-3 min-h-24 w-full rounded-2xl border border-white/10 bg-white/[0.06] px-3 py-3 text-sm leading-6 text-[var(--color-muted)] outline-none transition focus:border-[var(--color-brand)]"
                   onChange={(event) => updateStation(index, "summary", event.target.value)}
                   value={station.summary}
                 />
@@ -105,7 +105,7 @@ export function FeaturedStationsPanel({ initialStations }: Props) {
 
             {isEditing ? (
               <input
-                className="rounded-2xl border border-[var(--color-line)] bg-white px-3 py-3 text-sm font-bold outline-none transition focus:border-[var(--color-brand)]"
+                className="rounded-2xl border border-white/10 bg-white/[0.06] px-3 py-3 text-sm font-bold outline-none transition focus:border-[var(--color-brand)]"
                 onChange={(event) => updateStation(index, "price", event.target.value)}
                 value={station.price}
               />
@@ -115,7 +115,7 @@ export function FeaturedStationsPanel({ initialStations }: Props) {
 
             {isEditing ? (
               <input
-                className="rounded-2xl border border-[var(--color-line)] bg-white px-3 py-3 text-sm font-bold outline-none transition focus:border-[var(--color-brand)]"
+                className="rounded-2xl border border-white/10 bg-white/[0.06] px-3 py-3 text-sm font-bold outline-none transition focus:border-[var(--color-brand)]"
                 onChange={(event) => updateStation(index, "multiplier", event.target.value)}
                 value={station.multiplier}
               />
@@ -125,7 +125,7 @@ export function FeaturedStationsPanel({ initialStations }: Props) {
 
             {isEditing ? (
               <textarea
-                className="min-h-24 w-full rounded-2xl border border-[var(--color-line)] bg-white px-3 py-3 text-sm leading-6 text-[var(--color-muted)] outline-none transition focus:border-[var(--color-brand)]"
+                className="min-h-24 w-full rounded-2xl border border-white/10 bg-white/[0.06] px-3 py-3 text-sm leading-6 text-[var(--color-muted)] outline-none transition focus:border-[var(--color-brand)]"
                 onChange={(event) => updateStation(index, "reason", event.target.value)}
                 value={station.reason}
               />

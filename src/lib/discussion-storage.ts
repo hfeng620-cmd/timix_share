@@ -752,6 +752,45 @@ export async function likeDiscussionPost(
   return getDiscussionPostLikeCount(postId, currentLikes + 1);
 }
 
+/** Get the set of post IDs the current user has liked. */
+export async function getUserLikedPostIds(userId: string): Promise<Set<string>> {
+  if (!isSupabaseConfigured()) return new Set();
+  try {
+    const { data, error } = await getSupabaseClient()
+      .from("forum_likes")
+      .select("post_id")
+      .eq("user_id", userId)
+      .not("post_id", "is", null);
+    if (error) throw error;
+    const ids = (data ?? []).map((r: { post_id: string }) => r.post_id).filter(Boolean);
+    return new Set(ids);
+  } catch { return new Set(); }
+}
+
+/** Get the set of reply IDs the current user has liked. */
+export async function getUserLikedReplyIds(userId: string): Promise<Set<string>> {
+  if (!isSupabaseConfigured()) return new Set();
+  try {
+    const { data, error } = await getSupabaseClient()
+      .from("forum_likes")
+      .select("reply_id")
+      .eq("user_id", userId)
+      .not("reply_id", "is", null);
+    if (error) throw error;
+    const ids = (data ?? []).map((r: { reply_id: string }) => r.reply_id).filter(Boolean);
+    return new Set(ids);
+  } catch { return new Set(); }
+}
+
+/** Unlike a discussion post — deletes the row from forum_likes. */
+export async function unlikeDiscussionPost(postId: string, currentLikes: number): Promise<number> {
+  const authorId = await ensureProfile();
+  const supabase = getSupabaseClient();
+  const { error } = await supabase.from("forum_likes").delete().eq("post_id", postId).eq("user_id", authorId);
+  if (error) throw error;
+  return getDiscussionPostLikeCount(postId, Math.max(0, currentLikes - 1));
+}
+
 export async function likeReply(replyId: string): Promise<{ liked: boolean; count: number }> {
   const authorId = await ensureProfile();
   const supabase = getSupabaseClient();

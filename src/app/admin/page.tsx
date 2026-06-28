@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { Navbar } from "@/components/navbar";
+import { StationEditorModal } from "@/components/station-editor-modal";
 import { GithubIssueReviewPanel } from "@/components/github-issue-review-panel";
 import { useForumAuth } from "@/lib/forum-auth";
 import { getSupabaseClient } from "@/lib/supabase";
@@ -12,7 +14,7 @@ import {
   loadFeaturedStationDrafts,
   saveFeaturedStationDrafts,
 } from "@/lib/featured-station-storage";
-import { homeFeaturedStations, type HomeFeaturedStation } from "@/lib/site-data";
+import { homeFeaturedStations, type HomeFeaturedStation, stationComparisonRows, stationLinkMap } from "@/lib/site-data";
 import {
   loadStationSubmissions,
   saveStationSubmissions,
@@ -35,6 +37,8 @@ import {
   loadStations,
   createStation,
   deleteStation,
+  reorderStation,
+  seedDefaultStations,
   type Station,
 } from "@/lib/station-storage";
 import {
@@ -185,11 +189,13 @@ export default function AdminPage() {
   const [newStationForm, setNewStationForm] = useState({ name: "", url: "", badge: "", price: "", multiplier: "" });
   const [newStationSaving, setNewStationSaving] = useState(false);
   const [deletingStationId, setDeletingStationId] = useState<string | null>(null);
+  const [reorderingId, setReorderingId] = useState<string | null>(null);
   const [stationMgmtStatus, setStationMgmtStatus] = useState("");
+  const [editorModalOpen, setEditorModalOpen] = useState(false);
 
   // ---- User management state ----
   const [userList, setUserList] = useState<
-    { id: string; display_name: string; avatar_url: string | null; created_at: string; isAdmin: boolean; email: string; last_seen: string | null; is_online: boolean }[]
+    { id: string; display_name: string; avatar_url: string | null; created_at: string; isAdmin: boolean; email: string; last_seen: string | null; is_online: boolean; total_replies: number }[]
   >([]);
   const [userListLoading, setUserListLoading] = useState(false);
   const [userSearch, setUserSearch] = useState("");
@@ -218,7 +224,7 @@ export default function AdminPage() {
       const supabase = getSupabaseClient();
 
       // Try the enhanced RPC first (includes email, last_seen, is_online)
-      let rpcUsers: { id: string; display_name: string; avatar_url: string | null; created_at: string; isAdmin: boolean; email: string; last_seen: string | null; is_online: boolean }[] | null = null;
+      let rpcUsers: { id: string; display_name: string; avatar_url: string | null; created_at: string; isAdmin: boolean; email: string; last_seen: string | null; is_online: boolean; total_replies: number }[] | null = null;
       try {
         const { data: rpcData, error: rpcError } = await supabase.rpc("get_admin_user_list");
         if (rpcError) throw rpcError;
@@ -236,6 +242,7 @@ export default function AdminPage() {
             email: u.email || "—",
             last_seen: u.last_seen ?? null,
             is_online: Boolean(u.is_online),
+            total_replies: u.total_replies ?? 0,
           }));
         }
       } catch {
@@ -277,6 +284,7 @@ export default function AdminPage() {
           email: emailMap[u.id] || "—",
           last_seen: null as string | null,
           is_online: false,
+          total_replies: u.total_replies ?? 0,
         }));
         if (!isMountedRef.current || requestId !== userListRequestRef.current) return;
         setUserList(users);
@@ -577,8 +585,32 @@ export default function AdminPage() {
     if (!adminOk) return;
     setAllStationsLoading(true);
     try {
-      const data = await loadStations();
-      setAllStations(data);
+      const dbStations = await loadStations();
+      // Merge with static fallback — DB data takes priority by name
+      const staticStations: Station[] = stationComparisonRows.map((row, i) => ({
+        id: `static-${i}`,
+        name: row.name,
+        url: stationLinkMap[row.name] ?? "",
+        price: row.price,
+        multiplier: row.multiplier,
+        entry: row.entry ?? "",
+        packageType: row.packageType ?? "",
+        status: row.status ?? "",
+        models: row.models ?? "",
+        uptime: row.uptime ?? "",
+        latency: row.latency ?? "",
+        source: row.source ?? "",
+        verdict: row.verdict ?? "",
+        note: row.note ?? "",
+        advantage: row.advantage ?? "",
+        risk: row.risk ?? "",
+        badge: row.badge ?? "",
+        groupName: row.group ?? "",
+        sortOrder: i + 1,
+      }));
+      const dbNames = new Set(dbStations.map((s) => s.name));
+      const merged = [...dbStations, ...staticStations.filter((s) => !dbNames.has(s.name))];
+      setAllStations(merged);
     } catch (error) {
       setStationMgmtStatus(`加载失败: ${getErrorMessage(error, "请稍后重试。")}`);
     } finally {
@@ -614,6 +646,20 @@ export default function AdminPage() {
       setStationMgmtStatus(`添加失败: ${getErrorMessage(error, "请稍后重试。")}`);
     } finally {
       setNewStationSaving(false);
+    }
+  }
+
+  async function handleMoveStation(id: string, direction: -1 | 1, name: string) {
+    setReorderingId(id);
+    try {
+      await reorderStation(id, direction);
+      setStationMgmtStatus(direction === -1 ? `「${name}」已上移。` : `「${name}」已下移。`);
+      addAudit(direction === -1 ? "站点上移" : "站点下移", name);
+      void refreshAllStations();
+    } catch (error) {
+      setStationMgmtStatus(`排序失败: ${getErrorMessage(error, "请稍后重试。")}`);
+    } finally {
+      setReorderingId(null);
     }
   }
 
@@ -1072,7 +1118,7 @@ export default function AdminPage() {
   // ---- Permission gate ----
   if (!isConnected && adminChecked) {
     return (
-      <main className="theme-stage flex min-h-screen items-center justify-center bg-transparent text-[var(--color-ink)]">
+      <div className="flex min-h-screen items-center justify-center bg-black text-white">
         <div className="rounded-[34px] border border-[var(--color-line)] bg-[var(--color-panel)] p-10 text-center shadow-[0_18px_60px_rgba(13,25,48,0.07)]">
           <p className="text-2xl font-black">需要管理员权限</p>
           <p className="mt-3 text-sm text-[var(--color-muted)]">
@@ -1086,13 +1132,13 @@ export default function AdminPage() {
             登录邮箱
           </button>
         </div>
-      </main>
+      </div>
     );
   }
 
   if (!adminOk && adminChecked) {
     return (
-      <main className="theme-stage flex min-h-screen items-center justify-center bg-transparent text-[var(--color-ink)]">
+      <div className="flex min-h-screen items-center justify-center bg-black text-white">
         <div className="rounded-[34px] border border-[var(--color-line)] bg-[var(--color-panel)] p-10 text-center shadow-[0_18px_60px_rgba(13,25,48,0.07)] max-w-lg">
           <p className="text-2xl font-black">需要管理员权限</p>
           <p className="mt-3 text-sm text-[var(--color-muted)]">
@@ -1108,54 +1154,33 @@ export default function AdminPage() {
             </code>
           </div>
         </div>
-      </main>
+      </div>
     );
   }
 
   if (adminLoading) {
     return (
-      <main className="theme-stage flex min-h-screen items-center justify-center bg-transparent">
-        <p className="text-sm text-[var(--color-muted)]">验证管理员权限中...</p>
-      </main>
+      <div className="flex min-h-screen items-center justify-center bg-black">
+        <p className="text-sm text-white/55">验证管理员权限中...</p>
+      </div>
     );
   }
 
   // ---- Full admin dashboard ----
   return (
-    <main className="theme-stage min-h-screen bg-transparent text-[var(--color-ink)]">
-      {/* ---- Top bar with admin branding ---- */}
-      <header className="border-b border-[var(--color-line)] bg-[var(--color-header)] backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4 lg:px-10">
-          <div className="flex items-center gap-4">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--color-brand)] text-xl font-black text-[var(--color-on-brand)] shadow-[0_10px_30px_var(--color-panel-glow)]">
-              A
-            </div>
-            <div>
-              <p className="text-xl font-black tracking-tight">
-                {isOwner ? "站主面板" : "管理员面板"}
-              </p>
-              <p className="text-xs text-[var(--color-muted)]">{email ?? "管理员"}</p>
-            </div>
+    <div className="min-h-screen text-white">
+      <Navbar />
+
+      <div className="mx-auto max-w-7xl px-6 pt-28 lg:px-10">
+        <div className="mb-8">
+          <div className="liquid-glass mb-3 inline-block rounded-full px-3.5 py-1 text-xs font-medium text-white font-body">
+            {isOwner ? "站主面板" : "管理员面板"}
           </div>
-          <nav className="hidden items-center gap-2 rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] p-1 lg:flex">
-            <Link
-              className="rounded-full px-4 py-2 text-sm font-semibold text-[var(--color-muted)] transition hover:bg-[var(--color-soft)] hover:text-[var(--color-ink)]"
-              href="/"
-            >
-              首页
-            </Link>
-            <Link
-              className="rounded-full px-4 py-2 text-sm font-semibold text-[var(--color-muted)] transition hover:bg-[var(--color-soft)] hover:text-[var(--color-ink)]"
-              href="/stations"
-            >
-              中转站榜单
-            </Link>
-            <span className="rounded-full bg-[var(--color-brand)] px-4 py-2 text-sm font-semibold text-[var(--color-on-brand)] shadow-[0_10px_24px_var(--color-panel-glow)]">
-              管理员页
-            </span>
-          </nav>
+          <h1 className="text-3xl font-heading italic leading-[1.15] text-white">
+            {isOwner ? "站主面板" : "管理员面板"}
+          </h1>
+          <p className="mt-2 text-sm text-white/55 font-body">{email ?? "管理员"}</p>
         </div>
-      </header>
 
       <div className="mx-auto max-w-7xl px-6 py-8 lg:px-10">
         {/* ---- Dashboard stats ---- */}
@@ -1337,7 +1362,7 @@ export default function AdminPage() {
                             {new Date(item.time).toLocaleString("zh-CN")}
                           </p>
                           <button
-                            className="rounded-full bg-[#fff1f2] px-3 py-1 text-xs font-bold text-[#be123c] transition hover:bg-[#ffe4e6] disabled:cursor-not-allowed disabled:opacity-50"
+                            className="rounded-full bg-red-500/10 px-3 py-1 text-xs font-bold text-red-400 transition hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-50"
                             disabled={deletingPostId === item.id}
                             onClick={() => {
                               if (window.confirm("确定要删除这条帖子吗？此操作不可撤销。")) {
@@ -1461,7 +1486,7 @@ export default function AdminPage() {
                             {newsActionId === item.id ? "处理中..." : "通过"}
                           </button>
                           <button
-                            className="rounded-full bg-[#fff1f2] px-5 py-3 text-sm font-bold text-[#be123c] transition hover:bg-[#ffe4e6] disabled:cursor-not-allowed disabled:opacity-50"
+                            className="rounded-full bg-red-500/10 px-5 py-3 text-sm font-bold text-red-400 transition hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-50"
                             disabled={newsActionId === item.id}
                             onClick={() => {
                               if (window.confirm("确定要驳回这条新闻吗？它将从数据库中删除。")) {
@@ -1586,7 +1611,7 @@ export default function AdminPage() {
                           <h3 className="font-bold">{item.title}</h3>
                           <div className="flex flex-wrap items-center gap-2">
                             {item.is_hidden && (
-                              <span className="rounded-full bg-[#fff1f2] px-3 py-1 text-xs font-bold text-[#be123c]">
+                              <span className="rounded-full bg-red-500/10 px-3 py-1 text-xs font-bold text-red-400">
                                 已隐藏
                               </span>
                             )}
@@ -1608,7 +1633,7 @@ export default function AdminPage() {
                             className={`rounded-full px-4 py-2 text-xs font-bold transition disabled:cursor-not-allowed disabled:opacity-50 ${
                               item.is_hidden
                                 ? "bg-[var(--color-soft)] text-[var(--color-brand-deep)] hover:bg-[var(--color-brand-soft)]"
-                                : "bg-[#fff1f2] text-[#be123c] hover:bg-[#ffe4e6]"
+                                : "bg-red-500/10 text-red-400 hover:bg-red-500/20"
                             }`}
                             disabled={newsActionId === item.id}
                             onClick={() => void handleToggleHideNews(item.id, item.is_hidden)}
@@ -1631,13 +1656,13 @@ export default function AdminPage() {
           <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
             <div className="space-y-6">
               {/* 全部站点管理 */}
-              <div className="rounded-[34px] border border-[var(--color-line)] bg-white p-6 shadow-[0_18px_60px_rgba(13,25,48,0.07)]">
+              <div className="rounded-[34px] border border-[var(--color-line)] bg-white/[0.04] p-6 shadow-[0_18px_60px_rgba(13,25,48,0.07)]">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div>
                     <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
                       全部站点管理
                     </p>
-                    <h2 className="mt-2 text-2xl font-black">增删站点</h2>
+                    <h2 className="mt-2 text-2xl font-black">增删站点 · {allStations.length} 个</h2>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <button
@@ -1648,7 +1673,34 @@ export default function AdminPage() {
                       {showAddForm ? "取消添加" : "＋ 添加站点"}
                     </button>
                     <button
-                      className="rounded-full border border-[var(--color-line)] bg-white px-4 py-2 text-sm font-bold text-[var(--color-ink)] hover:bg-[var(--color-soft)]"
+                      className="rounded-full bg-white/10 px-4 py-2 text-sm font-bold text-white hover:bg-white/20 transition font-body"
+                      onClick={() => setEditorModalOpen(true)}
+                      type="button"
+                    >
+                      全屏编辑
+                    </button>
+                    <button
+                      className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-bold text-white/60 hover:bg-white/10 hover:text-white transition font-body"
+                      onClick={async () => {
+                        setStationMgmtStatus("正在导入模板站点...");
+                        try {
+                          const n = await seedDefaultStations();
+                          // Immediately verify by re-querying
+                          const all = await loadStations();
+                          setStationMgmtStatus(
+                            n > 0
+                              ? `已导入 ${n} 个模板站点。数据库现有 ${all.length} 个站点。`
+                              : `所有模板站点已存在。数据库现有 ${all.length} 个站点。`
+                          );
+                          setAllStations(all);
+                        } catch (e: any) { setStationMgmtStatus(`导入失败: ${e?.message || "未知错误"}`); }
+                      }}
+                      type="button"
+                    >
+                      导入模板
+                    </button>
+                    <button
+                      className="rounded-full border border-[var(--color-line)] bg-white/[0.06] px-4 py-2 text-sm font-bold text-white hover:bg-[var(--color-soft)]"
                       onClick={refreshAllStations}
                       type="button"
                     >
@@ -1662,31 +1714,31 @@ export default function AdminPage() {
                   <div className="mt-5 rounded-[24px] border border-dashed border-[var(--color-brand)] bg-[var(--color-soft)] p-5">
                     <div className="grid gap-3 sm:grid-cols-3">
                       <input
-                        className="rounded-xl border border-[var(--color-line)] bg-white px-4 py-2.5 text-sm outline-none focus:border-[var(--color-brand)]"
+                        className="rounded-xl border border-[var(--color-line)] bg-white/[0.06] px-4 py-2.5 text-sm outline-none focus:border-[var(--color-brand)]"
                         placeholder="站点名*"
                         value={newStationForm.name}
                         onChange={(e) => setNewStationForm({ ...newStationForm, name: e.target.value })}
                       />
                       <input
-                        className="rounded-xl border border-[var(--color-line)] bg-white px-4 py-2.5 text-sm outline-none focus:border-[var(--color-brand)]"
+                        className="rounded-xl border border-[var(--color-line)] bg-white/[0.06] px-4 py-2.5 text-sm outline-none focus:border-[var(--color-brand)]"
                         placeholder="网址"
                         value={newStationForm.url}
                         onChange={(e) => setNewStationForm({ ...newStationForm, url: e.target.value })}
                       />
                       <input
-                        className="rounded-xl border border-[var(--color-line)] bg-white px-4 py-2.5 text-sm outline-none focus:border-[var(--color-brand)]"
+                        className="rounded-xl border border-[var(--color-line)] bg-white/[0.06] px-4 py-2.5 text-sm outline-none focus:border-[var(--color-brand)]"
                         placeholder="标签"
                         value={newStationForm.badge}
                         onChange={(e) => setNewStationForm({ ...newStationForm, badge: e.target.value })}
                       />
                       <input
-                        className="rounded-xl border border-[var(--color-line)] bg-white px-4 py-2.5 text-sm outline-none focus:border-[var(--color-brand)]"
+                        className="rounded-xl border border-[var(--color-line)] bg-white/[0.06] px-4 py-2.5 text-sm outline-none focus:border-[var(--color-brand)]"
                         placeholder="价格"
                         value={newStationForm.price}
                         onChange={(e) => setNewStationForm({ ...newStationForm, price: e.target.value })}
                       />
                       <input
-                        className="rounded-xl border border-[var(--color-line)] bg-white px-4 py-2.5 text-sm outline-none focus:border-[var(--color-brand)]"
+                        className="rounded-xl border border-[var(--color-line)] bg-white/[0.06] px-4 py-2.5 text-sm outline-none focus:border-[var(--color-brand)]"
                         placeholder="倍率"
                         value={newStationForm.multiplier}
                         onChange={(e) => setNewStationForm({ ...newStationForm, multiplier: e.target.value })}
@@ -1716,26 +1768,39 @@ export default function AdminPage() {
                   ) : (
                     <div className="max-h-[500px] overflow-y-auto">
                       <div className="space-y-2">
-                        {allStations.map((s) => (
+                        {allStations.map((s, idx) => (
                           <div
                             key={s.id}
-                            className="flex items-center gap-3 rounded-xl border border-[var(--color-line)] bg-[var(--color-soft)] px-4 py-2.5"
+                            className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2"
                           >
-                            <span className="text-sm font-bold text-[var(--color-ink)] min-w-0 flex-1 truncate">
+                            <span className="shrink-0 w-5 text-center font-mono text-xs text-white/30">{idx + 1}</span>
+                            <span className="min-w-0 flex-1 truncate text-sm font-semibold text-white">
                               {s.name}
-                              {s.badge ? <span className="ml-2 text-xs text-[var(--color-muted)]">({s.badge})</span> : null}
+                              {s.badge ? <span className="ml-2 text-xs text-white/40">({s.badge})</span> : null}
                             </span>
-                            <span className="hidden sm:inline text-xs text-[var(--color-muted)] truncate max-w-[200px]">
+                            <span className="hidden sm:inline text-xs text-white/40 truncate max-w-[200px]">
                               {s.url || "无网址"}
                             </span>
+                            <div className="flex shrink-0 items-center gap-0.5">
+                              <button
+                                className="rounded px-1.5 py-1 text-xs text-white/40 hover:bg-white/10 hover:text-white disabled:opacity-20 transition"
+                                disabled={idx === 0 || reorderingId === s.id}
+                                onClick={() => handleMoveStation(s.id, -1, s.name)}
+                                title="上移" type="button"
+                              >{reorderingId === s.id ? "…" : "↑"}</button>
+                              <button
+                                className="rounded px-1.5 py-1 text-xs text-white/40 hover:bg-white/10 hover:text-white disabled:opacity-20 transition"
+                                disabled={idx === allStations.length - 1 || reorderingId === s.id}
+                                onClick={() => handleMoveStation(s.id, 1, s.name)}
+                                title="下移" type="button"
+                              >{reorderingId === s.id ? "…" : "↓"}</button>
+                            </div>
                             <button
-                              className="shrink-0 rounded-lg px-2.5 py-1 text-xs font-semibold text-red-500 hover:bg-red-50 disabled:opacity-50"
+                              className="shrink-0 rounded px-2 py-1 text-xs text-red-400 hover:bg-red-500/15 disabled:opacity-50 transition"
                               disabled={deletingStationId === s.id}
                               onClick={() => handleDeleteStation(s.id, s.name)}
                               type="button"
-                            >
-                              {deletingStationId === s.id ? "..." : "删除"}
-                            </button>
+                            >{deletingStationId === s.id ? "…" : "删"}</button>
                           </div>
                         ))}
                       </div>
@@ -1745,7 +1810,7 @@ export default function AdminPage() {
               </div>
 
               {/* 首页精选站文案 */}
-              <div className="rounded-[34px] border border-[var(--color-line)] bg-white p-6 shadow-[0_18px_60px_rgba(13,25,48,0.07)]">
+              <div className="rounded-[34px] border border-[var(--color-line)] bg-white/[0.04] p-6 shadow-[0_18px_60px_rgba(13,25,48,0.07)]">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div>
                     <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
@@ -1762,7 +1827,7 @@ export default function AdminPage() {
                     保存到首页
                   </button>
                   <button
-                    className="rounded-full border border-[var(--color-line)] bg-white px-5 py-3 text-sm font-bold text-[var(--color-ink)] transition hover:bg-[var(--color-soft)]"
+                    className="rounded-full border border-[var(--color-line)] bg-white/[0.06] px-5 py-3 text-sm font-bold text-white transition hover:bg-[var(--color-soft)]"
                     onClick={resetAll}
                     type="button"
                   >
@@ -1778,7 +1843,7 @@ export default function AdminPage() {
                   >
                     <div className="flex flex-wrap items-center gap-3">
                       <h2 className="text-xl font-black">{station.name}</h2>
-                      <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-[var(--color-brand-deep)]">
+                      <span className="rounded-full bg-white/[0.1] px-3 py-1 text-xs font-bold text-white/80">
                         {station.badge}
                       </span>
                     </div>
@@ -1786,7 +1851,7 @@ export default function AdminPage() {
                       <label className="space-y-2">
                         <span className="text-sm font-semibold text-[var(--color-muted)]">价格</span>
                         <input
-                          className="w-full rounded-2xl border border-[var(--color-line)] bg-white px-4 py-3 outline-none transition focus:border-[var(--color-brand)]"
+                          className="w-full rounded-2xl border border-[var(--color-line)] bg-white/[0.06] px-4 py-3 outline-none transition focus:border-[var(--color-brand)]"
                           onChange={(e) => updateStation(index, "price", e.target.value)}
                           value={station.price}
                         />
@@ -1794,7 +1859,7 @@ export default function AdminPage() {
                       <label className="space-y-2">
                         <span className="text-sm font-semibold text-[var(--color-muted)]">倍率</span>
                         <input
-                          className="w-full rounded-2xl border border-[var(--color-line)] bg-white px-4 py-3 outline-none transition focus:border-[var(--color-brand)]"
+                          className="w-full rounded-2xl border border-[var(--color-line)] bg-white/[0.06] px-4 py-3 outline-none transition focus:border-[var(--color-brand)]"
                           onChange={(e) => updateStation(index, "multiplier", e.target.value)}
                           value={station.multiplier}
                         />
@@ -1803,7 +1868,7 @@ export default function AdminPage() {
                     <label className="mt-4 block space-y-2">
                       <span className="text-sm font-semibold text-[var(--color-muted)]">首页简介</span>
                       <textarea
-                        className="min-h-24 w-full rounded-2xl border border-[var(--color-line)] bg-white px-4 py-3 outline-none transition focus:border-[var(--color-brand)]"
+                        className="min-h-24 w-full rounded-2xl border border-[var(--color-line)] bg-white/[0.06] px-4 py-3 outline-none transition focus:border-[var(--color-brand)]"
                         onChange={(e) => updateStation(index, "summary", e.target.value)}
                         value={station.summary}
                       />
@@ -1811,7 +1876,7 @@ export default function AdminPage() {
                     <label className="mt-4 block space-y-2">
                       <span className="text-sm font-semibold text-[var(--color-muted)]">推荐理由</span>
                       <textarea
-                        className="min-h-24 w-full rounded-2xl border border-[var(--color-line)] bg-white px-4 py-3 outline-none transition focus:border-[var(--color-brand)]"
+                        className="min-h-24 w-full rounded-2xl border border-[var(--color-line)] bg-white/[0.06] px-4 py-3 outline-none transition focus:border-[var(--color-brand)]"
                         onChange={(e) => updateStation(index, "reason", e.target.value)}
                         value={station.reason}
                       />
@@ -1825,7 +1890,7 @@ export default function AdminPage() {
             {/* Submissions + status */}
             <div className="space-y-6">
               {/* Pending submissions */}
-              <div className="rounded-[34px] border border-[var(--color-line)] bg-white p-6 shadow-[0_18px_60px_rgba(13,25,48,0.07)]">
+              <div className="rounded-[34px] border border-[var(--color-line)] bg-white/[0.04] p-6 shadow-[0_18px_60px_rgba(13,25,48,0.07)]">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div>
                     <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
@@ -1853,7 +1918,7 @@ export default function AdminPage() {
                             <p className="text-sm font-semibold text-[var(--color-brand-deep)]">{item.kind}</p>
                             <h3 className="mt-1 text-xl font-black">{item.stationName}</h3>
                           </div>
-                          <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-[var(--color-brand-deep)]">
+                          <span className="rounded-full bg-white/[0.1] px-3 py-1 text-xs font-bold text-white/80">
                             待审核
                           </span>
                         </div>
@@ -1861,7 +1926,7 @@ export default function AdminPage() {
                           <label className="space-y-2">
                             <span className="text-sm font-semibold text-[var(--color-muted)]">站点名</span>
                             <input
-                              className="w-full rounded-2xl border border-[var(--color-line)] bg-white px-4 py-3 outline-none transition focus:border-[var(--color-brand)]"
+                              className="w-full rounded-2xl border border-[var(--color-line)] bg-white/[0.06] px-4 py-3 outline-none transition focus:border-[var(--color-brand)]"
                               onChange={(e) => updateSubmissionField(item.id, "stationName", e.target.value)}
                               value={item.stationName}
                             />
@@ -1869,7 +1934,7 @@ export default function AdminPage() {
                           <label className="space-y-2">
                             <span className="text-sm font-semibold text-[var(--color-muted)]">地址或入口</span>
                             <input
-                              className="w-full rounded-2xl border border-[var(--color-line)] bg-white px-4 py-3 outline-none transition focus:border-[var(--color-brand)]"
+                              className="w-full rounded-2xl border border-[var(--color-line)] bg-white/[0.06] px-4 py-3 outline-none transition focus:border-[var(--color-brand)]"
                               onChange={(e) => updateSubmissionField(item.id, "url", e.target.value)}
                               value={item.url}
                             />
@@ -1877,7 +1942,7 @@ export default function AdminPage() {
                           <label className="space-y-2">
                             <span className="text-sm font-semibold text-[var(--color-muted)]">倍率或价格</span>
                             <input
-                              className="w-full rounded-2xl border border-[var(--color-line)] bg-white px-4 py-3 outline-none transition focus:border-[var(--color-brand)]"
+                              className="w-full rounded-2xl border border-[var(--color-line)] bg-white/[0.06] px-4 py-3 outline-none transition focus:border-[var(--color-brand)]"
                               onChange={(e) => updateSubmissionField(item.id, "priceOrRate", e.target.value)}
                               value={item.priceOrRate}
                             />
@@ -1885,7 +1950,7 @@ export default function AdminPage() {
                           <label className="space-y-2">
                             <span className="text-sm font-semibold text-[var(--color-muted)]">来源或联系方式</span>
                             <input
-                              className="w-full rounded-2xl border border-[var(--color-line)] bg-white px-4 py-3 outline-none transition focus:border-[var(--color-brand)]"
+                              className="w-full rounded-2xl border border-[var(--color-line)] bg-white/[0.06] px-4 py-3 outline-none transition focus:border-[var(--color-brand)]"
                               onChange={(e) => updateSubmissionField(item.id, "contact", e.target.value)}
                               value={item.contact}
                             />
@@ -1894,7 +1959,7 @@ export default function AdminPage() {
                         <label className="mt-4 block space-y-2">
                           <span className="text-sm font-semibold text-[var(--color-muted)]">用户提交说明</span>
                           <textarea
-                            className="min-h-24 w-full rounded-2xl border border-[var(--color-line)] bg-white px-4 py-3 outline-none transition focus:border-[var(--color-brand)]"
+                            className="min-h-24 w-full rounded-2xl border border-[var(--color-line)] bg-white/[0.06] px-4 py-3 outline-none transition focus:border-[var(--color-brand)]"
                             onChange={(e) => updateSubmissionField(item.id, "note", e.target.value)}
                             value={item.note}
                           />
@@ -1902,7 +1967,7 @@ export default function AdminPage() {
                         <label className="mt-4 block space-y-2">
                           <span className="text-sm font-semibold text-[var(--color-muted)]">管理员备注</span>
                           <textarea
-                            className="min-h-24 w-full rounded-2xl border border-[var(--color-line)] bg-white px-4 py-3 outline-none transition focus:border-[var(--color-brand)]"
+                            className="min-h-24 w-full rounded-2xl border border-[var(--color-line)] bg-white/[0.06] px-4 py-3 outline-none transition focus:border-[var(--color-brand)]"
                             onChange={(e) => updateSubmissionField(item.id, "adminNote", e.target.value)}
                             placeholder="你可以先改内容，再备注为什么通过，或者写驳回原因。"
                             value={item.adminNote}
@@ -1917,14 +1982,14 @@ export default function AdminPage() {
                             直接通过
                           </button>
                           <button
-                            className="rounded-full border border-[var(--color-line)] bg-white px-5 py-3 text-sm font-bold text-[var(--color-ink)] transition hover:bg-[var(--color-soft)]"
+                            className="rounded-full border border-[var(--color-line)] bg-white/[0.06] px-5 py-3 text-sm font-bold text-white transition hover:bg-[var(--color-soft)]"
                             onClick={() => reviewSubmission(item.id, "approved", "edited")}
                             type="button"
                           >
                             保存改动并通过
                           </button>
                           <button
-                            className="rounded-full bg-[#fff1f2] px-5 py-3 text-sm font-bold text-[#be123c] transition hover:bg-[#ffe4e6]"
+                            className="rounded-full bg-red-500/10 px-5 py-3 text-sm font-bold text-red-400 transition hover:bg-red-500/20"
                             onClick={() => reviewSubmission(item.id, "rejected")}
                             type="button"
                           >
@@ -1938,7 +2003,7 @@ export default function AdminPage() {
               </div>
 
               {/* Pending station edits */}
-              <div className="rounded-[34px] border border-[var(--color-line)] bg-white p-6 shadow-[0_18px_60px_rgba(13,25,48,0.07)]">
+              <div className="rounded-[34px] border border-[var(--color-line)] bg-white/[0.04] p-6 shadow-[0_18px_60px_rgba(13,25,48,0.07)]">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div>
                     <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
@@ -1973,7 +2038,7 @@ export default function AdminPage() {
                           <span>·</span>
                           <span>{new Date(edit.createdAt).toLocaleString("zh-CN")}</span>
                         </div>
-                        <div className="mt-3 rounded-[18px] border border-[var(--color-line)] bg-white px-4 py-3">
+                        <div className="mt-3 rounded-[18px] border border-white/10 bg-white/[0.04] px-4 py-3">
                           <p className="text-xs font-semibold text-[var(--color-muted)]">{edit.fieldName}</p>
                           <div className="mt-2 flex items-center gap-3 text-sm">
                             <span className="text-red-500 line-through">{edit.oldValue || "(空)"}</span>
@@ -1991,7 +2056,7 @@ export default function AdminPage() {
                             {processingEditId === edit.id ? "处理中..." : "通过"}
                           </button>
                           <button
-                            className="rounded-full bg-[#fff1f2] px-4 py-2 text-sm font-bold text-[#be123c] transition hover:bg-[#ffe4e6] disabled:opacity-50"
+                            className="rounded-full bg-red-500/10 px-4 py-2 text-sm font-bold text-red-400 transition hover:bg-red-500/20 disabled:opacity-50"
                             disabled={processingEditId === edit.id}
                             onClick={() => handleRejectEdit(edit.id)}
                             type="button"
@@ -2006,7 +2071,7 @@ export default function AdminPage() {
               </div>
 
               {/* Pending guides */}
-              <div className="rounded-[34px] border border-[var(--color-line)] bg-white p-6 shadow-[0_18px_60px_rgba(13,25,48,0.07)]">
+              <div className="rounded-[34px] border border-[var(--color-line)] bg-white/[0.04] p-6 shadow-[0_18px_60px_rgba(13,25,48,0.07)]">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div>
                     <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
@@ -2075,7 +2140,7 @@ export default function AdminPage() {
                             {processingGuideId === guide.id ? "处理中..." : "通过"}
                           </button>
                           <button
-                            className="rounded-full bg-[#fff1f2] px-4 py-2 text-sm font-bold text-[#be123c] transition hover:bg-[#ffe4e6] disabled:opacity-50"
+                            className="rounded-full bg-red-500/10 px-4 py-2 text-sm font-bold text-red-400 transition hover:bg-red-500/20 disabled:opacity-50"
                             disabled={processingGuideId === guide.id}
                             onClick={() => handleRejectGuide(guide.id)}
                             type="button"
@@ -2090,7 +2155,7 @@ export default function AdminPage() {
               </div>
 
               {/* Reviewed records */}
-              <div className="rounded-[34px] border border-[var(--color-line)] bg-white p-6 shadow-[0_18px_60px_rgba(13,25,48,0.07)]">
+              <div className="rounded-[34px] border border-[var(--color-line)] bg-white/[0.04] p-6 shadow-[0_18px_60px_rgba(13,25,48,0.07)]">
                 <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
                   已处理记录
                 </p>
@@ -2111,7 +2176,7 @@ export default function AdminPage() {
                             className={`rounded-full px-3 py-1 text-xs font-bold ${
                               item.status === "approved"
                                 ? "bg-[#ecfdf3] text-[#15803d]"
-                                : "bg-[#fff1f2] text-[#be123c]"
+                                : "bg-red-500/10 text-red-400"
                             }`}
                           >
                             {item.status === "approved" ? "已通过" : "已驳回"}
@@ -2130,7 +2195,7 @@ export default function AdminPage() {
               </div>
 
               {/* Status */}
-              <div className="rounded-[34px] border border-[var(--color-line)] bg-white p-6 shadow-[0_18px_60px_rgba(13,25,48,0.07)]">
+              <div className="rounded-[34px] border border-[var(--color-line)] bg-white/[0.04] p-6 shadow-[0_18px_60px_rgba(13,25,48,0.07)]">
                 <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
                   当前状态
                 </p>
@@ -2142,7 +2207,7 @@ export default function AdminPage() {
 
         {/* ---- Tab: 数据导入导出 ---- */}
         {activeTab === "import" && (
-          <div className="rounded-[34px] border border-[var(--color-line)] bg-white p-6 shadow-[0_18px_60px_rgba(13,25,48,0.07)]">
+          <div className="rounded-[34px] border border-[var(--color-line)] bg-white/[0.04] p-6 shadow-[0_18px_60px_rgba(13,25,48,0.07)]">
             <div className="flex items-center justify-between gap-4">
               <div>
                 <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
@@ -2171,7 +2236,7 @@ export default function AdminPage() {
         {activeTab === "admins" && (
           <div className="grid gap-6 xl:grid-cols-[1fr_0.95fr]">
             {/* Left: add admin form */}
-            <div className="rounded-[34px] border border-[var(--color-line)] bg-white p-6 shadow-[0_18px_60px_rgba(13,25,48,0.07)]">
+            <div className="rounded-[34px] border border-[var(--color-line)] bg-white/[0.04] p-6 shadow-[0_18px_60px_rgba(13,25,48,0.07)]">
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
                 添加管理员
               </p>
@@ -2202,7 +2267,7 @@ export default function AdminPage() {
             </div>
 
             {/* Right: current admin list */}
-            <div className="rounded-[34px] border border-[var(--color-line)] bg-white p-6 shadow-[0_18px_60px_rgba(13,25,48,0.07)]">
+            <div className="rounded-[34px] border border-[var(--color-line)] bg-white/[0.04] p-6 shadow-[0_18px_60px_rgba(13,25,48,0.07)]">
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
                   <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
@@ -2243,7 +2308,7 @@ export default function AdminPage() {
                           </p>
                         </div>
                         <button
-                          className="shrink-0 rounded-full bg-[#fff1f2] px-4 py-2 text-xs font-bold text-[#be123c] transition hover:bg-[#ffe4e6]"
+                          className="shrink-0 rounded-full bg-red-500/10 px-4 py-2 text-xs font-bold text-red-400 transition hover:bg-red-500/20"
                           onClick={() => {
                             if (window.confirm(`确定要移除管理员 ${admin.email} 吗？`)) {
                               void handleRemoveAdmin(admin.user_id, admin.email);
@@ -2265,7 +2330,7 @@ export default function AdminPage() {
 
       {/* ── Users tab ── */}
       {activeTab === "users" && (
-        <div className="rounded-[24px] border border-[var(--color-line)] bg-white p-6 shadow-[0_18px_60px_rgba(13,25,48,0.07)]">
+        <div className="rounded-[24px] border border-[var(--color-line)] bg-white/[0.04] p-6 shadow-[0_18px_60px_rgba(13,25,48,0.07)]">
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">用户管理</p>
           <h2 className="mt-2 text-2xl font-black">社区用户</h2>
 
@@ -2303,42 +2368,59 @@ export default function AdminPage() {
                   return u.display_name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q);
                 })
                 .map((user) => (
-                  <div key={user.id} className="flex items-center gap-4 py-3">
-                    <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--color-soft)] text-sm font-bold text-[var(--color-muted)]">
-                      {user.avatar_url ? <img alt="" className="h-full w-full rounded-full object-cover" referrerPolicy="no-referrer" src={user.avatar_url} /> : user.display_name.charAt(0)}
-                      <span
-                        className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white ${
-                          user.is_online ? "bg-[#22c55e]" : "bg-[#d1d5db]"
-                        }`}
-                        title={user.is_online ? "在线" : "离线"}
-                      />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="font-bold text-[var(--color-ink)]">{user.display_name}</p>
-                      <p className="text-xs text-[var(--color-muted)]">{user.email}</p>
-                      <p className="text-xs text-[var(--color-muted)]">
+                  <div key={user.id} className="flex items-center gap-4 py-4 group">
+                    {/* Avatar + online dot */}
+                    <div className="relative shrink-0">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-sm font-bold text-white/60">
+                        {user.avatar_url ? <img alt="" className="h-full w-full rounded-full object-cover" referrerPolicy="no-referrer" src={user.avatar_url} /> : user.display_name.charAt(0)}
+                      </div>
+                      <span className="absolute -bottom-0.5 -right-0.5">
                         {user.is_online ? (
-                          <span className="text-[#22c55e]">当前在线</span>
-                        ) : user.last_seen ? (
-                          `最后活跃: ${formatLastSeen(user.last_seen)}`
+                          <span className="relative flex h-3.5 w-3.5">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+                            <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-green-500 border-2 border-black" />
+                          </span>
                         ) : (
-                          `${new Date(user.created_at).toLocaleDateString("zh-CN")} 加入`
+                          <span className="block h-3.5 w-3.5 rounded-full bg-gray-500 border-2 border-black" />
                         )}
+                      </span>
+                    </div>
+
+                    {/* Info */}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <p className="font-semibold text-white text-sm">{user.display_name}</p>
+                        {user.isAdmin && (
+                          <span className="shrink-0 rounded-full bg-amber-400/15 px-2 py-0.5 text-[10px] font-bold text-amber-400">管理员</span>
+                        )}
+                      </div>
+                      <p className="text-xs text-white/35 font-body mt-0.5">{user.email}</p>
+                      <p className="text-xs text-white/25 font-body mt-0.5">
+                        {user.is_online
+                          ? <span className="text-green-400">当前在线</span>
+                          : user.last_seen
+                            ? `最后活跃: ${formatLastSeen(user.last_seen)}`
+                            : `${new Date(user.created_at).toLocaleDateString("zh-CN")} 加入`}
                       </p>
                     </div>
-                    {user.isAdmin && (
-                      <span className="rounded-full bg-[#fef3c7] px-2 py-0.5 text-[10px] font-bold text-[#b45309]">管理员</span>
-                    )}
-                    {isOwner && (
-                      <button
-                        className="rounded-full border border-[var(--color-line)] px-3 py-1 text-[10px] font-bold text-[var(--color-brand-deep)] transition hover:bg-[var(--color-brand-soft)]"
-                        disabled={togglingUserId === user.id}
-                        onClick={() => toggleAdmin(user.id, !user.isAdmin)}
-                        type="button"
-                      >
-                        {togglingUserId === user.id ? "处理中..." : user.isAdmin ? "取消管理员" : "升级为管理员"}
-                      </button>
-                    )}
+
+                    {/* Stats badge */}
+                    <div className="shrink-0 flex items-center gap-3">
+                      <span className="hidden sm:inline-flex items-center gap-1 text-xs text-white/30 font-body bg-white/[0.04] px-2.5 py-1 rounded-lg">
+                        💬 {user.total_replies}
+                      </span>
+
+                      {isOwner && (
+                        <button
+                          className="shrink-0 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-medium text-white/50 hover:bg-white/10 hover:text-white transition opacity-0 group-hover:opacity-100"
+                          disabled={togglingUserId === user.id}
+                          onClick={() => toggleAdmin(user.id, !user.isAdmin)}
+                          type="button"
+                        >
+                          {togglingUserId === user.id ? "..." : user.isAdmin ? "取消管理员" : "升管理员"}
+                        </button>
+                      )}
+                    </div>
                   </div>
                 ))
             )}
@@ -2399,6 +2481,8 @@ export default function AdminPage() {
           </div>
         </div>
       )}
-    </main>
+      <StationEditorModal open={editorModalOpen} onClose={() => setEditorModalOpen(false)} />
+    </div>
+    </div>
   );
 }

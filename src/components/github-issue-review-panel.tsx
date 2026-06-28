@@ -89,7 +89,7 @@ export function GithubIssueReviewPanel() {
   }
 
   return (
-    <section className="rounded-[24px] border border-[var(--color-line)] bg-white p-6 shadow-[0_18px_60px_rgba(13,25,48,0.07)]">
+    <section className="rounded-[24px] border border-[var(--color-line)] bg-white/[0.04] p-6 shadow-[0_18px_60px_rgba(13,25,48,0.07)]">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
@@ -99,7 +99,7 @@ export function GithubIssueReviewPanel() {
         </div>
         <div className="flex flex-wrap gap-3">
           <button
-            className="rounded-full border border-[var(--color-line)] bg-white px-4 py-2 text-sm font-bold text-[var(--color-ink)] transition hover:bg-[var(--color-soft)]"
+            className="rounded-full border border-[var(--color-line)] bg-white/[0.06] px-4 py-2 text-sm font-bold text-white transition hover:bg-[var(--color-soft)]"
             onClick={() => (isConnected ? void loadPending() : showAuthModal())}
             type="button"
           >
@@ -163,7 +163,7 @@ export function GithubIssueReviewPanel() {
                 <div className="flex flex-wrap items-center gap-2">
                   <h3 className="text-lg font-black">{post.author}</h3>
                   {post.station ? (
-                    <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-[var(--color-brand-deep)]">
+                    <span className="rounded-full bg-white/[0.1] px-3 py-1 text-xs font-bold text-white/80">
                       {post.station}
                     </span>
                   ) : null}
@@ -177,7 +177,7 @@ export function GithubIssueReviewPanel() {
 
             {editingId === post.issueNumber ? (
               <textarea
-                className="mt-4 w-full rounded-2xl border border-[var(--color-line)] bg-white px-4 py-3 text-sm leading-7 text-[var(--color-ink)]"
+                className="mt-4 w-full rounded-2xl border border-[var(--color-line)] bg-white/[0.06] px-4 py-3 text-sm leading-7 text-white"
                 onChange={(e) => setEditedBody(e.target.value)}
                 rows={6}
                 value={editedBody}
@@ -235,7 +235,7 @@ export function GithubIssueReviewPanel() {
                 </button>
               ) : null}
               <button
-                className="rounded-full bg-[#fff1f2] px-5 py-2.5 text-sm font-bold text-[#be123c] transition hover:bg-[#ffe4e6]"
+                className="rounded-full bg-red-500/10 px-5 py-2.5 text-sm font-bold text-red-400 transition hover:bg-red-500/20"
                 onClick={() => void review(post.issueNumber, "reject")}
                 type="button"
               >

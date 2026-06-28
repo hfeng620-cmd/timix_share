@@ -1,550 +1,689 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-
-import { AuthButton } from "@/components/auth-button";
-import { NotificationBell } from "@/components/notification-bell";
-import { useForumAuth } from "@/lib/forum-auth";
 import {
-  collaborationChannels,
-  faqEntries,
-  guideCards,
-  guideSteps,
-  resourceLinks,
-} from "@/lib/site-data";
-import {
-  CATEGORIES,
-  loadApprovedGuides,
-  submitGuide,
-  type CreateGuideInput,
-  type GuideCategory,
-  type UserGuide,
-} from "@/lib/guide-storage";
+  Heart, MessageCircle, Bookmark, Plus, Flame, X,
+  Folder, ChevronRight, Trash2, Send, Loader2,
+} from "lucide-react";
+import { Navbar } from "@/components/navbar";
+import { lockBodyScroll } from "@/lib/body-scroll-lock";
+import { loadFolders, loadAllPosts, createFolder, createSharePost, deleteSharePost, updateFolder, updateSharePost, getFolderCreator, getFolderContributors, type ShareFolder, type SharePost, type Contributor } from "@/lib/share-storage";
+import { ShareCreateModal, type CreateMode } from "@/components/share-create-modal";
 
-const quickGuideRoutes = [
-  {
-    title: "第一次来",
-    description: "先看倍率、备注和试用入口，不要直接被最低价带走。",
-    href: "#guide-flow",
-  },
-  {
-    title: "我想先试用",
-    description: "优先去看低门槛入口，再决定要不要长期用。",
-    href: "#guide-resources",
-  },
-  {
-    title: "我想参与共建",
-    description: "分清 QQ 群、Discussions 和 Issues 各自该发什么。",
-    href: "#guide-collaboration",
-  },
-  {
-    title: "我只想快速找答案",
-    description: "直接跳到 FAQ，把常见误区一次看完。",
-    href: "#guide-faq",
-  },
-];
+/* ──────────────────────────────────────────────
+   Data model — tree structure
+   - Folder: { type:"folder", name, desc?, children }
+   - Post:   { type:"post", id, title, summary, tag, likes, comments, bookmarks }
+   ────────────────────────────────────────────── */
 
-export default function GuidesPage() {
-  const { isConnected, showAuthModal } = useForumAuth();
-  const [userGuides, setUserGuides] = useState<UserGuide[]>([]);
-  const [guidesLoading, setGuidesLoading] = useState(true);
-  const [showSubmitForm, setShowSubmitForm] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState("");
-  const [form, setForm] = useState<CreateGuideInput>({
-    title: "",
-    summary: "",
-    body: "",
-    category: "入门指南",
-    tags: [],
-  });
-  const [tagInput, setTagInput] = useState("");
+type TreeNode = FolderNode | PostNode;
 
-  const loadGuides = useCallback(async () => {
-    setGuidesLoading(true);
-    try {
-      const guides = await loadApprovedGuides();
-      setUserGuides(guides);
-    } catch {
-      // ignore
-    } finally {
-      setGuidesLoading(false);
-    }
-  }, []);
+type FolderNode = {
+  type: "folder";
+  name: string;
+  desc?: string;
+  children: TreeNode[];
+};
 
-  useEffect(() => {
-    loadGuides();
-  }, [loadGuides]);
+type PostNode = {
+  type: "post";
+  id: string;
+  title: string;
+  summary: string;
+  tag: string;
+  likes: number;
+  comments: number;
+  bookmarks: number;
+};
 
-  async function handleSubmit() {
-    if (!isConnected) {
-      showAuthModal();
-      return;
-    }
-    if (!form.title.trim() || !form.summary.trim() || !form.body.trim()) {
-      setSubmitStatus("请填写完整信息。");
-      return;
-    }
-    setSubmitting(true);
-    setSubmitStatus("");
-    try {
-      await submitGuide(form);
-      setSubmitStatus("投稿成功！指南已立即发布。");
-      setForm({ title: "", summary: "", body: "", category: "入门指南", tags: [] });
-      setShowSubmitForm(false);
-    } catch (err) {
-      setSubmitStatus(err instanceof Error ? err.message : "投稿失败，请稍后重试。");
-    } finally {
-      setSubmitting(false);
-    }
+const rootTree: FolderNode = {
+  type: "folder", name: "root", children: [
+    {
+      type: "folder", name: "基础部分", desc: "Codex，ClaudeCode使用教程",
+      children: [
+        {
+          type: "folder", name: "Codex", children: [
+            {
+              type: "post", id: "p1", title: "Codex CLI 实战：用自然语言操控终端",
+              summary: "OpenAI Codex 命令行工具深度体验，附常用 prompt 模板和避坑记录。",
+              tag: "Codex", likes: 2340, comments: 156, bookmarks: 892,
+            },
+          ],
+        },
+        {
+          type: "folder", name: "ClaudeCode", children: [
+            {
+              type: "post", id: "p2", title: "Claude Code 终极配置指南",
+              summary: "从零搭建 Claude Code 开发环境，MCP 插件、自定义 hooks 与快捷键映射。",
+              tag: "ClaudeCode", likes: 1890, comments: 98, bookmarks: 654,
+            },
+          ],
+        },
+        { type: "folder", name: "Cursor", children: [] },
+        { type: "folder", name: "Windsurf", children: [] },
+      ],
+    },
+    {
+      type: "folder", name: "Github优质项目汇总",
+      children: [
+        {
+          type: "folder", name: "前端", children: [
+            {
+              type: "post", id: "p3", title: "Tauri 2.0 桌面应用开发指南",
+              summary: "基于 Rust 的轻量级跨平台桌面应用框架，替代 Electron 的首选方案。",
+              tag: "前端", likes: 2780, comments: 187, bookmarks: 940,
+            },
+          ],
+        },
+        { type: "folder", name: "后端", children: [] },
+        { type: "folder", name: "AI工具", children: [] },
+        { type: "folder", name: "DevOps", children: [] },
+      ],
+    },
+  ],
+};
+
+/* ── Helpers ── */
+
+type Breadcrumb = { name: string; index: number }[];
+
+function resolvePath(tree: FolderNode, indices: number[]): FolderNode | null {
+  let current: FolderNode = tree;
+  for (const i of indices) {
+    const child = current.children[i];
+    if (!child || child.type !== "folder") return null;
+    current = child;
   }
+  return current;
+}
 
-  function addTag() {
-    const tag = tagInput.trim();
-    if (tag && form.tags && form.tags.length < 5 && !form.tags.includes(tag)) {
-      setForm({ ...form, tags: [...(form.tags ?? []), tag] });
-      setTagInput("");
-    }
+function findAllPosts(folder: FolderNode): PostNode[] {
+  const result: PostNode[] = [];
+  for (const child of folder.children) {
+    if (child.type === "post") result.push(child);
+    else result.push(...findAllPosts(child));
   }
+  return result;
+}
 
-  function removeTag(index: number) {
-    setForm({ ...form, tags: form.tags?.filter((_, i) => i !== index) ?? [] });
+function getBreadcrumb(tree: FolderNode, indices: number[]): Breadcrumb {
+  const crumbs: Breadcrumb = [{ name: "热门有趣项目Share", index: -1 }];
+  let current = tree;
+  for (const i of indices) {
+    const child = current.children[i];
+    if (!child || child.type !== "folder") break;
+    crumbs.push({ name: child.name, index: i });
+    current = child;
   }
+  return crumbs;
+}
+
+/* ── Post card ── */
+
+function PostCard({ post, onClick, onEdit, onDelete }: { post: PostNode; onClick: () => void; onEdit?: () => void; onDelete?: () => void }) {
   return (
-    <main className="theme-stage min-h-screen bg-transparent text-[var(--color-ink)]">
-      <section className="border-b border-[var(--color-line)] bg-[var(--color-header)] backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4 lg:px-10">
-          <div className="flex items-center gap-4">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--color-brand)] text-xl font-black text-[var(--color-on-brand)] shadow-[0_10px_30px_var(--color-panel-glow)]">
-              T
-            </div>
-            <div>
-              <p className="text-2xl font-black tracking-tight">Timix观察站</p>
-              <p className="text-sm text-[var(--color-muted)]">常见问题与更多指南</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            {/* 移动端导航 */}
-            <nav aria-label="页面导航" className="flex items-center gap-1.5 md:hidden">
-              <Link
-                className="rounded-full px-3 py-2 text-xs font-semibold text-[var(--color-muted)] transition hover:bg-[var(--color-soft)] hover:text-[var(--color-ink)]"
-                href="/"
-              >
-                首页
-              </Link>
-              <Link
-                className="rounded-full px-3 py-2 text-xs font-semibold text-[var(--color-muted)] transition hover:bg-[var(--color-soft)] hover:text-[var(--color-ink)]"
-                href="/stations"
-              >
-                榜单
-              </Link>
-              <Link
-                className="rounded-full px-3 py-2 text-xs font-semibold text-[var(--color-muted)] transition hover:bg-[var(--color-soft)] hover:text-[var(--color-ink)]"
-                href="/community"
-              >
-                社区
-              </Link>
-              <Link
-                className="rounded-full px-3 py-2 text-xs font-semibold text-[var(--color-muted)] transition hover:bg-[var(--color-soft)] hover:text-[var(--color-ink)]"
-                href="/models"
-              >
-                模型
-              </Link>
-            </nav>
-            {/* 桌面端导航 */}
-            <nav className="hidden items-center gap-2 rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] p-1 md:flex">
-              <Link
-                className="rounded-full px-4 py-2 text-sm font-semibold text-[var(--color-muted)] transition hover:bg-[var(--color-soft)] hover:text-[var(--color-ink)]"
-                href="/"
-              >
-                首页
-              </Link>
-              <Link
-                className="rounded-full px-4 py-2 text-sm font-semibold text-[var(--color-muted)] transition hover:bg-[var(--color-soft)] hover:text-[var(--color-ink)]"
-                href="/stations"
-              >
-                中转站榜单
-              </Link>
-              <span className="rounded-full bg-[var(--color-brand)] px-4 py-2 text-sm font-semibold text-[var(--color-on-brand)] shadow-[0_10px_24px_var(--color-panel-glow)]">
-                更多指南
-              </span>
-            </nav>
-            <NotificationBell />
-            <AuthButton />
-          </div>
+    <div
+      onClick={onClick}
+      className="w-full text-left rounded-xl bg-white/5 border border-white/10 p-4 hover:bg-white/10 transition-all duration-200 group cursor-pointer"
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h3 className="text-base font-heading italic text-white truncate">{post.title}</h3>
+          <p className="mt-1.5 text-sm leading-relaxed text-white/45 font-body line-clamp-2">{post.summary}</p>
         </div>
-      </section>
-
-      <section className="mx-auto max-w-7xl px-6 py-10 lg:px-10">
-        <div data-reveal className="surface-in mb-6 overflow-hidden rounded-[34px] border border-[var(--color-line)] bg-[var(--surface-gradient)] shadow-[var(--shadow-card)] backdrop-blur">
-          <div className="grid gap-5 px-6 py-7 lg:grid-cols-[1.1fr_0.9fr] lg:px-8">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[var(--color-brand-deep)]">
-                入门导航
-              </p>
-              <h1 className="mt-3 max-w-3xl text-4xl font-black tracking-tight sm:text-5xl">
-                别从最杂的地方开始，先按你现在想解决的事进入。
-              </h1>
-              <p className="mt-4 max-w-2xl text-sm leading-7 text-[var(--color-muted)]">
-                这一页不只是 FAQ。它更像 Timix观察站 的使用地图，帮你判断先看榜单、先试用、先看社区反馈，还是先补一条纠错更划算。
-              </p>
-
-              <div className="mt-5 flex flex-wrap gap-3">
-                <Link
-                  className="rounded-full bg-[var(--color-brand)] px-5 py-3 text-sm font-bold text-[var(--color-on-brand)] shadow-[0_12px_24px_var(--color-panel-glow)]"
-                  href="/stations"
-                >
-                  先去看榜单
-                </Link>
-                <Link
-                  className="rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-3 text-sm font-bold text-[var(--color-ink)] transition hover:border-[var(--color-brand)] hover:text-[var(--color-brand-deep)]"
-                  href="/community"
-                >
-                  去看社区反馈
-                </Link>
-              </div>
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-2">
-              {quickGuideRoutes.map((item) => (
-                <a
-                  key={item.title}
-                  className="stagger-in card-lift rounded-[22px] border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-4 shadow-[var(--shadow-card)] transition hover:-translate-y-0.5 hover:border-[var(--color-brand)]"
-                  href={item.href}
-                >
-                  <p className="text-base font-black text-[var(--color-ink)]">{item.title}</p>
-                  <p className="mt-2 text-sm leading-6 text-[var(--color-muted)]">{item.description}</p>
-                </a>
-              ))}
-            </div>
-          </div>
+        <div className="flex shrink-0 items-center gap-0.5 opacity-0 group-hover:opacity-100 transition">
+          {onEdit && (
+            <span className="rounded-lg p-1.5 text-white/30 hover:text-white hover:bg-white/10 transition cursor-pointer" onClick={(e) => { e.stopPropagation(); onEdit(); }} title="更改">
+              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+            </span>
+          )}
+          {onDelete && (
+            <span className="rounded-lg p-1.5 text-red-400/30 hover:text-red-400 hover:bg-red-400/10 transition cursor-pointer" onClick={(e) => { e.stopPropagation(); onDelete(); }} title="删除">
+              <Trash2 className="h-3.5 w-3.5" />
+            </span>
+          )}
         </div>
+      </div>
+      <div className="mt-3 flex items-center gap-5 text-xs text-white/30 font-body">
+        <span className="inline-flex items-center gap-1"><Heart className="h-3 w-3" />{post.likes >= 1000 ? `${(post.likes / 1000).toFixed(1)}k` : post.likes}</span>
+        <span className="inline-flex items-center gap-1"><MessageCircle className="h-3 w-3" />{post.comments}</span>
+        <span className="inline-flex items-center gap-1"><Bookmark className="h-3 w-3" />{post.bookmarks}</span>
+      </div>
+    </div>
+  );
+}
 
-        <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
-          <div className="space-y-6">
-            <div id="guide-flow" data-reveal className="surface-in scroll-mt-24 rounded-[32px] border border-[var(--color-line)] bg-[var(--color-panel)] p-6 shadow-[var(--shadow-card)] backdrop-blur">
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
-                先看这几个
-              </p>
-              <h1 className="mt-2 text-4xl font-black tracking-tight">
-                先把第一次最容易问错的事讲清楚
-              </h1>
-              <p className="mt-4 text-sm leading-7 text-[var(--color-muted)]">
-                首页先负责给你看榜单，这里负责把倍率怎么看、同站不同模型怎么拆、免费入口怎么判断，以及 QQ 群和 GitHub 共建入口分别拿来做什么说清楚。
-              </p>
-            </div>
+/* ── Post modal ── */
 
-            <div data-reveal className="surface-in rounded-[32px] border border-[var(--color-line)] bg-[var(--color-panel)] p-6 shadow-[var(--shadow-card)] backdrop-blur">
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
-                先按这个顺序看
-              </p>
-              <div className="mt-5 grid gap-4">
-                {guideSteps.map((step) => (
-                  <article
-                    key={step.index}
-                    className="stagger-in card-lift rounded-[26px] border border-[var(--color-line)] bg-[var(--color-soft)] p-5"
-                  >
-                    <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-brand-deep)]">
-                      {step.index}
-                    </p>
-                    <h2 className="mt-2 text-xl font-bold">{step.title}</h2>
-                    <p className="mt-3 text-sm leading-7 text-[var(--color-muted)]">
-                      {step.description}
-                    </p>
-                  </article>
-                ))}
-              </div>
-            </div>
+function PostModal({ post, onClose }: { post: PostNode; onClose: () => void }) {
+  const [liked, setLiked] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [commentOpen, setCommentOpen] = useState(false);
+  const [commentText, setCommentText] = useState("");
+  const [replyingTo, setReplyingTo] = useState<number | null>(null);
+  const [replyText, setReplyText] = useState("");
 
-            <div data-reveal className="surface-in rounded-[32px] border border-[var(--color-line)] bg-[var(--color-panel)] p-6 shadow-[var(--shadow-card)] backdrop-blur">
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
-                新手指南
-              </p>
-              <div className="mt-5 grid gap-4">
-                {guideCards.map((card) => (
-                  <article
-                    key={card.title}
-                    className="stagger-in card-lift rounded-[26px] border border-[var(--color-line)] bg-[var(--color-soft)] p-5"
-                  >
-                    <h2 className="text-xl font-bold">{card.title}</h2>
-                    <p className="mt-3 text-sm leading-7 text-[var(--color-muted)]">
-                      {card.description}
-                    </p>
-                  </article>
-                ))}
-              </div>
-            </div>
+  useEffect(() => { const unlock = lockBodyScroll(); return unlock; }, []);
 
-            <div id="guide-resources" data-reveal className="surface-in scroll-mt-24 rounded-[32px] border border-[var(--color-line)] bg-[var(--color-soft)] p-6 shadow-[var(--shadow-card)]">
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
-                试用入口
-              </p>
-              <p className="mt-3 text-sm leading-7 text-[var(--color-muted)]">
-                这几条入口更适合先试水，再结合群友反馈判断要不要长期用。
-              </p>
-              <div className="mt-4 grid gap-3">
-                {resourceLinks.map((item) => (
-                  item.href.startsWith("http") ? (
-                    <a
-                      key={item.title}
-                      className="stagger-in card-lift rounded-2xl border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-4 transition hover:border-[var(--color-brand)]"
-                      href={item.href}
-                      rel="noopener noreferrer"
-                      target="_blank"
-                    >
-                      <p className="font-bold text-[var(--color-brand-deep)]">
-                        {item.title}
-                      </p>
-                      <p className="mt-2 text-sm leading-6 text-[var(--color-muted)]">
-                        {item.note}
-                      </p>
-                    </a>
-                  ) : (
-                    <Link
-                      key={item.title}
-                      className="stagger-in card-lift rounded-2xl border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-4 transition hover:border-[var(--color-brand)]"
-                      href={item.href}
-                    >
-                      <p className="font-bold text-[var(--color-brand-deep)]">
-                        {item.title}
-                      </p>
-                      <p className="mt-2 text-sm leading-6 text-[var(--color-muted)]">
-                        {item.note}
-                      </p>
-                    </Link>
-                  )
-                ))}
-              </div>
-            </div>
+  const mockComments = [
+    { id: 1, username: "噜噜", timestamp: "2 小时前", content: "这个项目太棒了！已经在我自己的项目里用上了，CLI 体验非常流畅。" },
+    { id: 2, username: "CodeMaster", timestamp: "5 小时前", content: "补充一下：Windows 下需要额外配置 PATH 环境变量，macOS/Linux 可以直接用。" },
+    { id: 3, username: "AI探索者", timestamp: "1 天前", content: "有没有人遇到过 OOM 的问题？我在处理大文件时内存占用很高。" },
+  ];
 
-            <div id="guide-collaboration" data-reveal className="surface-in scroll-mt-24 rounded-[32px] border border-[var(--color-line)] bg-[var(--color-panel)] p-6 shadow-[var(--shadow-card)] backdrop-blur">
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
-                共建入口
-              </p>
-              <p className="mt-3 text-sm leading-7 text-[var(--color-muted)]">
-                这站不是只读榜单。QQ 群负责第一时间发线索，Discussions 负责沉淀经验讨论，Issues 负责提交明确纠错，管理员审核后再把正式口径收进榜单。
-              </p>
-              <div className="mt-4 grid gap-3">
-                {collaborationChannels.map((item) => (
-                  <a
-                    key={item.title}
-                    className="stagger-in card-lift rounded-2xl border border-[var(--color-line)] bg-[var(--color-soft)] px-4 py-4 transition hover:border-[var(--color-brand)]"
-                    href={item.href}
-                    rel={item.href.startsWith("http") ? "noopener noreferrer" : undefined}
-                    target={item.href.startsWith("http") ? "_blank" : undefined}
-                  >
-                    <p className="font-bold text-[var(--color-brand-deep)]">{item.title}</p>
-                    <p className="mt-2 text-sm leading-6 text-[var(--color-muted)]">
-                      {item.note}
-                    </p>
-                  </a>
-                ))}
-              </div>
-            </div>
+  function handleReplyClick(commentId: number, username: string) {
+    setReplyingTo(commentId);
+    setReplyText(`@${username} `);
+  }
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-xl px-4" onClick={onClose}>
+      <div className="relative w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-3xl border border-white/15 bg-white/6 shadow-2xl backdrop-blur-xl" onClick={(e) => e.stopPropagation()}>
+        <button onClick={onClose} className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white/50 hover:bg-white/20 hover:text-white transition z-10" type="button" aria-label="关闭">
+          <X className="h-4 w-4" />
+        </button>
+
+        <div className="p-6 sm:p-8">
+          <span className="inline-block rounded-full bg-white/10 px-3 py-1 text-xs text-white/50 font-body mb-4">{post.tag}</span>
+          <h2 className="text-2xl font-heading italic text-white md:text-3xl">{post.title}</h2>
+          <p className="mt-4 text-sm leading-relaxed text-white/60 font-body">{post.summary}</p>
+          <div className="mt-6 space-y-3 text-sm leading-relaxed text-white/40 font-body">
+            <p>项目详细说明内容。包含安装步骤、使用示例、API 文档和常见问题解答。</p>
+            <p>社区成员可在评论区补充心得、提交反馈或分享改进方案。欢迎更多开发者参与共建。</p>
           </div>
 
-          <div id="guide-faq" data-reveal className="surface-in scroll-mt-24 rounded-[32px] border border-[var(--color-line)] bg-[var(--color-panel)] p-6 shadow-[var(--shadow-card)] backdrop-blur">
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
-              常见问题
-            </p>
-            <div className="mt-5 space-y-4">
-              {faqEntries.map((item) => (
-                <article
-                  key={item.question}
-                  className="stagger-in card-lift rounded-[26px] border border-[var(--color-line)] bg-[var(--color-soft)] p-5"
-                >
-                  <h2 className="text-lg font-bold">{item.question}</h2>
-                  <p className="mt-3 text-sm leading-7 text-[var(--color-muted)]">
-                    {item.answer}
-                  </p>
-                </article>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* ---- User-submitted guides ---- */}
-        <div className="mt-10">
-          <div data-reveal className="surface-in rounded-[32px] border border-[var(--color-line)] bg-[var(--color-panel)] p-6 shadow-[var(--shadow-card)] backdrop-blur">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-brand-deep)]">
-                  社区指南
-                </p>
-                <h2 className="mt-2 text-2xl font-black">用户投稿的指南</h2>
-                <p className="mt-2 text-sm text-[var(--color-muted)]">
-                  这里展示社区用户投稿的指南，分享你的使用经验和避坑技巧。
-                </p>
-              </div>
-              <button
-                className="rounded-full bg-[var(--color-brand)] px-5 py-2.5 text-sm font-bold text-[var(--color-on-brand)] transition hover:bg-[var(--color-brand-deep)]"
-                onClick={() => {
-                  if (!isConnected) {
-                    showAuthModal();
-                    return;
-                  }
-                  setShowSubmitForm(!showSubmitForm);
-                }}
-                type="button"
-              >
-                {showSubmitForm ? "取消投稿" : "投稿指南"}
+          <div className="mt-8 space-y-5 border-t border-white/10 pt-5">
+            <div className="flex items-center gap-6">
+              <button onClick={() => setLiked(!liked)} className={`inline-flex items-center gap-2 text-sm transition font-body ${liked ? "text-rose-400" : "text-white/40 hover:text-rose-300"}`} type="button">
+                <Heart className={`h-5 w-5 transition ${liked ? "fill-current" : ""}`} />
+                {liked ? post.likes + 1 : post.likes >= 1000 ? `${(post.likes / 1000).toFixed(1)}k` : post.likes}
+              </button>
+              <button onClick={() => setCommentOpen(!commentOpen)} className="inline-flex items-center gap-2 text-sm text-white/40 hover:text-sky-300 transition font-body" type="button">
+                <MessageCircle className="h-5 w-5" />{post.comments}
+              </button>
+              <button onClick={() => setSaved(!saved)} className={`inline-flex items-center gap-2 text-sm transition font-body ml-auto ${saved ? "text-amber-400" : "text-white/40 hover:text-amber-300"}`} type="button">
+                <Bookmark className={`h-5 w-5 transition ${saved ? "fill-current" : ""}`} />{saved ? "已收藏" : "收藏"}
               </button>
             </div>
 
-            {/* Submit form */}
-            {showSubmitForm && (
-              <div className="mt-6 rounded-[24px] border border-[var(--color-line)] bg-[var(--color-soft)] p-5">
-                <h3 className="text-lg font-bold text-[var(--color-ink)]">投稿新指南</h3>
-                <div className="mt-4 space-y-4">
-                  <div>
-                    <label className="mb-1.5 block text-xs font-bold text-[var(--color-muted)]">标题</label>
-                    <input
-                      className="w-full rounded-xl border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-2.5 text-sm outline-none transition focus:border-[var(--color-brand)]"
-                      maxLength={200}
-                      onChange={(e) => setForm({ ...form, title: e.target.value })}
-                      placeholder="指南标题（3-200字）"
-                      value={form.title}
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1.5 block text-xs font-bold text-[var(--color-muted)]">摘要</label>
-                    <input
-                      className="w-full rounded-xl border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-2.5 text-sm outline-none transition focus:border-[var(--color-brand)]"
-                      maxLength={500}
-                      onChange={(e) => setForm({ ...form, summary: e.target.value })}
-                      placeholder="一句话概括（10-500字）"
-                      value={form.summary}
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1.5 block text-xs font-bold text-[var(--color-muted)]">分类</label>
-                    <select
-                      className="w-full rounded-xl border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-2.5 text-sm outline-none transition focus:border-[var(--color-brand)]"
-                      onChange={(e) => setForm({ ...form, category: e.target.value as GuideCategory })}
-                      value={form.category}
-                    >
-                      {CATEGORIES.map((cat) => (
-                        <option key={cat} value={cat}>{cat}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="mb-1.5 block text-xs font-bold text-[var(--color-muted)]">正文</label>
-                    <textarea
-                      className="w-full resize-none rounded-xl border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-2.5 text-sm leading-6 outline-none transition focus:border-[var(--color-brand)]"
-                      maxLength={10000}
-                      onChange={(e) => setForm({ ...form, body: e.target.value })}
-                      placeholder="详细内容（20-10000字）"
-                      rows={6}
-                      value={form.body}
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1.5 block text-xs font-bold text-[var(--color-muted)]">标签（最多5个）</label>
-                    <div className="flex flex-wrap items-center gap-2">
-                      {form.tags?.map((tag, index) => (
-                        <span
-                          key={tag}
-                          className="inline-flex items-center gap-1 rounded-full bg-[var(--color-brand)]/10 px-3 py-1 text-xs font-bold text-[var(--color-brand-deep)]"
-                        >
-                          {tag}
-                          <button
-                            className="ml-0.5 text-[var(--color-muted)] hover:text-[var(--color-ink)]"
-                            onClick={() => removeTag(index)}
-                            type="button"
-                          >
-                            ×
-                          </button>
-                        </span>
-                      ))}
-                      {(form.tags?.length ?? 0) < 5 ? (
-                        <input
-                          className="w-32 rounded-full border border-[var(--color-line)] bg-[var(--color-input)] px-3 py-1 text-xs outline-none transition focus:border-[var(--color-brand)]"
-                          maxLength={20}
-                          onChange={(e) => setTagInput(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              e.preventDefault();
-                              addTag();
-                            }
-                          }}
-                          placeholder="回车添加"
-                          value={tagInput}
-                        />
-                      ) : null}
+            {commentOpen && (
+              <div className="space-y-4">
+                {mockComments.map((c) => (
+                  <div key={c.id} className="rounded-xl bg-white/5 border border-white/10 p-4">
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10 text-xs font-bold text-white/50">{c.username.charAt(0)}</div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-semibold text-white/80 font-body">{c.username}</span>
+                          <span className="text-[11px] text-white/30 font-body">{c.timestamp}</span>
+                        </div>
+                        <p className="mt-1.5 text-sm leading-relaxed text-white/55 font-body">{c.content}</p>
+                        <button onClick={() => handleReplyClick(c.id, c.username)} className="mt-2 inline-flex items-center gap-1 text-xs text-white/35 hover:text-white/70 transition font-body" type="button">
+                          <MessageCircle className="h-3 w-3" />回复
+                        </button>
+                        {replyingTo === c.id && (
+                          <div className="mt-3 flex items-start gap-2 rounded-lg bg-white/5 border border-white/10 p-3">
+                            <textarea className="flex-1 min-h-[40px] resize-none bg-transparent text-sm text-white font-body outline-none placeholder:text-white/25" value={replyText} onChange={(e) => setReplyText(e.target.value)} autoFocus />
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <button className="rounded-full bg-white/10 px-3 py-1.5 text-xs text-white/50 hover:bg-white/20 hover:text-white transition font-body" onClick={() => { setReplyingTo(null); setReplyText(""); }} type="button">取消</button>
+                              <button className="rounded-full bg-white/15 p-1.5 text-white/50 hover:bg-white/25 hover:text-white transition disabled:opacity-30" onClick={() => { setReplyingTo(null); setReplyText(""); }} type="button" disabled={!replyText.trim()}><Send className="h-3.5 w-3.5" /></button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <button
-                      className="rounded-full bg-[var(--color-brand)] px-5 py-2.5 text-sm font-bold text-[var(--color-on-brand)] transition hover:bg-[var(--color-brand-deep)] disabled:opacity-50"
-                      disabled={submitting}
-                      onClick={handleSubmit}
-                      type="button"
-                    >
-                      {submitting ? "发布中..." : "发布指南"}
-                    </button>
-                    {submitStatus && (
-                      <span className="text-sm text-[var(--color-muted)]">{submitStatus}</span>
-                    )}
+                ))}
+                <div className="flex items-start gap-3 rounded-xl bg-white/5 border border-white/10 p-3">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10 text-xs font-bold text-white/50">U</div>
+                  <div className="flex-1 flex items-start gap-2">
+                    <textarea className="flex-1 min-h-[60px] resize-none bg-transparent text-sm text-white font-body outline-none placeholder:text-white/25" placeholder="写下你的评论..." value={commentText} onChange={(e) => setCommentText(e.target.value)} />
+                    <button className="shrink-0 mt-1 rounded-full bg-white/15 p-2 text-white/50 hover:bg-white/25 hover:text-white transition disabled:opacity-30" type="button" onClick={() => setCommentText("")} disabled={!commentText.trim()}><Send className="h-4 w-4" /></button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Hot sidebar ── */
+
+function HotSidebar({ allPosts, onPostClick }: { allPosts: (PostNode & { path: string })[], onPostClick: (p: PostNode) => void }) {
+  const hot = [...allPosts].filter((p) => p.likes > 0 || p.comments > 0).sort((a, b) => b.likes - a.likes).slice(0, 10);
+
+  function fireColor(rank: number) {
+    if (rank === 0) return "text-orange-400";
+    if (rank === 1) return "text-amber-400";
+    if (rank === 2) return "text-yellow-400";
+    return "text-white/25";
+  }
+
+  return (
+    <div className="liquid-glass rounded-2xl p-5">
+      <div className="flex items-center gap-2 mb-4">
+        <Flame className="h-5 w-5 text-orange-400" />
+        <h3 className="text-base font-heading italic text-white">热门帖子</h3>
+      </div>
+      <div className="space-y-2.5">
+        {hot.map((post, i) => (
+          <button
+            key={post.id}
+            onClick={() => onPostClick(post)}
+            type="button"
+            className="flex items-start gap-2.5 w-full text-left group"
+          >
+            <span className={`shrink-0 mt-0.5 text-sm ${fireColor(i)}`}>
+              <Flame className="h-4 w-4" />
+            </span>
+            <div className="min-w-0">
+              <span className="text-[10px] text-white/30 font-body">[{post.path}]</span>
+              <span className="ml-1.5 text-sm text-white/50 group-hover:text-white/80 transition font-body truncate block">
+                {post.title}
+              </span>
+            </div>
+          </button>
+        ))}
+        {hot.length === 0 && (
+          <p className="text-sm text-white/30 font-body">暂无热门帖子</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ── Page ── */
+
+export default function GuidesPage() {
+  const [path, setPath] = useState<number[]>([]);
+  const [modalPost, setModalPost] = useState<PostNode | null>(null);
+
+  // Supabase data state
+  const [dbFolders, setDbFolders] = useState<ShareFolder[] | null>(null);
+  const [dbPosts, setDbPosts] = useState<SharePost[] | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  // Create modal state
+  const [createOpen, setCreateOpen] = useState(false);
+  const [createMode, setCreateMode] = useState<CreateMode>("post");
+
+  // Creator + contributors for current folder
+  const [folderCreator, setFolderCreator] = useState<{ userId: string; displayName: string; avatarUrl: string | null } | null>(null);
+  const [contributors, setContributors] = useState<Contributor[]>([]);
+
+  // Edit state
+  const [editingFolder, setEditingFolder] = useState(false);
+  const [editFolderName, setEditFolderName] = useState("");
+  const [editFolderDesc, setEditFolderDesc] = useState("");
+  const [editingPost, setEditingPost] = useState<PostNode | null>(null);
+  const [editPostTitle, setEditPostTitle] = useState("");
+  const [editPostSummary, setEditPostSummary] = useState("");
+  const [editPostBody, setEditPostBody] = useState("");
+  const [editSaving, setEditSaving] = useState(false);
+
+  // Load from Supabase
+  useEffect(() => {
+    let cancelled = false;
+    async function fetchData() {
+      const [folders, posts] = await Promise.all([loadFolders(), loadAllPosts()]);
+      if (!cancelled) { setDbFolders(folders); setDbPosts(posts); }
+    }
+    fetchData();
+    return () => { cancelled = true; };
+  }, [refreshKey]);
+
+  function triggerRefresh() { setRefreshKey((k) => k + 1); }
+
+  const hasRealData = dbFolders !== null && dbPosts !== null && (dbFolders.length > 0 || dbPosts.length > 0);
+
+  // Load creator + contributors when entering a folder
+  useEffect(() => {
+    if (isRoot || !hasRealData || !currentFolder || currentFolder.name === "root") {
+      setFolderCreator(null);
+      setContributors([]);
+      return;
+    }
+    // Find the matching db folder
+    const dbFolder = (dbFolders ?? []).find((f) => f.name === currentFolder.name);
+    if (!dbFolder) { setFolderCreator(null); setContributors([]); return; }
+
+    let cancelled = false;
+    async function load() {
+      const [creator, contribs] = await Promise.all([
+        getFolderCreator(dbFolder!.id),
+        getFolderContributors(dbFolder!.id),
+      ]);
+      if (cancelled) return;
+      setFolderCreator(creator);
+      setContributors(contribs);
+    }
+    load();
+    return () => { cancelled = true; };
+  }, [path, hasRealData, dbFolders]);
+
+  // Edit handlers
+  function openEditFolder() {
+    setEditingFolder(true);
+    setEditFolderName(currentFolder.name === "root" ? "" : currentFolder.name);
+    setEditFolderDesc((currentFolder as any).desc ?? "");
+  }
+  async function saveEditFolder() {
+    const dbFolder = (dbFolders ?? []).find((f) => f.name === currentFolder.name);
+    if (!dbFolder) return;
+    setEditSaving(true);
+    try { await updateFolder(dbFolder.id, editFolderName, editFolderDesc); triggerRefresh(); setEditingFolder(false); }
+    catch {}
+    finally { setEditSaving(false); }
+  }
+
+  function openEditPost(post: PostNode) {
+    setEditingPost(post);
+    setEditPostTitle(post.title);
+    setEditPostSummary(post.summary);
+    setEditPostBody((post as any).body ?? post.summary);
+  }
+  async function saveEditPost() {
+    if (!editingPost) return;
+    setEditSaving(true);
+    try { await updateSharePost(editingPost.id, editPostTitle, editPostSummary, editPostBody, ""); triggerRefresh(); setEditingPost(null); }
+    catch {}
+    finally { setEditSaving(false); }
+  }
+
+  const handleCreateFolder = useCallback(async (name: string, desc: string, parentId: string | null) => {
+    await createFolder(name, desc, parentId); triggerRefresh();
+  }, []);
+  const handleCreatePost = useCallback(async (title: string, summary: string, body: string, link: string, folderId: string | null) => {
+    await createSharePost(title, summary, body, link, folderId); triggerRefresh();
+  }, []);
+  const handleDeletePost = useCallback(async (id: string) => {
+    await deleteSharePost(id); triggerRefresh();
+  }, []);
+
+  const currentFolder = resolvePath(rootTree, path) ?? rootTree;
+  const isRoot = path.length === 0;
+  const breadcrumb = getBreadcrumb(rootTree, path);
+
+  const subFolders = currentFolder.children.filter((c): c is FolderNode => c.type === "folder");
+  const posts = currentFolder.children.filter((c): c is PostNode => c.type === "post");
+
+  // All posts for sidebar
+  const allPostsWithPath: (PostNode & { path: string })[] = [];
+  function collect(f: FolderNode, label: string) {
+    for (const c of f.children) {
+      if (c.type === "post") allPostsWithPath.push({ ...c, path: label });
+      else collect(c, c.name);
+    }
+  }
+  collect(rootTree, "root");
+
+  function navigateToChild(index: number) {
+    setPath([...path, index]);
+  }
+
+  function navigateToCrumb(crumbIndex: number) {
+    if (crumbIndex < 0) { setPath([]); return; }
+    setPath(path.slice(0, crumbIndex + 1));
+  }
+
+  function currentPathLabel() {
+    return breadcrumb.map((b) => b.name).join(" / ");
+  }
+
+  return (
+    <div className="min-h-screen text-white">
+      <Navbar />
+
+      <div className="mx-auto max-w-7xl px-4 pt-28 sm:px-6 lg:px-10">
+        {/* Header */}
+        <div className="mb-6">
+          <div className="liquid-glass mb-3 inline-block rounded-full px-3.5 py-1 text-xs font-medium text-white font-body">
+            热门有趣项目Share
+          </div>
+          <h1 className="text-3xl font-heading italic leading-[1.15] text-white md:text-5xl">
+            {isRoot ? "发现、分享、讨论有趣的项目。" : currentPathLabel()}
+          </h1>
+          {isRoot && (
+            <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/50 font-body">
+              Codex、ClaudeCode 使用教程 · Github 优质开源项目汇总 · 社区共建持续更新
+            </p>
+          )}
+        </div>
+
+        {/* Breadcrumb (non-root) */}
+        {!isRoot && (
+          <div className="flex flex-wrap items-center gap-1.5 mb-5 text-sm text-white/40 font-body">
+            {breadcrumb.map((crumb, i) => (
+              <span key={i} className="inline-flex items-center gap-1">
+                {i > 0 && <ChevronRight className="h-3 w-3 text-white/20" />}
+                <button
+                  onClick={() => navigateToCrumb(i === 0 ? -1 : i - 1)}
+                  className={`hover:text-white transition ${i === breadcrumb.length - 1 ? "text-white/70" : ""}`}
+                  type="button"
+                >
+                  {crumb.name}
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* ── Left: main content ── */}
+          <div className="lg:col-span-8 space-y-8">
+            {/* Action buttons */}
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-4 py-2 text-sm font-medium text-white/70 hover:bg-white/20 transition font-body"
+                type="button"
+                onClick={() => { setCreateMode("folder"); setCreateOpen(true); }}
+              >
+                <Folder className="h-4 w-4" />
+                建立板块
+              </button>
+              <button
+                className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-4 py-2 text-sm font-medium text-white/70 hover:bg-white/20 transition font-body"
+                type="button"
+                onClick={() => { setCreateMode("post"); setCreateOpen(true); }}
+              >
+                <Plus className="h-4 w-4" />
+                Share（分享项目）
+              </button>
+            </div>
+
+            {/* Creator + Contributors banner (non-root only) */}
+            {!isRoot && (
+              <div className="space-y-3">
+                {/* Creator info + Edit folder button */}
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  {folderCreator ? (
+                    <div className="flex items-center gap-2 text-sm text-white/40 font-body">
+                      {folderCreator.avatarUrl ? (
+                        <img src={folderCreator.avatarUrl} className="w-5 h-5 rounded-full ring-1 ring-white/20" alt="" />
+                      ) : (
+                        <span className="flex w-5 h-5 items-center justify-center rounded-full bg-white/10 text-[10px] text-white/50">{folderCreator.displayName.charAt(0)}</span>
+                      )}
+                      <span>由 <span className="text-white/60">{folderCreator.displayName}</span> 建立</span>
+                    </div>
+                  ) : (
+                    <div />
+                  )}
+                  {hasRealData && (
+                    <button onClick={openEditFolder} className="text-xs text-white/30 hover:text-white/60 transition font-body">更改</button>
+                  )}
+                </div>
+
+                {/* Contributors banner */}
+                {contributors.length > 0 && (
+                  <div className="flex items-center gap-4 rounded-xl bg-white/[0.03] border border-white/10 px-4 py-3 overflow-hidden">
+                    <span className="text-xs text-white/40 font-body shrink-0">✨ 真诚感谢参与共建的同僚：</span>
+                    <div className="flex items-center -space-x-2 overflow-x-auto scrollbar-none">
+                      {contributors.slice(0, 8).map((c) => (
+                        c.avatarUrl ? (
+                          <img key={c.userId} src={c.avatarUrl} className="w-7 h-7 rounded-full ring-2 ring-black object-cover shrink-0" title={c.displayName} alt={c.displayName} />
+                        ) : (
+                          <span key={c.userId} className="flex w-7 h-7 shrink-0 items-center justify-center rounded-full bg-white/10 ring-2 ring-black text-[10px] text-white/50" title={c.displayName}>{c.displayName.charAt(0)}</span>
+                        )
+                      ))}
+                      {contributors.length > 8 && (
+                        <span className="flex w-7 h-7 shrink-0 items-center justify-center rounded-full bg-white/15 ring-2 ring-black text-[10px] text-white/60 font-body">+{contributors.length - 8}</span>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Edit folder modal */}
+            {editingFolder && (
+              <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/50 backdrop-blur-sm px-4" onClick={() => setEditingFolder(false)}>
+                <div className="w-full max-w-sm rounded-2xl border border-white/10 bg-black/80 p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                  <h3 className="text-base font-heading italic text-white mb-4">更改板块信息</h3>
+                  <div className="space-y-3">
+                    <input className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white outline-none placeholder:text-white/25 font-body" value={editFolderName} onChange={(e) => setEditFolderName(e.target.value)} placeholder="板块名称" />
+                    <textarea className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white outline-none placeholder:text-white/25 font-body resize-none" rows={2} value={editFolderDesc} onChange={(e) => setEditFolderDesc(e.target.value)} placeholder="板块简介" />
+                  </div>
+                  <div className="flex justify-end gap-2 mt-4">
+                    <button onClick={() => setEditingFolder(false)} className="rounded-full px-4 py-2 text-xs text-white/40 hover:text-white font-body">取消</button>
+                    <button onClick={saveEditFolder} disabled={editSaving} className="rounded-full bg-white/15 px-4 py-2 text-xs text-white hover:bg-white/25 disabled:opacity-50 font-body">{editSaving ? "保存中..." : "保存"}</button>
                   </div>
                 </div>
               </div>
             )}
 
-            {/* User guides list */}
-            <div className="mt-6 space-y-4">
-              {guidesLoading ? (
-                <p className="text-sm text-[var(--color-muted)]">加载中...</p>
-              ) : userGuides.length === 0 ? (
-                <div className="rounded-[24px] bg-[var(--color-soft)] px-4 py-5 text-sm leading-7 text-[var(--color-muted)]">
-                  还没有用户投稿的指南。点击上面的&ldquo;投稿指南&rdquo;按钮成为第一个贡献者！
-                </div>
-              ) : (
-                userGuides.map((guide) => (
-                  <article
-                    key={guide.id}
-                    className="stagger-in card-lift rounded-[26px] border border-[var(--color-line)] bg-[var(--color-soft)] p-5"
+            {/* Root view: two big folder cards */}
+            {isRoot && (
+              <div className="grid gap-4 sm:grid-cols-2">
+                {subFolders.map((folder, i) => (
+                  <button
+                    key={folder.name}
+                    onClick={() => navigateToChild(i)}
+                    type="button"
+                    className="liquid-glass rounded-2xl p-6 text-left hover:bg-white/10 transition-all duration-200 group"
                   >
-                    <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--color-muted)]">
-                      <span className="rounded-full bg-[var(--color-brand)]/10 px-2.5 py-1 font-bold text-[var(--color-brand-deep)]">
-                        {guide.category}
-                      </span>
-                      <span>·</span>
-                      <span className="font-semibold">{guide.authorName}</span>
-                      <span>·</span>
-                      <span>{new Date(guide.createdAt).toLocaleDateString("zh-CN")}</span>
+                    <Folder className="h-7 w-7 text-white/50 group-hover:text-white/80 transition mb-3" />
+                    <h2 className="text-xl font-heading italic text-white">{folder.name}</h2>
+                    {folder.desc && (
+                      <p className="mt-2 text-sm text-white/35 font-body">{folder.desc}</p>
+                    )}
+                    <p className="mt-4 text-xs text-white/25 font-body">
+                      {folder.children.length} 个子项
+                    </p>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Non-root: sub-folders grid + posts feed */}
+            {!isRoot && (
+              <>
+                {/* Sub-folders */}
+                {subFolders.length > 0 && (
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/30 font-body mb-3">子板块</p>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {subFolders.map((folder, i) => (
+                        <button
+                          key={folder.name}
+                          onClick={() => navigateToChild(i)}
+                          type="button"
+                          className="liquid-glass rounded-xl p-4 text-left hover:bg-white/10 transition group"
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <Folder className="h-5 w-5 text-white/40 group-hover:text-white/70 transition" />
+                            <span className="text-sm font-heading italic text-white">{folder.name}</span>
+                          </div>
+                          <p className="mt-1.5 text-xs text-white/30 font-body">
+                            {folder.children.length > 0 ? `${folder.children.length} 项` : "空板块"}
+                          </p>
+                        </button>
+                      ))}
                     </div>
-                    <h2 className="mt-3 text-xl font-bold text-[var(--color-ink)]">{guide.title}</h2>
-                    <p className="mt-2 text-sm leading-7 text-[var(--color-muted)]">{guide.summary}</p>
-                    {guide.tags.length > 0 && (
-                      <div className="mt-3 flex flex-wrap gap-1.5">
-                        {guide.tags.map((tag) => (
-                          <span
-                            key={tag}
-                            className="rounded-full bg-[var(--color-panel)] px-2 py-0.5 text-[10px] font-semibold text-[var(--color-muted)]"
-                          >
-                            #{tag}
-                          </span>
-                        ))}
+                  </div>
+                )}
+
+                {/* Posts */}
+                <div>
+                  {posts.length > 0 && (
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/30 font-body mb-3">帖子</p>
+                  )}
+                  <div className="space-y-2.5">
+                    {posts.map((p) => (
+                      <PostCard key={p.id} post={p} onClick={() => setModalPost(p)} onEdit={hasRealData ? () => openEditPost(p) : undefined} onDelete={hasRealData ? () => handleDeletePost(p.id) : undefined} />
+                    ))}
+                    {posts.length === 0 && subFolders.length === 0 && (
+                      <div className="rounded-2xl bg-white/[0.02] border border-dashed border-white/10 p-10 text-center">
+                        <p className="text-sm text-white/30 font-body">此板块暂无内容</p>
+                        <p className="mt-1 text-xs text-white/20 font-body">点击上方「Share（分享项目）」发布第一条帖子</p>
                       </div>
                     )}
-                    <details className="mt-3">
-                      <summary className="cursor-pointer text-sm font-semibold text-[var(--color-brand-deep)] hover:text-[var(--color-brand)]">
-                        查看完整指南
-                      </summary>
-                      <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-[var(--color-ink)]">
-                        {guide.body}
-                      </p>
-                    </details>
-                  </article>
-                ))
-              )}
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Root: also show posts directly under root if any */}
+            {isRoot && posts.length > 0 && (
+              <div className="space-y-2.5">
+                {posts.map((p) => (
+                  <PostCard key={p.id} post={p} onClick={() => setModalPost(p)} />
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* ── Right: sidebar ── */}
+          <aside className="lg:col-span-4">
+            <div className="sticky top-28 space-y-6">
+              <HotSidebar allPosts={allPostsWithPath} onPostClick={(p) => setModalPost(p)} />
+
+              <div className="liquid-glass rounded-2xl p-5 text-center">
+                <p className="text-sm text-white/40 font-body mb-4">有好的项目想分享？</p>
+                <button
+                  className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-5 py-2.5 text-sm font-medium text-white hover:bg-white/20 transition font-body"
+                  type="button"
+                  onClick={() => { setCreateMode("post"); setCreateOpen(true); }}
+                >
+                  <Plus className="h-4 w-4" />
+                  Share 项目
+                </button>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+
+      {modalPost && <PostModal post={modalPost} onClose={() => setModalPost(null)} />}
+      <ShareCreateModal
+        open={createOpen}
+        mode={createMode}
+        currentFolder={{ id: null, name: currentFolder.name === "root" ? "根目录" : currentFolder.name }}
+        folders={dbFolders ?? []}
+        onClose={() => setCreateOpen(false)}
+        onCreateFolder={handleCreateFolder}
+        onCreatePost={handleCreatePost}
+      />
+
+      {/* Edit post modal */}
+      {editingPost && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/50 backdrop-blur-sm px-4" onClick={() => setEditingPost(null)}>
+          <div className="w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl border border-white/10 bg-black/80 p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-lg font-heading italic text-white mb-4">更改帖子</h3>
+            <div className="space-y-4">
+              <input className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white outline-none placeholder:text-white/25 font-body" value={editPostTitle} onChange={(e) => setEditPostTitle(e.target.value)} placeholder="帖子标题" />
+              <textarea className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white outline-none placeholder:text-white/25 font-body resize-none" rows={2} value={editPostSummary} onChange={(e) => setEditPostSummary(e.target.value)} placeholder="帖子简介" />
+              <textarea className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white outline-none placeholder:text-white/25 font-body resize-none" rows={6} value={editPostBody} onChange={(e) => setEditPostBody(e.target.value)} placeholder="帖子内容" />
+            </div>
+            <div className="flex justify-end gap-2 mt-4">
+              <button onClick={() => setEditingPost(null)} className="rounded-full px-4 py-2 text-xs text-white/40 hover:text-white font-body">取消</button>
+              <button onClick={saveEditPost} disabled={editSaving} className="rounded-full bg-white/15 px-4 py-2 text-xs text-white hover:bg-white/25 disabled:opacity-50 font-body">{editSaving ? "保存中..." : "保存"}</button>
             </div>
           </div>
         </div>
-      </section>
-    </main>
+      )}
+    </div>
   );
 }

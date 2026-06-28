@@ -5,6 +5,8 @@ import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties }
 import {
   createDiscussionPost,
   deleteDiscussionPost,
+  getUserLikedPostIds,
+  getUserLikedReplyIds,
   likeDiscussionPost,
   likeReply,
   loadComments,
@@ -13,6 +15,7 @@ import {
   pinDiscussionPost,
   replyDiscussionPost,
   searchDiscussionPosts,
+  unlikeDiscussionPost,
   updatePostBody,
   uploadForumImage,
   type DiscussionPost,
@@ -385,6 +388,26 @@ export function DiscussionFeed({
     }
   }, [user?.id]);
 
+  // Load user's existing likes from Supabase on mount
+  useEffect(() => {
+    const uid = user?.id!;
+    if (!uid) { setLikedPosts(new Set()); setLikedReplies(new Set()); return; }
+    let cancelled = false;
+    async function loadLikes() {
+      try {
+        const [postIds, replyIds] = await Promise.all([
+          getUserLikedPostIds(uid),
+          getUserLikedReplyIds(uid),
+        ]);
+        if (cancelled) return;
+        setLikedPosts(postIds);
+        setLikedReplies(replyIds);
+      } catch { /* silently ignore */ }
+    }
+    loadLikes();
+    return () => { cancelled = true; };
+  }, [user?.id]);
+
   function handleToggleBookmark(postId: string) {
     if (!user?.id) {
       showAuthModal();
@@ -625,15 +648,13 @@ export function DiscussionFeed({
   }
 
   async function handleLike(postId: string) {
-    if (!isConnected) {
-      showAuthModal();
-      return;
-    }
+    if (!isConnected) { showAuthModal(); return; }
 
     const currentPost = posts.find((p) => p.issueNumber === postId);
     if (!currentPost) return;
 
     const alreadyLiked = likedPosts.has(postId);
+
     // Optimistic toggle
     setLikedPosts((prev) => { const next = new Set(prev); if (alreadyLiked) next.delete(postId); else next.add(postId); return next; });
     setPosts((current) =>
@@ -641,13 +662,14 @@ export function DiscussionFeed({
     );
 
     try {
-      if (!alreadyLiked) {
-        const confirmedLikes = await likeDiscussionPost(postId, currentPost.likes);
-        setPosts((current) =>
-          current.map((p) => (p.issueNumber === postId ? { ...p, likes: confirmedLikes } : p)),
-        );
-      }
+      const confirmedLikes = alreadyLiked
+        ? await unlikeDiscussionPost(postId, currentPost.likes)
+        : await likeDiscussionPost(postId, currentPost.likes);
+      setPosts((current) =>
+        current.map((p) => (p.issueNumber === postId ? { ...p, likes: confirmedLikes } : p)),
+      );
     } catch {
+      // Rollback optimistic update
       setLikedPosts((prev) => { const next = new Set(prev); if (alreadyLiked) next.add(postId); else next.delete(postId); return next; });
       setPosts((current) =>
         current.map((p) => (p.issueNumber === postId ? { ...p, likes: currentPost.likes } : p)),

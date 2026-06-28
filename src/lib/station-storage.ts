@@ -203,6 +203,94 @@ export async function loadStations(): Promise<Station[]> {
   return ((data ?? []) as Record<string, unknown>[]).map(stationFromRow);
 }
 
+/** Move a station up (direction=-1) or down (direction=1) by swapping sort_order with its neighbor. */
+export async function reorderStation(id: string, direction: -1 | 1): Promise<void> {
+  if (!isSupabaseConfigured()) return;
+  const supabase = getSupabaseClient();
+
+  // Get current station's sort_order
+  const { data: current, error: curErr } = await supabase
+    .from("stations")
+    .select("id, sort_order")
+    .eq("id", id)
+    .single();
+  if (curErr || !current) throw new Error("站点未找到");
+
+  // Find the adjacent station
+  const comp = direction === -1 ? "lt" : "gt";
+  const order = direction === -1 ? { ascending: false } : { ascending: true };
+  const { data: neighbor, error: neighErr } = await supabase
+    .from("stations")
+    .select("id, sort_order")
+    .filter("sort_order", comp, current.sort_order)
+    .order("sort_order", order)
+    .limit(1)
+    .maybeSingle();
+  if (neighErr) throw new Error(`查找相邻站点失败: ${neighErr.message}`);
+  if (!neighbor) return; // Already at edge
+
+  // Swap sort_order values
+  const { error: up1 } = await supabase
+    .from("stations")
+    .update({ sort_order: neighbor.sort_order })
+    .eq("id", id);
+  if (up1) throw new Error(`更新排序失败: ${up1.message}`);
+
+  const { error: up2 } = await supabase
+    .from("stations")
+    .update({ sort_order: current.sort_order })
+    .eq("id", neighbor.id);
+  if (up2) throw new Error(`更新排序失败: ${up2.message}`);
+
+  notifyStationsChanged();
+}
+
+/** Seed default stations from the SQL seed data — idempotent, skips existing names. */
+export async function seedDefaultStations(): Promise<number> {
+  if (!isSupabaseConfigured()) throw new Error("Supabase 未配置");
+  const defaults = [
+    { name: "虎虎", badge: "双口径", url: "https://huhuai.xyz/register?aff=BCPA5AKW3KHX", price: "Plus 0.13 / Pro 0.16", multiplier: "0.13x 起", entry: "注册送额度入口", packageType: "倍率制", status: "试用信息清晰", models: "主流模型待群补", verdict: "先试再说", note: "当前走注册链接送额度；历史填表活动留档。", advantage: "试用入口清晰，适合新用户优先体验。", risk: "实际长期价格和稳定性还要继续看群友反馈。", groupName: "huhuai.xyz", sortOrder: 1 },
+    { name: "Aether", badge: "常用", url: "https://to-aether.com/dashboard", price: "0.263 倍率", multiplier: "0.263x", entry: "Dashboard 直链", packageType: "倍率制", status: "可调用 GPT 5.5 / 5.4，社区常用", models: "可调用 GPT 5.5 / 5.4", verdict: "价格还行，口碑偏稳", note: "群里常用，价格不算最低但反馈偏稳。", advantage: "价格不差，当前备注里稳定性印象较好。", risk: "缺少结构化实测数据，仍需要群友补高峰反馈。", groupName: "", sortOrder: 2 },
+    { name: "杂货铺", badge: "双口径", url: "https://api.dstopology.com/keys", price: "GPT 0.058 / CC Max 0.89", multiplier: "0.058x 起", entry: "Keys 页面", packageType: "模型分组计价", status: "需要分开理解", models: "GPT / CC Max", verdict: "一定要按模型分开看", note: "GPT 与 CC Max 分开计价，不要只看最低值。", advantage: "很适合展示同站不同模型收费完全不同的真实情况。", risk: "如果只看最低值，很容易误读 CC Max 的实际价格。", groupName: "", sortOrder: 3 },
+    { name: "秋天中转站", badge: "新收录", url: "https://qiutian.live", price: "待补录", multiplier: "待补录", entry: "官网入口", packageType: "模型接入已确认 / 价格待补", status: "可调用 GPT 5.5 / 5.4", models: "可调用 GPT 5.5 / 5.4", verdict: "先收录官网入口", note: "qiutian.live 已补入口，可调用 GPT 5.5 / 5.4。", advantage: "模型接入口径已明确，方便后续群友补测价格。", risk: "当前仍缺可直接比较的价格和倍率信息。", groupName: "", sortOrder: 4 },
+    { name: "dasuAPI", badge: "待补测", url: "https://dasuapi.com", price: "待补录", multiplier: "待补录", entry: "官网入口", packageType: "模型接入已确认 / 价格待补", status: "可调用 GPT 5.5 / 5.4", models: "可调用 GPT 5.5 / 5.4", verdict: "先挂上，等补体验", note: "入口明确，可调用 GPT 5.5 / 5.4，倍率和计费规则待补。", advantage: "模型接入口径已明确，适合继续补价格和高峰样本。", risk: "缺少具体倍率与长期稳定性数据。", groupName: "", sortOrder: 5 },
+    { name: "Datopology", badge: "未实测", url: "https://api.dstopology.com/keys", price: "待补录", multiplier: "待补录", entry: "Keys 页面", packageType: "模型接入已确认 / 价格待补", status: "可调用 GPT 5.5 / 5.4", models: "可调用 GPT 5.5 / 5.4", verdict: "先挂名，等第一手体验", note: "可调用 GPT 5.5 / 5.4，价格倍率待补。", advantage: "模型接入口径已明确，后续重点补价格、倍率和稳定性样本。", risk: "价格与稳定性仍缺第一手数据，别写成确定推荐。", groupName: "", sortOrder: 6 },
+    { name: "WayX", badge: "待补测", url: "https://api.aiwxin.com/dashboard", price: "待补录", multiplier: "待补录", entry: "Dashboard 直链", packageType: "模型接入已确认 / 价格待补", status: "可调用 GPT 5.5 / 5.4", models: "可调用 GPT 5.5 / 5.4", verdict: "先收录，待继续反馈", note: "已收录入口，可调用 GPT 5.5 / 5.4。", advantage: "模型接入口径已明确，方便后续继续补价格和稳定性。", risk: "没有明确价格和高峰期稳定性数据。", groupName: "", sortOrder: 7 },
+    { name: "ai8.my", badge: "低倍率", url: "https://ai8.my", price: "0.06 倍率", multiplier: "0.06x", entry: "域名入口", packageType: "倍率制", status: "低倍率，模型已确认", models: "可调用 GPT 5.5 / 5.4", verdict: "倍率比较亮眼", note: "倍率低，可调用 GPT 5.5 / 5.4，缺稳定性反馈。", advantage: "模型和倍率都有亮点，适合补进低倍率观察区。", risk: "高峰期稳定性仍缺样本，别只因为价格低就直接推荐。", groupName: "", sortOrder: 8 },
+    { name: "Liary", badge: "卡制", url: "https://ai.liaryai.com/", price: "待补录", multiplier: "待补录", entry: "官网入口", packageType: "卡制 / 价格待补", status: "可调用 GPT 5.5 / 5.4", models: "可调用 GPT 5.5 / 5.4", verdict: "先保留入口", note: "可调用 GPT 5.5 / 5.4。", advantage: "模型接入口径已明确，后续补价格后可以继续横向比较。", risk: "价格和计费方式仍缺统一样本。", groupName: "", sortOrder: 9 },
+    { name: "dazes.cc", badge: "注册送额", url: "https://cn.dazes.cc", price: "注册送额可试", multiplier: "待补录", entry: "官网登录", packageType: "注册送额 / 价格待补", status: "新人友好，模型已确认", models: "可调用 GPT 5.5 / 5.4", verdict: "新人友好", note: "注册送额，可调用 GPT 5.5 / 5.4，邀请码备注 dGSL。", advantage: "门槛低，模型接入口径明确，适合拿来先试。", risk: "「稳定」目前更多是社区口径，缺少统一实测。", groupName: "", sortOrder: 10 },
+    { name: "viptoken站", badge: "低倍率", url: "https://www.viptoken.top/dashboard", price: "GPT 0.2 / Claude 0.15", multiplier: "0.15x 起", entry: "Dashboard 直链", packageType: "模型分组计价", status: "已拆 GPT / Claude", models: "GPT-5.5 / GPT-5.4 / Claude", verdict: "也需要按模型分开看", note: "GPT 5.5 / 5.4 与 Claude 组倍率不同。", advantage: "模型和价格分组清楚，适合放进正式榜单做对比。", risk: "仍缺高峰稳定性和长期使用反馈。", groupName: "", sortOrder: 11 },
+    { name: "Primdream", badge: "待复核", url: "https://primdream.store/login", price: "待补录", multiplier: "待补录", entry: "官网登录", packageType: "模型接入已确认 / 价格待补", status: "可调用 GPT 5.5 / 5.4", models: "可调用 GPT 5.5 / 5.4", verdict: "等待新口径", note: "入口保留，可调用 GPT 5.5 / 5.4，倍率待补。", advantage: "模型接入口径已明确，后续更新价格比较方便。", risk: "价格和稳定性还没有足够样本做明确判断。", groupName: "", sortOrder: 12 },
+    { name: "xiaoya-api", badge: "待补测", url: "https://xiaoya-api.xyz", price: "待补录", multiplier: "待补录", entry: "官网入口", packageType: "模型接入已确认 / 价格待补", status: "可调用 GPT 5.5 / 5.4", models: "可调用 GPT 5.5 / 5.4", verdict: "先收录，等新口径", note: "入口保留，可调用 GPT 5.5 / 5.4，倍率待补。", advantage: "模型接入口径已明确，后续补价格方便。", risk: "当前没有可直接比较的价格信息。", groupName: "", sortOrder: 13 },
+    { name: "星见雅公益", badge: "免费", url: "https://new.xinjianya.top/", price: "免费", multiplier: "不适用", entry: "官网入口", packageType: "公益 / 免费入口", status: "免费入口 + Grok", models: "Grok / 其他待补", verdict: "适合单独关注", note: "免费入口，可调用 Grok。", advantage: "对新手非常友好，门槛最低，也有额外模型可试。", risk: "免费不代表长期稳定，仍要看规则和高峰表现。", groupName: "", sortOrder: 14 },
+  ];
+
+  const supabase = getSupabaseClient();
+  // Get existing names
+  const { data: existing } = await supabase.from("stations").select("name");
+  const existingNames = new Set(((existing ?? []) as { name: string }[]).map((r) => r.name));
+
+  let added = 0;
+  for (const s of defaults) {
+    if (existingNames.has(s.name)) continue;
+    // Map to snake_case column names
+    const { error } = await supabase.from("stations").insert({
+      name: (s as any).name, badge: (s as any).badge, url: (s as any).url,
+      price: (s as any).price, multiplier: (s as any).multiplier,
+      entry: (s as any).entry, package_type: (s as any).packageType ?? (s as any).package_type ?? "",
+      status: (s as any).status, models: (s as any).models,
+      verdict: (s as any).verdict, note: (s as any).note,
+      advantage: (s as any).advantage, risk: (s as any).risk,
+      group_name: (s as any).groupName ?? (s as any).group_name ?? "",
+      sort_order: (s as any).sortOrder ?? (s as any).sort_order ?? 0,
+    });
+    if (error) { console.error("[seed] Insert failed for", (s as any).name, error); }
+    else added++;
+  }
+  notifyStationsChanged();
+  return added;
+}
+
 /** Get a single station by id. */
 export async function getStation(id: string): Promise<Station | null> {
   if (!isSupabaseConfigured()) return null;
