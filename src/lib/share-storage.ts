@@ -305,7 +305,7 @@ export async function loadSharedComments(postId: string): Promise<SharedComment[
   } catch { return []; }
 }
 
-/** 创建新评论 (author_id 从服务端 JWT 获取，不信任客户端传入) */
+/** 创建新评论 — 调用 SECURITY DEFINER RPC，auth.uid() 在 PG 服务端求值 */
 export async function createSharedComment(
   postId: string,
   body: string,
@@ -314,32 +314,28 @@ export async function createSharedComment(
   if (!isSupabaseConfigured()) throw new Error("Supabase 未配置。");
   const supabase = getSupabaseClient();
 
-  /* 从服务端 JWT 获取真实用户 ID，确保 RLS auth.uid() = author_id */
-  const { data: userData } = await supabase.auth.getUser();
-  if (!userData.user) throw new Error("请先登录后再评论。");
-  const authorId = userData.user.id;
-
-  const { data, error } = await supabase
-    .from("shared_post_comments")
-    .insert({
-      post_id: postId,
-      author_id: authorId,
-      body: body.trim(),
-      parent_comment_id: parentCommentId,
-    })
-    .select("id, post_id, author_id, body, parent_comment_id, is_hidden, created_at")
-    .single();
+  /* 使用 RPC 插入，auth.uid() 由 PostgreSQL 服务端求值，杜绝 RLS 不匹配 */
+  const { data, error } = await supabase.rpc("insert_shared_comment", {
+    p_post_id: postId,
+    p_body: body.trim(),
+    p_parent_comment_id: parentCommentId,
+  });
 
   if (error) {
-    console.error("[share-storage] createSharedComment 失败:", error);
+    console.error("[share-storage] createSharedComment RPC 失败:", error);
     throw new Error(`评论发布失败: ${error.message}`);
   }
   if (!data) throw new Error("评论发布失败: 未返回数据。");
 
-  const row = data as Record<string, unknown>;
-  /* 获取作者名称 */
-  let authorName = userData.user.user_metadata?.display_name as string ?? "用户";
-  let authorAvatar = userData.user.user_metadata?.avatar_url as string ?? null;
+  /* RPC returns SETOF shared_post_comments, data is an array */
+  const rows = data as Record<string, unknown>[];
+  if (!Array.isArray(rows) || rows.length === 0) throw new Error("评论发布失败: 返回为空。");
+  const row = rows[0];
+  const authorId = row.author_id as string;
+
+  /* 获取作者显示名 */
+  let authorName = "用户";
+  let authorAvatar: string | null = null;
   try {
     const { data: profile } = await supabase
       .from("forum_profiles")
@@ -348,14 +344,14 @@ export async function createSharedComment(
       .maybeSingle();
     if (profile) {
       authorName = (profile as any).display_name ?? authorName;
-      authorAvatar = (profile as any).avatar_url ?? authorAvatar;
+      authorAvatar = (profile as any).avatar_url ?? null;
     }
-  } catch { /* 降级到 user_metadata */ }
+  } catch { /* 降级 */ }
 
   return {
     id: row.id as string,
     postId: row.post_id as string,
-    authorId: row.author_id as string,
+    authorId,
     authorName,
     authorAvatar,
     body: row.body as string,
