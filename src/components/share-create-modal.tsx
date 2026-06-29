@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { X, Folder, Plus, Loader2, Check } from "lucide-react";
+import { X, Folder, Plus, Loader2, Check, ImageIcon } from "lucide-react";
 import type { ShareFolder } from "@/lib/share-storage";
+import { usePostImageUpload } from "@/lib/use-post-image-upload";
 
 export type CreateMode = "folder" | "post";
 
@@ -31,6 +32,9 @@ export function ShareCreateModal({ open, mode, currentFolder, folders, onClose, 
   const [success, setSuccess] = useState(false);
   const nameRef = useRef<HTMLInputElement>(null);
   const titleRef = useRef<HTMLInputElement>(null);
+
+  /* 图片上传 Hook */
+  const { textareaRef, onPaste, uploading, triggerUpload, FileInput } = usePostImageUpload(body, setBody);
 
   useEffect(() => {
     if (open) {
@@ -145,10 +149,33 @@ export function ShareCreateModal({ open, mode, currentFolder, folders, onClose, 
                       className={`${inputClass} resize-none`} />
                   </div>
                   <div>
-                    <label className="block text-xs text-white/40 font-body mb-1.5">帖子内容</label>
-                    <textarea value={body} onChange={(e) => { setBody(e.target.value); setError(""); }}
-                      placeholder="详细介绍该项目的特点、使用体验或教程..." rows={6} maxLength={10000}
-                      className={`${inputClass} resize-none`} />
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-xs text-white/40 font-body">帖子内容</label>
+                      <button
+                        type="button"
+                        onClick={triggerUpload}
+                        disabled={uploading}
+                        className="inline-flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-200 transition-colors disabled:opacity-40 font-body"
+                        title="上传图片 (Ctrl+V 粘贴)"
+                      >
+                        {uploading ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <ImageIcon className="h-3.5 w-3.5" />
+                        )}
+                        {uploading ? "上传中..." : "图片"}
+                      </button>
+                    </div>
+                    <textarea
+                      ref={textareaRef}
+                      value={body}
+                      onChange={(e) => { setBody(e.target.value); setError(""); }}
+                      onPaste={onPaste}
+                      placeholder="详细介绍该项目的特点、使用体验或教程... (Ctrl+V 粘贴截图)"
+                      rows={6}
+                      maxLength={10000}
+                      className={`${inputClass} resize-none`}
+                    />
                   </div>
                   <div>
                     <label className="block text-xs text-white/40 font-body mb-1.5">所属板块 <span className="text-red-400">*必选</span></label>
@@ -167,6 +194,7 @@ export function ShareCreateModal({ open, mode, currentFolder, folders, onClose, 
                 </>
               )}
             </div>
+            <FileInput />
             {error && <p className="mt-4 text-sm font-semibold text-red-400 font-body" role="alert">{error}</p>}
             <div className="mt-6 flex items-center justify-end gap-3">
               <button onClick={onClose} className="rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm text-white/50 hover:bg-white/10 hover:text-white transition font-body" type="button" disabled={loading}>取消</button>

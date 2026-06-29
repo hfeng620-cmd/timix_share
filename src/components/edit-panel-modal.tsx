@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { X, Clock, Loader2 } from "lucide-react";
+import { X, Clock, Loader2, ImageIcon } from "lucide-react";
 import { loadEditLogs, updateFolder, updateSharePost, type EditLogEntry } from "@/lib/share-storage";
+import { usePostImageUpload } from "@/lib/use-post-image-upload";
 
 type EditMode = "folder" | "post";
 
@@ -28,6 +29,9 @@ export function EditPanelModal({ open, mode, targetId, initialName, initialDesc,
   const [error, setError] = useState("");
   const [editLogs, setEditLogs] = useState<EditLogEntry[]>([]);
   const [logsLoading, setLogsLoading] = useState(true);
+
+  /* 图片上传 Hook */
+  const { textareaRef, onPaste, uploading, triggerUpload, FileInput } = usePostImageUpload(body, setBody);
 
   useEffect(() => {
     if (!open) return;
@@ -107,14 +111,38 @@ export function EditPanelModal({ open, mode, targetId, initialName, initialDesc,
                       value={link} onChange={(e) => setLink(e.target.value)} placeholder="https://..." />
                   </div>
                   <div>
-                    <label className="block text-xs text-white/40 font-body mb-1.5">正文</label>
-                    <textarea className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none placeholder:text-white/25 focus:border-white/30 transition font-body resize-none"
-                      rows={8} value={body} onChange={(e) => setBody(e.target.value)} />
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-xs text-white/40 font-body">正文</label>
+                      <button
+                        type="button"
+                        onClick={triggerUpload}
+                        disabled={uploading}
+                        className="inline-flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-200 transition-colors disabled:opacity-40 font-body"
+                        title="上传图片 (Ctrl+V 粘贴)"
+                      >
+                        {uploading ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <ImageIcon className="h-3.5 w-3.5" />
+                        )}
+                        {uploading ? "上传中..." : "图片"}
+                      </button>
+                    </div>
+                    <textarea
+                      ref={textareaRef}
+                      className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none placeholder:text-white/25 focus:border-white/30 transition font-body resize-none"
+                      rows={8}
+                      value={body}
+                      onChange={(e) => setBody(e.target.value)}
+                      onPaste={onPaste}
+                      placeholder="详细介绍该项目的特点... (Ctrl+V 粘贴截图)"
+                    />
                   </div>
                 </>
               )}
             </div>
 
+            <FileInput />
             {error && <p className="mt-4 text-sm text-red-400 font-body">{error}</p>}
 
             <div className="mt-6 flex items-center gap-3">
