@@ -73,14 +73,14 @@ export function ShareCreateModal({ open, mode, currentFolder, folders, onClose, 
         if (!name.trim()) { setError("请输入板块名称。"); setLoading(false); return; }
         const result = await onCreateFolder(name.trim(), folderDesc.trim(), currentFolder.id);
         setSuccess(true);
-        setError(`✅ 已创建! ID: ${(result as any)?.id?.slice(0,8) ?? '未知'}`);
+        setError(`板块创建成功！ID: ${(result as any)?.id?.slice(0,8) ?? '未知'}`);
       } else {
         if (!title.trim()) { setError("请输入项目标题。"); setLoading(false); return; }
         if (!summary.trim()) { setError("请输入项目简介。"); setLoading(false); return; }
         if (!body.trim()) { setError("请输入帖子内容。"); setLoading(false); return; }
         const result = await onCreatePost(title.trim(), summary.trim(), body.trim(), link.trim(), selectedFolderId);
         setSuccess(true);
-        setError(`✅ 已发布! ID: ${(result as any)?.id?.slice(0,8) ?? '未知'}`);
+        setError(`发布成功！ID: ${(result as any)?.id?.slice(0,8) ?? '未知'}`);
       }
     } catch (err: any) { setError(`❌ ${err?.message || '操作失败'}`); }
     finally { setLoading(false); }
@@ -102,7 +102,9 @@ export function ShareCreateModal({ open, mode, currentFolder, folders, onClose, 
         {success ? (
           <div className="flex flex-col items-center justify-center py-8 gap-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-400/20"><Check className="h-6 w-6 text-emerald-400" /></div>
-            <p className="text-sm text-white/70 font-body">{mode === "folder" ? "板块创建成功！" : "项目分享成功！"}</p>
+            <p className="text-sm text-white/70 font-body">{error || (mode === "folder" ? "板块创建成功！" : "项目分享成功！")}</p>
+            <p className="text-xs text-white/30 font-body">已写入数据库，刷新页面可见</p>
+            <button onClick={onClose} className="mt-3 rounded-full bg-white/10 px-5 py-2 text-xs text-white/60 hover:bg-white/20 transition font-body">关闭</button>
           </div>
         ) : (
           <>
