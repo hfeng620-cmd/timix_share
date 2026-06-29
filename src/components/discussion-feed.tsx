@@ -608,6 +608,15 @@ export function DiscussionFeed({
     };
   }, [loading]);
 
+  /** 主发帖区 Enter 发送处理器 */
+  function handleComposerKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (e.nativeEvent.isComposing) return;
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      void handleSubmitPost();
+    }
+  }
+
   async function handleSubmitPost() {
     if (!isConnected) {
       showAuthModal();
@@ -616,7 +625,9 @@ export function DiscussionFeed({
 
     if (submitting) return;
 
-    if (!body.trim()) {
+    const trimmed = body.trim();
+    if (!trimmed) {
+      console.warn("[讨论] 评论内容为空，拦截发送");
       setStatus("先写点内容再发帖。");
       return;
     }
@@ -629,10 +640,11 @@ export function DiscussionFeed({
     setSubmitting(true);
     setStatus("发布中...");
     try {
+      console.log("[讨论] 准备发送帖子:", { body: trimmed, station: station.trim(), tags });
       await createDiscussionPost({
         author: displayName || "噜噜",
         handle: "@forum",
-        body: body.trim(),
+        body: trimmed,
         station: station.trim(),
         tags,
       });
@@ -641,7 +653,10 @@ export function DiscussionFeed({
       setStation("");
       setStatus("已发布。");
     } catch (err) {
-      setStatus(err instanceof Error ? err.message : "发布失败，请检查网络后重试。");
+      const msg = err instanceof Error ? err.message : "发布失败，请检查网络后重试。";
+      console.error("[讨论] 发送帖子失败:", err);
+      setStatus(msg);
+      alert("发送失败: " + msg);
     } finally {
       setSubmitting(false);
     }
@@ -730,6 +745,15 @@ export function DiscussionFeed({
       void loadPostComments(postId);
   }
 
+  /** 回复区 Enter 发送处理器 */
+  function handleReplyKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>, postId: string) {
+    if (e.nativeEvent.isComposing) return;
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      void handleReply(postId);
+    }
+  }
+
   async function handleReply(postId: string) {
     if (!isConnected) {
       showAuthModal();
@@ -739,6 +763,7 @@ export function DiscussionFeed({
 
     const draft = replyDrafts[postId]?.trim();
     if (!draft) {
+      console.warn("[讨论] 回复内容为空，拦截发送");
       setStatus("先写一点回复内容。");
       return;
     }
@@ -746,6 +771,7 @@ export function DiscussionFeed({
     setReplySubmitting((prev) => new Set(prev).add(postId));
     setStatus("回复中...");
     try {
+      console.log("[讨论] 准备发送回复:", { postId, draft });
       await replyDiscussionPost(postId, draft);
       const newComments = await loadComments(postId);
       setCommentsMap((current) => ({ ...current, [postId]: newComments }));
@@ -761,8 +787,11 @@ export function DiscussionFeed({
       });
       setExpandedPostId(postId);
       setStatus("已回复。");
-    } catch {
-      setStatus("回复失败，请检查网络后重试。");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "回复失败，请检查网络后重试。";
+      console.error("[讨论] 发送回复失败:", err);
+      setStatus(msg);
+      alert("回复失败: " + msg);
     } finally {
       setReplySubmitting((prev) => { const next = new Set(prev); next.delete(postId); return next; });
     }
@@ -1006,7 +1035,7 @@ export function DiscussionFeed({
                   }
                 }
               }}
-              onKeyDown={(e) => { if (e.nativeEvent.isComposing) return; if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSubmitPost(); } }}
+              onKeyDown={handleComposerKeyDown}
               placeholder="一句反馈、一个价格变化、一次试用观察，都可以先发在这里。 (Enter 发送, Shift+Enter 换行)"
               value={body}
             />
@@ -1050,7 +1079,7 @@ export function DiscussionFeed({
                 <span aria-live="polite" className="text-xs text-[var(--color-muted)]">{status}</span>
               </div>
               <button
-                className="rounded-full bg-[var(--color-brand)] px-5 py-3 text-sm font-bold text-[var(--color-on-brand)] transition hover:bg-[var(--color-brand-deep)]"
+                className="cursor-pointer rounded-full bg-[var(--color-brand)] px-5 py-3 text-sm font-bold text-[var(--color-on-brand)] transition hover:bg-[var(--color-brand-deep)]"
                 onClick={handleSubmitPost}
                 type="button"
               >
@@ -1648,12 +1677,12 @@ export function DiscussionFeed({
                           }
                         }
                       }}
-                      onKeyDown={(e) => { if (e.nativeEvent.isComposing) return; if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleReply(post.issueNumber); } }}
+                      onKeyDown={(e) => handleReplyKeyDown(e, post.issueNumber)}
                       placeholder={`回复 ${replyTarget ?? "楼主"}（支持粘贴图片, Enter 发送, Shift+Enter 换行）`}
                       value={replyDrafts[post.issueNumber] ?? ""}
                     />
                     <button
-                      className="w-full rounded-full bg-[var(--color-brand)] px-4 py-3.5 text-sm font-bold text-[var(--color-on-brand)] transition hover:bg-[var(--color-brand-deep)] disabled:opacity-50 sm:w-auto"
+                      className="w-full cursor-pointer rounded-full bg-[var(--color-brand)] px-4 py-3.5 text-sm font-bold text-[var(--color-on-brand)] transition hover:bg-[var(--color-brand-deep)] disabled:opacity-50 sm:w-auto"
                       disabled={replySubmitting.has(post.issueNumber)}
                       onClick={() => handleReply(post.issueNumber)}
                       type="button"

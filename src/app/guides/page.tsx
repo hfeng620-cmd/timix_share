@@ -241,8 +241,12 @@ function PostModal({ post, onClose, onEdit }: { post: PostNode; onClose: () => v
 
   function handleSendComment() {
     const body = commentText.trim();
-    if (!body) return;
+    if (!body) {
+      console.warn("[指南评论] 评论内容为空，拦截发送");
+      return;
+    }
     try {
+      console.log("[指南评论] 准备发送评论:", { body, username: user?.user_metadata?.display_name ?? "匿名" });
       const newComment = {
         id: Date.now(),
         username: user?.user_metadata?.display_name ?? "匿名",
@@ -253,6 +257,7 @@ function PostModal({ post, onClose, onEdit }: { post: PostNode; onClose: () => v
       setComments((prev) => [...prev, newComment]);
       setCommentText("");
     } catch (err: unknown) {
+      console.error("[指南评论] 发送失败:", err);
       alert("评论发送失败: " + (err instanceof Error ? err.message : String(err)));
     }
   }
@@ -260,8 +265,12 @@ function PostModal({ post, onClose, onEdit }: { post: PostNode; onClose: () => v
   function handleSendReply() {
     if (!replyModalComment) return;
     const body = replyModalText.trim();
-    if (!body) return;
+    if (!body) {
+      console.warn("[指南评论] 回复内容为空，拦截发送");
+      return;
+    }
     try {
+      console.log("[指南评论] 准备发送回复:", { body, replyTo: replyModalComment.username });
       const newReply = {
         id: Date.now(),
         username: user?.user_metadata?.display_name ?? "匿名",

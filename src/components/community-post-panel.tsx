@@ -138,12 +138,15 @@ export function CommunityPostPanel({ onPostCreated }: CommunityPostPanelProps) {
 
     if (submitting) return;
 
-    if (!body.trim()) {
+    const trimmedBody = body.trim();
+    if (!trimmedBody) {
+      console.warn("[发帖] 正文为空，拦截发送");
       setStatus("先写一点正文，再发布。");
       return;
     }
 
-    if (body.trim().length < 5) {
+    if (trimmedBody.length < 5) {
+      console.warn("[发帖] 正文不足5字符:", trimmedBody.length);
       setStatus("正文至少需要5个字符，再写详细一点吧。");
       return;
     }
@@ -158,10 +161,11 @@ export function CommunityPostPanel({ onPostCreated }: CommunityPostPanelProps) {
 
     setSubmitting(true);
     try {
+      console.log("[发帖] 准备发布:", { body: trimmedBody, station: station.trim(), tags: allTags });
       await createDiscussionPost({
         author: displayName || "噜噜",
         handle: "@forum",
-        body: body.trim(),
+        body: trimmedBody,
         station: station.trim(),
         tags: allTags,
       });
@@ -172,7 +176,10 @@ export function CommunityPostPanel({ onPostCreated }: CommunityPostPanelProps) {
       setStatus("已发布。");
       onPostCreated?.();
     } catch (err) {
-      setStatus(err instanceof Error ? err.message : "发布失败，请检查网络后重试。");
+      const msg = err instanceof Error ? err.message : "发布失败，请检查网络后重试。";
+      console.error("[发帖] 发送失败:", err);
+      setStatus(msg);
+      alert("发送失败: " + msg);
     } finally {
       setSubmitting(false);
     }
@@ -219,7 +226,7 @@ export function CommunityPostPanel({ onPostCreated }: CommunityPostPanelProps) {
           </button>
           <div className="flex flex-col items-stretch gap-2.5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
             <button
-              className="btn-press w-full rounded-full bg-[var(--color-brand)] px-5 py-2.5 text-sm font-bold text-[var(--color-on-brand)] shadow-[0_10px_22px_var(--color-panel-glow)] transition hover:bg-[var(--color-brand-deep)] sm:w-auto"
+              className="btn-press w-full cursor-pointer rounded-full bg-[var(--color-brand)] px-5 py-2.5 text-sm font-bold text-[var(--color-on-brand)] shadow-[0_10px_22px_var(--color-panel-glow)] transition hover:bg-[var(--color-brand-deep)] sm:w-auto"
               onClick={handlePlaceholderClick}
               type="button"
             >
@@ -381,7 +388,7 @@ export function CommunityPostPanel({ onPostCreated }: CommunityPostPanelProps) {
             </button>
 
             <button
-              className="w-full rounded-full bg-[var(--color-brand)] px-5 py-3 text-sm font-bold text-[var(--color-on-brand)] transition hover:bg-[var(--color-brand-deep)] disabled:opacity-60 btn-press sm:w-auto"
+              className="w-full cursor-pointer rounded-full bg-[var(--color-brand)] px-5 py-3 text-sm font-bold text-[var(--color-on-brand)] transition hover:bg-[var(--color-brand-deep)] disabled:opacity-60 btn-press sm:w-auto"
               disabled={submitting}
               onClick={handleSubmit}
               type="button"

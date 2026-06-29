@@ -2249,7 +2249,7 @@ export default function AdminPage() {
                 <input
                   className="min-w-[260px] rounded-2xl border border-[var(--color-line)] bg-white px-5 py-3 outline-none transition focus:border-[var(--color-brand)]"
                   onChange={(e) => setNewAdminEmail(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === "Enter") void handleAddAdmin(); }}
+                  onKeyDown={(e) => { if (e.nativeEvent.isComposing) return; if (e.key === "Enter") { e.preventDefault(); void handleAddAdmin(); } }}
                   placeholder="输入用户邮箱地址"
                   value={newAdminEmail}
                 />

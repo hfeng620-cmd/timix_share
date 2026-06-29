@@ -116,7 +116,7 @@ export function ShareCreateModal({ open, mode, currentFolder, folders, onClose, 
                     <label className="block text-xs text-white/40 font-body mb-1.5">板块名称</label>
                     <input ref={nameRef} type="text" value={name} onChange={(e) => { setName(e.target.value); setError(""); }}
                       placeholder="输入板块名称..." maxLength={100} className={inputClass}
-                      onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSubmit(); } }} />
+                      onKeyDown={(e) => { if (e.nativeEvent.isComposing) return; if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSubmit(); } }} />
                   </div>
                   <div>
                     <label className="block text-xs text-white/40 font-body mb-1.5">板块简介</label>
