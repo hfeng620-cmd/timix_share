@@ -207,7 +207,6 @@ function PostCard({ post, onClick, onEdit, onDelete }: { post: PostNode; onClick
 function PostModal({ post, onClose, onEdit }: { post: PostNode; onClose: () => void; onEdit?: () => void }) {
   const [liked, setLiked] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [commentOpen, setCommentOpen] = useState(false);
   const [commentText, setCommentText] = useState("");
   const [replyingTo, setReplyingTo] = useState<number | null>(null);
   const [replyText, setReplyText] = useState("");
@@ -220,115 +219,127 @@ function PostModal({ post, onClose, onEdit }: { post: PostNode; onClose: () => v
 
   useEffect(() => {
     let cancelled = false;
-    async function fetchLogs() {
-      setLogsLoading(true);
+    async function fetchLogs() { setLogsLoading(true);
       try { const logs = await loadEditLogs(post.id, "post"); if (!cancelled) setEditLogs(logs); }
-      catch { if (!cancelled) setEditLogs([]); }
-      finally { if (!cancelled) setLogsLoading(false); }
-    }
-    fetchLogs();
-    return () => { cancelled = true; };
+      catch { if (!cancelled) setEditLogs([]); } finally { if (!cancelled) setLogsLoading(false); }
+    } fetchLogs(); return () => { cancelled = true; };
   }, [post.id]);
 
   const mockComments = [
-    { id: 1, username: "噜噜", timestamp: "2 小时前", content: "这个项目太棒了！已经在我自己的项目里用上了，CLI 体验非常流畅。" },
-    { id: 2, username: "CodeMaster", timestamp: "5 小时前", content: "补充一下：Windows 下需要额外配置 PATH 环境变量，macOS/Linux 可以直接用。" },
-    { id: 3, username: "AI探索者", timestamp: "1 天前", content: "有没有人遇到过 OOM 的问题？我在处理大文件时内存占用很高。" },
+    { id: 1, username: "噜噜", timestamp: "2 小时前", content: "这个项目太棒了！已经在我自己的项目里用上了。" },
+    { id: 2, username: "CodeMaster", timestamp: "5 小时前", content: "Windows 下需要额外配置 PATH 环境变量。" },
+    { id: 3, username: "AI探索者", timestamp: "1 天前", content: "有没有人遇到过 OOM 的问题？" },
   ];
 
   function handleReplyClick(commentId: number, username: string) { setReplyingTo(commentId); setReplyText(`@${username} `); }
-
-  function relativeTime(dateStr: string): string {
-    const d = new Date(dateStr); const mins = Math.floor((Date.now() - d.getTime()) / 60000);
-    if (isNaN(mins)) return dateStr;
-    if (mins < 1) return "刚刚"; if (mins < 60) return `${mins} 分钟前`;
-    const hrs = Math.floor(mins / 60); if (hrs < 24) return `${hrs} 小时前`;
-    const days = Math.floor(hrs / 24); if (days < 30) return `${days} 天前`;
-    return `${Math.floor(days / 30)} 个月前`;
-  }
+  function relativeTime(d: string) { const m = Math.floor((Date.now() - new Date(d).getTime()) / 60000); if (isNaN(m)) return d; if (m < 1) return "刚刚"; if (m < 60) return `${m}分钟前`; const h = Math.floor(m / 60); if (h < 24) return `${h}小时前`; return `${Math.floor(h / 24)}天前`; }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-xl px-4" onClick={onClose}>
-      <div className="relative w-full max-w-6xl max-h-[85vh] overflow-hidden rounded-3xl border border-white/15 bg-white/6 shadow-2xl backdrop-blur-xl" onClick={(e) => e.stopPropagation()}>
-        <button onClick={onClose} className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white/50 hover:bg-white/20 hover:text-white transition z-20" type="button" aria-label="关闭"><X className="h-4 w-4" /></button>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-2xl px-4" onClick={onClose}>
+      <div className="relative w-full max-w-4xl max-h-[88vh] overflow-y-auto rounded-3xl border border-white/10 bg-white/5 shadow-2xl custom-scrollbar" onClick={(e) => e.stopPropagation()}>
+        <button onClick={onClose} className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white/50 hover:bg-white/20 hover:text-white transition z-20" type="button"><X className="h-4 w-4" /></button>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[7fr_3fr] max-h-[85vh]">
-          {/* Left: content (70%) */}
-          <div className="overflow-y-auto max-h-[85vh] p-6 sm:p-8">
-            <span className="inline-block rounded-full bg-white/10 px-3 py-1 text-xs text-white/50 font-body mb-4">{post.tag}</span>
-            <div className="flex items-start gap-2">
-              <h2 className="text-2xl font-heading italic text-white md:text-3xl flex-1 min-w-0">{post.title}</h2>
+        <div className="p-6 sm:p-8 lg:p-10">
+          {/* Header: tag + title + link */}
+          <div className="flex flex-wrap items-start justify-between gap-3 mb-6">
+            <span className="inline-block rounded-full bg-white/10 px-3 py-1 text-xs text-white/50 font-body">{post.tag}</span>
+            <div className="flex items-center gap-2">
               {canEdit && onEdit && (
-                <button onClick={onEdit} className="shrink-0 mt-1.5 rounded-lg p-1.5 text-white/30 hover:text-white hover:bg-white/10 transition" title="编辑帖子" type="button"><Pencil className="h-4 w-4" /></button>
+                <button onClick={onEdit} className="rounded-lg p-1.5 text-white/30 hover:text-white hover:bg-white/10 transition" title="编辑"><Pencil className="h-4 w-4" /></button>
               )}
-            </div>
-            <p className="mt-4 text-sm leading-relaxed text-white/60 font-body">{post.summary}</p>
-            <div className="mt-6 space-y-3 text-sm leading-relaxed text-white/40 font-body">
-              {post.body ? post.body.split("\n").map((para, i) => <p key={i}>{para}</p>) : (
-                <><p>项目详细说明内容。包含安装步骤、使用示例、API 文档和常见问题解答。</p><p>社区成员可在评论区补充心得、提交反馈或分享改进方案。</p></>
-              )}
-            </div>
-            <div className="mt-8 space-y-5 border-t border-white/10 pt-5">
-              <div className="flex items-center gap-6">
-                <button onClick={() => setLiked(!liked)} className={`inline-flex items-center gap-2 text-sm transition font-body ${liked ? "text-rose-400" : "text-white/40 hover:text-rose-300"}`} type="button"><Heart className={`h-5 w-5 transition ${liked ? "fill-current" : ""}`} />{liked ? post.likes + 1 : post.likes >= 1000 ? `${(post.likes / 1000).toFixed(1)}k` : post.likes}</button>
-                <button onClick={() => setCommentOpen(!commentOpen)} className="inline-flex items-center gap-2 text-sm text-white/40 hover:text-sky-300 transition font-body" type="button"><MessageCircle className="h-5 w-5" />{post.comments}</button>
-                <button onClick={() => setSaved(!saved)} className={`inline-flex items-center gap-2 text-sm transition font-body ml-auto ${saved ? "text-amber-400" : "text-white/40 hover:text-amber-300"}`} type="button"><Bookmark className={`h-5 w-5 transition ${saved ? "fill-current" : ""}`} />{saved ? "已收藏" : "收藏"}</button>
-              </div>
-              {commentOpen && (
-                <div className="space-y-4">
-                  {mockComments.map((c) => (
-                    <div key={c.id} className="rounded-xl bg-white/5 border border-white/10 p-4">
-                      <div className="flex items-start gap-3">
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10 text-xs font-bold text-white/50">{c.username.charAt(0)}</div>
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2"><span className="text-sm font-semibold text-white/80 font-body">{c.username}</span><span className="text-[11px] text-white/30 font-body">{c.timestamp}</span></div>
-                          <p className="mt-1.5 text-sm leading-relaxed text-white/55 font-body">{c.content}</p>
-                          <button onClick={() => handleReplyClick(c.id, c.username)} className="mt-2 inline-flex items-center gap-1 text-xs text-white/35 hover:text-white/70 transition font-body" type="button"><MessageCircle className="h-3 w-3" />回复</button>
-                          {replyingTo === c.id && (
-                            <div className="mt-3 flex items-start gap-2 rounded-lg bg-white/5 border border-white/10 p-3">
-                              <textarea className="flex-1 min-h-[40px] resize-none bg-transparent text-sm text-white font-body outline-none placeholder:text-white/25" value={replyText} onChange={(e) => setReplyText(e.target.value)} autoFocus />
-                              <div className="flex items-center gap-1.5 shrink-0"><button className="rounded-full bg-white/10 px-3 py-1.5 text-xs text-white/50 hover:bg-white/20 hover:text-white transition font-body" onClick={() => { setReplyingTo(null); setReplyText(""); }} type="button">取消</button><button className="rounded-full bg-white/15 p-1.5 text-white/50 hover:bg-white/25 hover:text-white transition disabled:opacity-30" onClick={() => { setReplyingTo(null); setReplyText(""); }} type="button" disabled={!replyText.trim()}><Send className="h-3.5 w-3.5" /></button></div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                  <div className="flex items-start gap-3 rounded-xl bg-white/5 border border-white/10 p-3">
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10 text-xs font-bold text-white/50">U</div>
-                    <div className="flex-1 flex items-start gap-2"><textarea className="flex-1 min-h-[60px] resize-none bg-transparent text-sm text-white font-body outline-none placeholder:text-white/25" placeholder="写下你的评论..." value={commentText} onChange={(e) => setCommentText(e.target.value)} /><button className="shrink-0 mt-1 rounded-full bg-white/15 p-2 text-white/50 hover:bg-white/25 hover:text-white transition disabled:opacity-30" type="button" onClick={() => setCommentText("")} disabled={!commentText.trim()}><Send className="h-4 w-4" /></button></div>
-                  </div>
-                </div>
+              {editLogs.length > 0 && (
+                <span className="rounded-full bg-white/5 px-2.5 py-1 text-[10px] text-white/40 font-body">{editLogs.length} 次修改</span>
               )}
             </div>
           </div>
 
-          {/* Right: Edit History (30%) */}
-          <div className="overflow-y-auto max-h-[85vh] bg-white/[0.02] border-l border-white/10 p-6">
-            <div className="flex items-center gap-2 mb-6"><Clock className="h-4 w-4 text-white/40" /><h3 className="text-sm font-heading italic text-white/70">修改日志</h3></div>
-            {logsLoading ? (
-              <div className="flex items-center justify-center py-12"><Loader2 className="h-5 w-5 text-white/30 animate-spin" /></div>
-            ) : editLogs.length === 0 ? (
-              <p className="text-sm text-white/30 font-body">暂无修改记录</p>
-            ) : (
-              <div className="relative pl-6 border-l border-white/10">
-                {editLogs.map((log) => (
-                  <div key={log.id} className="relative pb-6 last:pb-0">
-                    <div className="absolute -left-[9px] top-1 h-[18px] w-[18px] rounded-full border-2 border-white/20 bg-black" />
-                    <div className="space-y-1.5">
-                      <span className="text-[11px] text-white/30 font-body">{relativeTime(log.createdAt)}</span>
+          {/* Title */}
+          <h2 className="text-3xl font-heading italic text-white md:text-4xl leading-tight">{post.title}</h2>
+
+          {/* Creator info row */}
+          <div className="flex items-center gap-3 mt-4 text-sm text-white/40 font-body">
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/10 text-[10px] text-white/50">{(post as any).authorName?.charAt(0) ?? "U"}</span>
+            <span className="text-white/60">{(post as any).authorName ?? "匿名用户"}</span>
+            <span>·</span>
+            <span>{relativeTime((post as any).createdAt ?? new Date().toISOString())}</span>
+          </div>
+
+          {/* Summary */}
+          <p className="mt-5 text-sm leading-relaxed text-white/50 font-body">{post.summary}</p>
+
+          {/* Body — prose-like reading experience */}
+          <div className="mt-6 text-sm leading-relaxed text-gray-300 font-body space-y-4">
+            {post.body ? post.body.split("\n").filter(Boolean).map((para, i) => (
+              <p key={i}>{para}</p>
+            )) : (
+              <p>项目详细说明内容。包含安装步骤、使用示例、API 文档和常见问题解答。</p>
+            )}
+          </div>
+
+          {/* Action bar */}
+          <div className="mt-8 flex items-center gap-5 border-t border-white/10 pt-5">
+            <button onClick={() => setLiked(!liked)} className={`inline-flex items-center gap-1.5 text-sm transition font-body ${liked ? "text-rose-400" : "text-white/40 hover:text-rose-300"}`} type="button"><Heart className={`h-4 w-4 transition ${liked ? "fill-current" : ""}`} />{liked ? post.likes + 1 : post.likes}</button>
+            <button className="inline-flex items-center gap-1.5 text-sm text-white/40 hover:text-sky-300 transition font-body" type="button"><MessageCircle className="h-4 w-4" />{post.comments}</button>
+            <button onClick={() => setSaved(!saved)} className={`inline-flex items-center gap-1.5 text-sm transition font-body ml-auto ${saved ? "text-amber-400" : "text-white/40 hover:text-amber-300"}`} type="button"><Bookmark className={`h-4 w-4 transition ${saved ? "fill-current" : ""}`} />{saved ? "已收藏" : "收藏"}</button>
+          </div>
+
+          {/* Bilibili-style comment section */}
+          <div className="mt-6 border-t border-white/10 pt-5">
+            <h4 className="text-sm font-heading italic text-white/60 mb-4">评论 {post.comments > 0 ? `(${post.comments})` : ""}</h4>
+
+            {/* Comment input */}
+            <div className="flex items-start gap-3 mb-6">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10 text-xs text-white/50 mt-1">U</span>
+              <div className="flex-1 relative">
+                <textarea className="w-full min-h-[48px] resize-none rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-sm text-white placeholder:text-white/25 font-body outline-none focus:border-white/30 transition" placeholder="说点什么..." value={commentText} onChange={(e) => setCommentText(e.target.value)} rows={2} />
+                <button className="absolute right-2 bottom-2 rounded-full bg-white/15 p-1.5 text-white/50 hover:bg-white/25 hover:text-white transition disabled:opacity-30" type="button" onClick={() => setCommentText("")} disabled={!commentText.trim()}><Send className="h-3.5 w-3.5" /></button>
+              </div>
+            </div>
+
+            {/* Comment list */}
+            <div className="space-y-4">
+              {mockComments.map((c) => (
+                <div key={c.id} className="group">
+                  <div className="flex gap-3">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/10 text-[10px] text-white/50 mt-0.5">{c.username.charAt(0)}</span>
+                    <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        {log.editorAvatar ? <img src={log.editorAvatar} className="w-5 h-5 rounded-full ring-1 ring-white/10" alt="" /> : <span className="flex w-5 h-5 items-center justify-center rounded-full bg-white/10 text-[10px] text-white/50">{log.editorName.charAt(0)}</span>}
-                        <span className="text-xs text-white/60 font-body">{log.editorName}</span>
+                        <span className="text-sm font-medium text-white/70 font-body">{c.username}</span>
+                        <span className="text-[11px] text-white/25 font-body">{c.timestamp}</span>
                       </div>
-                      <p className="text-xs text-white/40 font-body">{log.actionSummary}</p>
-                      {log.totalContributions > 0 && <span className="inline-block rounded-full bg-white/10 px-2 py-0.5 text-[10px] text-white/50 font-body">累计贡献 {log.totalContributions} 次</span>}
+                      <p className="mt-1 text-sm leading-relaxed text-white/45 font-body">{c.content}</p>
+                      <button onClick={() => handleReplyClick(c.id, c.username)} className="mt-1.5 text-xs text-white/25 hover:text-white/50 transition font-body" type="button">回复</button>
+                      {replyingTo === c.id && (
+                        <div className="mt-2 flex items-start gap-2">
+                          <textarea className="flex-1 min-h-[32px] resize-none rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-xs text-white font-body outline-none focus:border-white/30" value={replyText} onChange={(e) => setReplyText(e.target.value)} autoFocus placeholder={`回复 @${c.username}...`} />
+                          <button className="shrink-0 rounded-full bg-white/10 px-2.5 py-1.5 text-xs text-white/50 hover:bg-white/20 transition font-body" onClick={() => { setReplyingTo(null); setReplyText(""); }} type="button">取消</button>
+                          <button className="shrink-0 rounded-full bg-white/15 p-1.5 text-white/50 hover:bg-white/25 transition disabled:opacity-30" onClick={() => { setReplyingTo(null); setReplyText(""); }} type="button" disabled={!replyText.trim()}><Send className="h-3 w-3" /></button>
+                        </div>
+                      )}
                     </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Edit history — compact accordion at bottom */}
+          {editLogs.length > 0 && (
+            <details className="mt-6 border-t border-white/10 pt-4">
+              <summary className="flex items-center gap-2 text-xs text-white/30 hover:text-white/50 cursor-pointer font-body">
+                <Clock className="h-3.5 w-3.5" />修改日志 ({editLogs.length})
+              </summary>
+              <div className="mt-3 relative pl-5 border-l border-white/10 space-y-3">
+                {editLogs.slice(0, 5).map((log) => (
+                  <div key={log.id} className="relative">
+                    <div className="absolute -left-[23px] top-1 h-2.5 w-2.5 rounded-full border border-white/20 bg-black" />
+                    <span className="text-[10px] text-white/25 font-body">{relativeTime(log.createdAt)}</span>
+                    <span className="ml-2 text-xs text-white/45 font-body">{log.editorName} · {log.actionSummary}</span>
                   </div>
                 ))}
               </div>
-            )}
-          </div>
+            </details>
+          )}
         </div>
       </div>
     </div>
