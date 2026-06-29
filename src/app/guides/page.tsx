@@ -554,8 +554,11 @@ export default function GuidesPage() {
           <h1 className="text-3xl font-heading italic leading-[1.15] text-white md:text-5xl">
             {isRoot ? "发现、分享、讨论有趣的项目。" : currentPathLabel()}
           </h1>
+          <p className="mt-2 text-xs text-white/25 font-body">
+            文件夹:{dbFolders?.length ?? "…"} 帖子:{dbPosts?.length ?? "…"} hasReal:{String(hasRealData)}
+          </p>
           {isRoot && (
-            <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/50 font-body">
+            <p className="mt-1 max-w-2xl text-sm leading-relaxed text-white/50 font-body">
               Codex、ClaudeCode 使用教程 · Github 优质开源项目汇总 · 社区共建持续更新
             </p>
           )}

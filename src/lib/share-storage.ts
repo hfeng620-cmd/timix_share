@@ -79,20 +79,26 @@ export async function loadAllPosts(): Promise<SharePost[]> {
   try {
     const { data, error } = await getSupabaseClient()
       .from("shared_posts")
-      .select("id, title, summary, body, folder_id, author_id, likes_count, comments_count, created_at, forum_profiles(display_name)")
+      .select("id, title, summary, body, folder_id, author_id, likes_count, comments_count, created_at")
       .order("created_at", { ascending: false })
-      .limit(50);
+      .limit(100);
     if (error) throw error;
-    return ((data ?? []) as Record<string, unknown>[]).map((row) => ({
-      id: row.id as string,
-      title: row.title as string,
-      summary: row.summary as string,
-      body: row.body as string,
-      folderId: (row.folder_id as string) ?? null,
-      authorId: row.author_id as string,
-      authorName: ((row.forum_profiles as any)?.display_name) ?? "匿名用户",
-      likesCount: (row.likes_count as number) ?? 0,
-      commentsCount: (row.comments_count as number) ?? 0,
+    // Batch load all unique author profiles
+    const rows = (data ?? []) as Record<string, unknown>[];
+    const authorIds = [...new Set(rows.map(r => r.author_id as string).filter(Boolean))];
+    const nameMap = new Map<string, string>();
+    if (authorIds.length > 0) {
+      try {
+        const { data: profiles } = await getSupabaseClient()
+          .from("forum_profiles").select("id, display_name").in("id", authorIds);
+        for (const p of (profiles ?? [])) nameMap.set((p as any).id, (p as any).display_name);
+      } catch {}
+    }
+    return rows.map((row) => ({
+      id: row.id as string, title: row.title as string, summary: row.summary as string,
+      body: row.body as string, folderId: (row.folder_id as string) ?? null,
+      authorId: row.author_id as string, authorName: nameMap.get(row.author_id as string) ?? "匿名用户",
+      likesCount: (row.likes_count as number) ?? 0, commentsCount: (row.comments_count as number) ?? 0,
       createdAt: row.created_at as string,
     }));
   } catch { return []; }
