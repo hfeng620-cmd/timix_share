@@ -12,8 +12,8 @@ type Props = {
   currentFolder: { id: string | null; name: string };
   folders: ShareFolder[];
   onClose: () => void;
-  onCreateFolder: (name: string, desc: string, parentId: string | null) => Promise<void>;
-  onCreatePost: (title: string, summary: string, body: string, link: string, folderId: string | null) => Promise<void>;
+  onCreateFolder: (name: string, desc: string, parentId: string | null) => Promise<any>;
+  onCreatePost: (title: string, summary: string, body: string, link: string, folderId: string | null) => Promise<any>;
 };
 
 const inputClass = "w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white font-body outline-none placeholder:text-white/25 focus:border-white/30 focus:ring-1 focus:ring-white/20 transition-all";
@@ -71,16 +71,18 @@ export function ShareCreateModal({ open, mode, currentFolder, folders, onClose, 
     try {
       if (mode === "folder") {
         if (!name.trim()) { setError("请输入板块名称。"); setLoading(false); return; }
-        await onCreateFolder(name.trim(), folderDesc.trim(), currentFolder.id);
+        const result = await onCreateFolder(name.trim(), folderDesc.trim(), currentFolder.id);
+        setSuccess(true);
+        setError(`✅ 已创建! ID: ${(result as any)?.id?.slice(0,8) ?? '未知'}`);
       } else {
         if (!title.trim()) { setError("请输入项目标题。"); setLoading(false); return; }
         if (!summary.trim()) { setError("请输入项目简介。"); setLoading(false); return; }
         if (!body.trim()) { setError("请输入帖子内容。"); setLoading(false); return; }
-        await onCreatePost(title.trim(), summary.trim(), body.trim(), link.trim(), selectedFolderId);
+        const result = await onCreatePost(title.trim(), summary.trim(), body.trim(), link.trim(), selectedFolderId);
+        setSuccess(true);
+        setError(`✅ 已发布! ID: ${(result as any)?.id?.slice(0,8) ?? '未知'}`);
       }
-      setSuccess(true);
-      setTimeout(() => onClose(), 800);
-    } catch (err: any) { setError(err?.message || "操作失败"); }
+    } catch (err: any) { setError(`❌ ${err?.message || '操作失败'}`); }
     finally { setLoading(false); }
   }
 

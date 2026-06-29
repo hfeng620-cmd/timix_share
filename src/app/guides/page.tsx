@@ -484,14 +484,16 @@ export default function GuidesPage() {
   }, []);
 
   const handleCreateFolder = useCallback(async (name: string, desc: string, parentId: string | null) => {
-    await createFolder(name, desc, parentId);
+    const result = await createFolder(name, desc, parentId);
     const [folders, posts] = await Promise.all([loadFolders(), loadAllPosts()]);
     setDbFolders(folders); setDbPosts(posts);
+    return result;
   }, []);
   const handleCreatePost = useCallback(async (title: string, summary: string, body: string, link: string, folderId: string | null) => {
-    await createSharePost(title, summary, body, link, folderId);
+    const result = await createSharePost(title, summary, body, link, folderId);
     const [folders, posts] = await Promise.all([loadFolders(), loadAllPosts()]);
     setDbFolders(folders); setDbPosts(posts);
+    return result;
   }, []);
   const handleDeletePost = useCallback(async (id: string) => {
     await deleteSharePost(id);
