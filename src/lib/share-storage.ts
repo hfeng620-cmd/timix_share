@@ -31,6 +31,8 @@ export type SharePost = {
   likesCount: number;
   commentsCount: number;
   createdAt: string;
+  isHot: boolean;
+  hotUntil: string | null;
 };
 
 export async function loadFolders(): Promise<ShareFolder[]> {
@@ -79,7 +81,7 @@ export async function loadAllPosts(): Promise<SharePost[]> {
   try {
     const { data, error } = await getSupabaseClient()
       .from("shared_posts")
-      .select("id, title, summary, body, folder_id, author_id, likes_count, comments_count, created_at")
+      .select("id, title, summary, body, folder_id, author_id, likes_count, comments_count, created_at, is_hot, hot_until")
       .order("created_at", { ascending: false })
       .limit(100);
     if (error) throw error;
@@ -100,6 +102,8 @@ export async function loadAllPosts(): Promise<SharePost[]> {
       authorId: row.author_id as string, authorName: nameMap.get(row.author_id as string) ?? "匿名用户",
       likesCount: (row.likes_count as number) ?? 0, commentsCount: (row.comments_count as number) ?? 0,
       createdAt: row.created_at as string,
+      isHot: (row.is_hot as boolean) ?? false,
+      hotUntil: (row.hot_until as string) ?? null,
     }));
   } catch { return []; }
 }
@@ -164,6 +168,7 @@ export async function createSharePost(title: string, summary: string, body: stri
     authorId: row.author_id as string, authorName,
     likesCount: (row.likes_count as number) ?? 0, commentsCount: (row.comments_count as number) ?? 0,
     createdAt: row.created_at as string,
+    isHot: false, hotUntil: null,
   };
 }
 
@@ -217,6 +222,12 @@ export async function logEdit(targetType: "folder" | "post", targetId: string, a
     target_type: targetType, target_id: targetId, editor_id: userData.user.id, action_summary: actionSummary,
   });
   if (error) throw new Error(`记录编辑日志失败: ${error.message}`);
+}
+
+export async function toggleHot(postId: string, hot: boolean, hotUntil: string | null = null): Promise<void> {
+  if (!isSupabaseConfigured()) throw new Error("Supabase 未配置。");
+  const { error } = await getSupabaseClient().from("shared_posts").update({ is_hot: hot, hot_until: hotUntil }).eq("id", postId);
+  if (error) throw new Error(`设置热门失败: ${error.message}`);
 }
 
 export async function loadEditLogs(targetId: string, targetType: "folder" | "post"): Promise<EditLogEntry[]> {

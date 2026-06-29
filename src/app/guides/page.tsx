@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Heart, MessageCircle, Bookmark, Plus, Flame, X,
   Folder, ChevronRight, Trash2, Send, Loader2,
@@ -9,7 +9,7 @@ import {
 import { Navbar } from "@/components/navbar";
 import { lockBodyScroll } from "@/lib/body-scroll-lock";
 import { useForumAuth } from "@/lib/forum-auth";
-import { loadFolders, loadAllPosts, createFolder, createSharePost, deleteSharePost, deleteFolder, updateFolder, updateSharePost, getFolderCreator, getFolderContributors, loadEditLogs, type ShareFolder, type SharePost, type Contributor, type EditLogEntry } from "@/lib/share-storage";
+import { loadFolders, loadAllPosts, createFolder, createSharePost, deleteSharePost, deleteFolder, updateFolder, updateSharePost, getFolderCreator, getFolderContributors, loadEditLogs, toggleHot, type ShareFolder, type SharePost, type Contributor, type EditLogEntry } from "@/lib/share-storage";
 import { EditPanelModal } from "@/components/edit-panel-modal";
 import { ShareCreateModal, type CreateMode } from "@/components/share-create-modal";
 
@@ -40,6 +40,7 @@ type PostNode = {
   bookmarks: number;
   authorId: string;
   body: string;
+  isHot: boolean;
 };
 
 const emptyRoot: FolderNode = { type: "folder", name: "root", children: [] };
@@ -61,14 +62,14 @@ function buildTreeFromDb(dbFolders: ShareFolder[], dbPosts: SharePost[]): Folder
     const childFolders = (childrenMap.get(f.id) ?? []).map(convertFolder);
     const childPosts: PostNode[] = (postsByFolder.get(f.id) ?? []).map((p) => ({
       type: "post", id: p.id, title: p.title, summary: p.summary,
-      tag: f.name, likes: p.likesCount, comments: p.commentsCount, bookmarks: 0, authorId: p.authorId, body: p.body,
+      tag: f.name, likes: p.likesCount, comments: p.commentsCount, bookmarks: 0, authorId: p.authorId, body: p.body, isHot: p.isHot,
     }));
     return { type: "folder", name: f.name, desc: f.description || undefined, dbId: f.id, children: [...childFolders, ...childPosts] };
   }
   const rootFolders = (childrenMap.get(null) ?? []).map(convertFolder);
   const rootPosts: PostNode[] = (postsByFolder.get("__root__") ?? []).map((p) => ({
     type: "post", id: p.id, title: p.title, summary: p.summary,
-    tag: "root", likes: p.likesCount, comments: p.commentsCount, bookmarks: 0, authorId: p.authorId, body: p.body,
+    tag: "root", likes: p.likesCount, comments: p.commentsCount, bookmarks: 0, authorId: p.authorId, body: p.body, isHot: p.isHot,
   }));
   return { type: "folder", name: "root", children: [...rootFolders, ...rootPosts] };
 }
@@ -83,7 +84,7 @@ const OLD_MOCK: FolderNode = {
             {
               type: "post", id: "p1", title: "Codex CLI 实战：用自然语言操控终端",
               summary: "OpenAI Codex 命令行工具深度体验，附常用 prompt 模板和避坑记录。",
-              tag: "Codex", likes: 2340, comments: 156, bookmarks: 892, authorId: "", body: "",
+              tag: "Codex", likes: 2340, comments: 156, bookmarks: 892, authorId: "", body: "", isHot: false,
             },
           ],
         },
@@ -92,7 +93,7 @@ const OLD_MOCK: FolderNode = {
             {
               type: "post", id: "p2", title: "Claude Code 终极配置指南",
               summary: "从零搭建 Claude Code 开发环境，MCP 插件、自定义 hooks 与快捷键映射。",
-              tag: "ClaudeCode", likes: 1890, comments: 98, bookmarks: 654, authorId: "", body: "",
+              tag: "ClaudeCode", likes: 1890, comments: 98, bookmarks: 654, authorId: "", body: "", isHot: false,
             },
           ],
         },
@@ -108,7 +109,7 @@ const OLD_MOCK: FolderNode = {
             {
               type: "post", id: "p3", title: "Tauri 2.0 桌面应用开发指南",
               summary: "基于 Rust 的轻量级跨平台桌面应用框架，替代 Electron 的首选方案。",
-              tag: "前端", likes: 2780, comments: 187, bookmarks: 940, authorId: "", body: "",
+              tag: "前端", likes: 2780, comments: 187, bookmarks: 940, authorId: "", body: "", isHot: false,
             },
           ],
         },
@@ -157,7 +158,7 @@ function getBreadcrumb(tree: FolderNode, indices: number[]): Breadcrumb {
 
 /* ── Post card ── */
 
-function PostCard({ post, onClick, onEdit, onDelete }: { post: PostNode; onClick: () => void; onEdit?: () => void; onDelete?: () => void }) {
+function PostCard({ post, onClick, onEdit, onDelete, onToggleHot }: { post: PostNode; onClick: () => void; onEdit?: () => void; onDelete?: () => void; onToggleHot?: () => void }) {
   const { user, isAdmin, isOwner } = useForumAuth();
   const canEdit = !!(user && (isAdmin || isOwner || user.id === post.authorId));
   return (
@@ -182,6 +183,13 @@ function PostCard({ post, onClick, onEdit, onDelete }: { post: PostNode; onClick
                   onClick={(e) => { e.stopPropagation(); onEdit(); }}>
                   <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                   编辑
+                </button>
+              )}
+              {(isAdmin || isOwner) && onToggleHot && (
+                <button className="flex w-full items-center gap-2 px-3 py-2 text-xs text-amber-400 hover:bg-amber-400/10 hover:text-amber-300 transition font-body" type="button"
+                  onClick={(e) => { e.stopPropagation(); onToggleHot(); }}>
+                  <Flame className="h-3.5 w-3.5" />
+                  {post.isHot ? "取消热门" : "设为热门"}
                 </button>
               )}
               {onDelete && (
@@ -219,7 +227,9 @@ function PostModal({ post, onClose, onEdit }: { post: PostNode; onClose: () => v
   const { user, isAdmin, isOwner } = useForumAuth();
   const canEdit = !!(user && (isAdmin || isOwner || user.id === post.authorId));
 
-  useEffect(() => { const unlock = lockBodyScroll(); return unlock; }, []);
+  const overlayRef = useRef<HTMLDivElement>(null);
+  useEffect(() => { const unlock = lockBodyScroll(); overlayRef.current?.focus(); return unlock; }, []);
+  useEffect(() => { const h = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); }; window.addEventListener("keydown", h); return () => window.removeEventListener("keydown", h); }, [onClose]);
 
   useEffect(() => {
     let cancelled = false;
@@ -238,9 +248,9 @@ function PostModal({ post, onClose, onEdit }: { post: PostNode; onClose: () => v
   function rt(d: string) { const m = Math.floor((Date.now() - new Date(d).getTime()) / 60000); if (isNaN(m)) return d; if (m < 1) return "刚刚"; if (m < 60) return `${m}分钟前`; const h = Math.floor(m / 60); if (h < 24) return `${h}小时前`; return `${Math.floor(h / 24)}天前`; }
 
   return (<>
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-xl px-4" onClick={onClose}>
+    <div ref={overlayRef} tabIndex={-1} className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-xl px-4 outline-none" onClick={onClose}>
+      <button onClick={onClose} className="absolute top-6 right-6 p-2 text-white/40 hover:text-white transition-colors z-[999]" type="button"><X className="h-6 w-6" /></button>
       <div className="relative w-full max-w-6xl h-[85vh] flex overflow-hidden rounded-2xl border border-white/10 bg-zinc-950/90 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-        <button onClick={onClose} className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white/50 hover:bg-white/20 hover:text-white transition z-20" type="button"><X className="h-4 w-4" /></button>
 
         {/* ── Left: project content (70%) ── */}
         <div className="flex-1 flex flex-col border-r border-white/10 overflow-y-auto custom-scrollbar">
@@ -306,13 +316,15 @@ function PostModal({ post, onClose, onEdit }: { post: PostNode; onClose: () => v
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2"><span className="text-sm font-medium text-white/70 font-body">{c.username}</span><span className="text-[11px] text-gray-500 font-body">{c.timestamp}</span></div>
                         <p className="mt-1 text-sm leading-relaxed text-white/45 font-body">{c.content}</p>
-                        <div className="mt-1.5 flex items-center gap-3">
-                          <button onClick={() => setLikedCommentIds(p => { const n = new Set(p); if (n.has(c.id)) n.delete(c.id); else n.add(c.id); return n; })}
-                            className={`inline-flex items-center gap-1 text-xs transition font-body ${isLiked ? "text-rose-400" : "text-gray-500 hover:text-rose-300"}`} type="button">
-                            <Heart className={`h-3 w-3 ${isLiked ? "fill-current" : ""}`} />{isLiked ? "已赞" : "点赞"}
+                        <div className="mt-1.5 flex items-center gap-4">
+                          <button onClick={() => { setLikedCommentIds(p => { const n = new Set(p); if (n.has(c.id)) n.delete(c.id); else n.add(c.id); return n; }); console.log("[Notify] like_comment", { commentId: c.id, username: c.username }); }}
+                            className={`text-gray-500 hover:text-gray-300 transition ${isLiked ? "!text-rose-400" : ""}`} type="button">
+                            <Heart className={`h-3.5 w-3.5 ${isLiked ? "fill-current" : ""}`} />
                           </button>
                           <button onClick={() => { setReplyModalComment(c); setReplyModalText(`@${c.username} `); }}
-                            className="text-xs text-gray-500 hover:text-white/50 transition font-body" type="button">回复</button>
+                            className="text-gray-500 hover:text-gray-300 transition" type="button">
+                            <MessageCircle className="h-3.5 w-3.5" />
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -381,7 +393,7 @@ function PostModal({ post, onClose, onEdit }: { post: PostNode; onClose: () => v
 /* ── Hot sidebar ── */
 
 function HotSidebar({ allPosts, onPostClick }: { allPosts: (PostNode & { path: string })[], onPostClick: (p: PostNode) => void }) {
-  const hot = [...allPosts].filter((p) => p.likes > 0 || p.comments > 0).sort((a, b) => b.likes - a.likes).slice(0, 10);
+  const hot = [...allPosts].filter((p) => p.likes > 0 || p.comments > 0 || p.isHot).sort((a, b) => { if (a.isHot && !b.isHot) return -1; if (!a.isHot && b.isHot) return 1; return b.likes - a.likes; }).slice(0, 10);
 
   function fireColor(rank: number) {
     if (rank === 0) return "text-orange-400";
@@ -542,6 +554,10 @@ export default function GuidesPage() {
     await deleteSharePost(id);
     const [folders, posts] = await Promise.all([loadFolders(), loadAllPosts()]);
     setDbFolders(folders); setDbPosts(posts);
+  }, []);
+  const handleToggleHot = useCallback(async (id: string, hot: boolean) => {
+    try { await toggleHot(id, hot, hot ? new Date(Date.now()+7*86400000).toISOString() : null); const [f, p] = await Promise.all([loadFolders(), loadAllPosts()]); setDbFolders(f); setDbPosts(p); }
+    catch (e: any) { alert(e?.message || "设置热门失败"); }
   }, []);
   const handleDeleteFolder = useCallback(async (id: string, name: string) => {
     if (!window.confirm(`确认删除板块「${name}」？\n\n板块必须为空才能删除（无帖子和子板块）。`)) return;
@@ -786,7 +802,7 @@ export default function GuidesPage() {
                   )}
                   <div className="space-y-2.5">
                     {posts.map((p) => (
-                      <PostCard key={p.id} post={p} onClick={() => setModalPost(p)} onEdit={() => openEditPost(p)} onDelete={() => handleDeletePost(p.id)} />
+                      <PostCard key={p.id} post={p} onClick={() => setModalPost(p)} onEdit={() => openEditPost(p)} onDelete={() => handleDeletePost(p.id)} onToggleHot={() => handleToggleHot(p.id, !p.isHot)} />
                     ))}
                     {posts.length === 0 && subFolders.length === 0 && (
                       <div className="rounded-2xl bg-white/[0.02] border border-dashed border-white/10 p-10 text-center">
@@ -803,7 +819,7 @@ export default function GuidesPage() {
             {isRoot && posts.length > 0 && (
               <div className="space-y-2.5">
                 {posts.map((p) => (
-                  <PostCard key={p.id} post={p} onClick={() => setModalPost(p)} onEdit={() => openEditPost(p)} onDelete={() => handleDeletePost(p.id)} />
+                  <PostCard key={p.id} post={p} onClick={() => setModalPost(p)} onEdit={() => openEditPost(p)} onDelete={() => handleDeletePost(p.id)} onToggleHot={() => handleToggleHot(p.id, !p.isHot)} />
                 ))}
               </div>
             )}
