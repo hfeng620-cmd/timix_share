@@ -497,7 +497,7 @@ export function StationsBoard() {
       alert("站点名不能为空。");
       return;
     }
-    const editorName = displayName || "匿名用户";
+    const editorName = displayName || "未知用户";
     setSaving(true);
     try {
       if (isStaticStationId(editingId)) {

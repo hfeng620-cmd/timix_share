@@ -63,7 +63,7 @@ export async function getFolderCreator(folderId: string): Promise<{ userId: stri
     const { data, error } = await getSupabaseClient().rpc("get_folder_creator", { p_folder_id: folderId });
     if (error || !data || (data as any[]).length === 0) return null;
     const r = (data as any[])[0];
-    return { userId: r.user_id, displayName: r.display_name || "匿名用户", avatarUrl: r.avatar_url };
+    return { userId: r.user_id, displayName: (r.display_name as string) || "未知用户", avatarUrl: r.avatar_url };
   } catch { return null; }
 }
 
@@ -99,7 +99,7 @@ export async function loadAllPosts(): Promise<SharePost[]> {
     return rows.map((row) => ({
       id: row.id as string, title: row.title as string, summary: row.summary as string,
       body: row.body as string, folderId: (row.folder_id as string) ?? null,
-      authorId: row.author_id as string, authorName: nameMap.get(row.author_id as string) ?? "匿名用户",
+      authorId: row.author_id as string, authorName: nameMap.get(row.author_id as string) ?? "未知用户",
       likesCount: (row.likes_count as number) ?? 0, commentsCount: (row.comments_count as number) ?? 0,
       createdAt: row.created_at as string,
       isHot: (row.is_hot as boolean) ?? false,
@@ -157,10 +157,10 @@ export async function createSharePost(title: string, summary: string, body: stri
   }
   alert("【成功】插入成功! ID: " + data.id);
   const row = data as Record<string, unknown>;
-  let authorName = "匿名用户";
+  let authorName = userData.user.user_metadata?.display_name as string ?? "未知用户";
   try {
     const { data: profile } = await getSupabaseClient().from("forum_profiles").select("display_name").eq("id", userData.user.id).maybeSingle();
-    authorName = (profile as any)?.display_name ?? "匿名用户";
+    authorName = (profile as any)?.display_name ?? authorName;
   } catch {}
   return {
     id: row.id as string, title: row.title as string, summary: row.summary as string,
@@ -239,7 +239,7 @@ export async function loadEditLogs(targetId: string, targetType: "folder" | "pos
     if (error || !data) return [];
     return (data as any[]).map((r) => ({
       id: r.id as string, actionSummary: r.action_summary as string, createdAt: r.created_at as string,
-      editorId: r.editor_id as string, editorName: (r.editor_name as string) ?? "匿名用户",
+      editorId: r.editor_id as string, editorName: (r.editor_name as string) ?? "未知用户",
       editorAvatar: (r.editor_avatar as string) ?? null, totalContributions: (r.total_contributions as number) ?? 0,
     }));
   } catch { return []; }

@@ -42,7 +42,7 @@ export function CoCreatorsWall() {
           list.push({
             id: uid,
             avatarUrl: profile?.avatar_url ?? null,
-            nickname: profile?.display_name ?? "匿名用户",
+            nickname: profile?.display_name ?? "未知用户",
             role: ownerIds.has(uid) ? "founder" : adminIds.has(uid) ? "admin" : "contributor",
           });
         }

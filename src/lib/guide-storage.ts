@@ -52,7 +52,7 @@ export async function loadApprovedGuides(limit: number = 50): Promise<UserGuide[
       return {
         id: row.id as string,
         authorId: row.author_id as string,
-        authorName: profile?.display_name ?? "匿名用户",
+        authorName: profile?.display_name ?? "未知用户",
         title: row.title as string,
         summary: row.summary as string,
         body: row.body as string,
@@ -91,7 +91,7 @@ export async function loadPendingGuides(): Promise<UserGuide[]> {
       return {
         id: row.id as string,
         authorId: row.author_id as string,
-        authorName: profile?.display_name ?? "匿名用户",
+        authorName: profile?.display_name ?? "未知用户",
         title: row.title as string,
         summary: row.summary as string,
         body: row.body as string,
