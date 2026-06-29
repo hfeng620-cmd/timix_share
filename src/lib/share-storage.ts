@@ -244,3 +244,125 @@ export async function loadEditLogs(targetId: string, targetType: "folder" | "pos
     }));
   } catch { return []; }
 }
+
+/* ═══════════════════════════════════════════
+   分享帖评论 CRUD (shared_post_comments)
+   ═══════════════════════════════════════════ */
+
+export type SharedComment = {
+  id: string;
+  postId: string;
+  authorId: string;
+  authorName: string;
+  authorAvatar: string | null;
+  body: string;
+  parentCommentId: string | null;
+  isHidden: boolean;
+  createdAt: string;
+};
+
+/** 加载某个帖子的所有评论 */
+export async function loadSharedComments(postId: string): Promise<SharedComment[]> {
+  if (!isSupabaseConfigured()) return [];
+  try {
+    const { data, error } = await getSupabaseClient()
+      .from("shared_post_comments")
+      .select("id, post_id, author_id, body, parent_comment_id, is_hidden, created_at")
+      .eq("post_id", postId)
+      .order("created_at", { ascending: true });
+
+    if (error || !data) return [];
+
+    /* 批量加载作者 profile */
+    const rows = data as Record<string, unknown>[];
+    const authorIds = [...new Set(rows.map((r) => r.author_id as string).filter(Boolean))];
+    const nameMap = new Map<string, string>();
+    const avatarMap = new Map<string, string | null>();
+    if (authorIds.length > 0) {
+      try {
+        const { data: profiles } = await getSupabaseClient()
+          .from("forum_profiles")
+          .select("id, display_name, avatar_url")
+          .in("id", authorIds);
+        for (const p of profiles ?? []) {
+          nameMap.set((p as any).id, (p as any).display_name);
+          avatarMap.set((p as any).id, (p as any).avatar_url ?? null);
+        }
+      } catch { /* 静默降级 */ }
+    }
+
+    return rows.map((row) => ({
+      id: row.id as string,
+      postId: row.post_id as string,
+      authorId: row.author_id as string,
+      authorName: nameMap.get(row.author_id as string) ?? "未知用户",
+      authorAvatar: avatarMap.get(row.author_id as string) ?? null,
+      body: row.body as string,
+      parentCommentId: (row.parent_comment_id as string) ?? null,
+      isHidden: (row.is_hidden as boolean) ?? false,
+      createdAt: row.created_at as string,
+    }));
+  } catch { return []; }
+}
+
+/** 创建新评论 */
+export async function createSharedComment(
+  postId: string,
+  authorId: string,
+  body: string,
+  parentCommentId: string | null = null,
+): Promise<SharedComment> {
+  if (!isSupabaseConfigured()) throw new Error("Supabase 未配置。");
+  const { data, error } = await getSupabaseClient()
+    .from("shared_post_comments")
+    .insert({
+      post_id: postId,
+      author_id: authorId,
+      body: body.trim(),
+      parent_comment_id: parentCommentId,
+    })
+    .select("id, post_id, author_id, body, parent_comment_id, is_hidden, created_at")
+    .single();
+
+  if (error) {
+    console.error("[share-storage] createSharedComment 失败:", error);
+    throw new Error(`评论发布失败: ${error.message}`);
+  }
+  if (!data) throw new Error("评论发布失败: 未返回数据。");
+
+  const row = data as Record<string, unknown>;
+  /* 获取作者名称 */
+  let authorName = "未知用户";
+  let authorAvatar: string | null = null;
+  try {
+    const { data: profile } = await getSupabaseClient()
+      .from("forum_profiles")
+      .select("display_name, avatar_url")
+      .eq("id", authorId)
+      .maybeSingle();
+    authorName = (profile as any)?.display_name ?? authorName;
+    authorAvatar = (profile as any)?.avatar_url ?? null;
+  } catch { /* 降级 */ }
+
+  return {
+    id: row.id as string,
+    postId: row.post_id as string,
+    authorId: row.author_id as string,
+    authorName,
+    authorAvatar,
+    body: row.body as string,
+    parentCommentId: (row.parent_comment_id as string) ?? null,
+    isHidden: (row.is_hidden as boolean) ?? false,
+    createdAt: row.created_at as string,
+  };
+}
+
+/** 删除评论 */
+export async function deleteSharedComment(commentId: string): Promise<void> {
+  if (!isSupabaseConfigured()) throw new Error("Supabase 未配置。");
+  const { error } = await getSupabaseClient()
+    .from("shared_post_comments")
+    .delete()
+    .eq("id", commentId);
+  if (error) throw new Error(`删除失败: ${error.message}`);
+}

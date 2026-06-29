@@ -7,7 +7,11 @@ import {
 } from "lucide-react";
 import { lockBodyScroll } from "@/lib/body-scroll-lock";
 import { useForumAuth } from "@/lib/forum-auth";
-import { loadEditLogs, type EditLogEntry } from "@/lib/share-storage";
+import {
+  loadEditLogs, type EditLogEntry,
+  loadSharedComments, createSharedComment, deleteSharedComment,
+  type SharedComment,
+} from "@/lib/share-storage";
 
 /* ═══════════════════════════════════════════
    嵌套评论数据模型
@@ -252,18 +256,37 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
   const canEdit = !!(user && (isAdmin || isOwner || user.id === post.authorId));
 
   /* ── 评论状态 ── */
-  const [comments, setComments] = useState<CommentItem[]>(() => {
-    /* 初始化 mock 数据作为 demo */
-    const now = new Date().toISOString();
-    return [
-      { id: "c1", parentId: null, authorId: "u1", authorName: "噜噜", authorAvatar: null, content: "这个项目太棒了！已经在我自己的项目里用上了。", createdAt: new Date(Date.now() - 7200000).toISOString(), likedBy: new Set(["owner1", "admin1"]) },
-      { id: "c2", parentId: null, authorId: "u2", authorName: "CodeMaster", authorAvatar: null, content: "Windows 下需要额外配置 PATH 环境变量。", createdAt: new Date(Date.now() - 18000000).toISOString(), likedBy: new Set() },
-      { id: "c3", parentId: "c1", authorId: "u3", authorName: "AI探索者", authorAvatar: null, content: "@噜噜 同感！搭配 Docker 使用体验更好。", createdAt: new Date(Date.now() - 3600000).toISOString(), likedBy: new Set() },
-      { id: "c4", parentId: "c1", authorId: "u1", authorName: "噜噜", authorAvatar: null, content: "@AI探索者 是的，我后来加了 Docker Compose 编排。", createdAt: new Date(Date.now() - 1800000).toISOString(), likedBy: new Set(["u3"]) },
-      { id: "c5", parentId: "c1", authorId: "u4", authorName: "DevMaster", authorAvatar: null, content: "能不能分享一下 Dockerfile？", createdAt: new Date(Date.now() - 600000).toISOString(), likedBy: new Set() },
-      { id: "c6", parentId: null, authorId: "u5", authorName: "AI探索者", authorAvatar: null, content: "有没有人遇到过 OOM 的问题？", createdAt: new Date(Date.now() - 86400000).toISOString(), likedBy: new Set() },
-    ];
-  });
+  const [comments, setComments] = useState<CommentItem[]>([]);
+  const [commentsLoading, setCommentsLoading] = useState(true);
+
+  /* 从 Supabase 加载评论 */
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      setCommentsLoading(true);
+      try {
+        const rows = await loadSharedComments(post.id);
+        if (cancelled) return;
+        const mapped: CommentItem[] = rows.map((r: SharedComment) => ({
+          id: r.id,
+          parentId: r.parentCommentId,
+          authorId: r.authorId,
+          authorName: r.authorName,
+          authorAvatar: r.authorAvatar,
+          content: r.body,
+          createdAt: r.createdAt,
+          likedBy: new Set<string>(),
+        }));
+        setComments(mapped);
+      } catch {
+        if (!cancelled) setComments([]);
+      } finally {
+        if (!cancelled) setCommentsLoading(false);
+      }
+    }
+    load();
+    return () => { cancelled = true; };
+  }, [post.id]);
 
   const [commentText, setCommentText] = useState("");
   const [liked, setLiked] = useState(false);
@@ -309,7 +332,7 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
   /* ═══════════════════════════════════════════
      发送根评论 — 强制身份校验，无匿名 Fallback
      ═══════════════════════════════════════════ */
-  function handleSendComment() {
+  async function handleSendComment() {
     if (!user) {
       alert("请先登录后再发表评论。");
       showAuthModal();
@@ -323,19 +346,16 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
     }
 
     try {
-      console.log("[评论] 发送根评论:", {
-        body,
-        userId: user.id,
-        displayName: user.user_metadata?.display_name ?? user.email ?? user.id,
-      });
+      console.log("[评论] 发送根评论 → Supabase:", { postId: post.id, body, userId: user.id });
+      const saved = await createSharedComment(post.id, user.id, body, null);
       const newComment: CommentItem = {
-        id: `c${Date.now()}`,
-        parentId: null,
-        authorId: user.id,
-        authorName: user.user_metadata?.display_name ?? user.email ?? "用户",
-        authorAvatar: user.user_metadata?.avatar_url ?? null,
-        content: body,
-        createdAt: new Date().toISOString(),
+        id: saved.id,
+        parentId: saved.parentCommentId,
+        authorId: saved.authorId,
+        authorName: saved.authorName,
+        authorAvatar: saved.authorAvatar,
+        content: saved.body,
+        createdAt: saved.createdAt,
         likedBy: new Set(),
       };
       setComments((prev) => [...prev, newComment]);
@@ -350,7 +370,7 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
      发送回复 (parentId = 根评论ID)
      ═══════════════════════════════════════════ */
   const handleSendReply = useCallback(
-    (parentId: string, text: string) => {
+    async (parentId: string, text: string) => {
       if (!user) {
         alert("请先登录后再发表回复。");
         showAuthModal();
@@ -364,20 +384,16 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
       }
 
       try {
-        console.log("[评论] 发送楼中楼回复:", {
-          parentId,
-          body,
-          userId: user.id,
-          displayName: user.user_metadata?.display_name ?? user.email ?? user.id,
-        });
+        console.log("[评论] 发送楼中楼回复 → Supabase:", { postId: post.id, parentId, body, userId: user.id });
+        const saved = await createSharedComment(post.id, user.id, body, parentId);
         const newReply: CommentItem = {
-          id: `cr${Date.now()}`,
-          parentId,
-          authorId: user.id,
-          authorName: user.user_metadata?.display_name ?? user.email ?? "用户",
-          authorAvatar: user.user_metadata?.avatar_url ?? null,
-          content: body,
-          createdAt: new Date().toISOString(),
+          id: saved.id,
+          parentId: saved.parentCommentId,
+          authorId: saved.authorId,
+          authorName: saved.authorName,
+          authorAvatar: saved.authorAvatar,
+          content: saved.body,
+          createdAt: saved.createdAt,
           likedBy: new Set(),
         };
         setComments((prev) => [...prev, newReply]);
@@ -386,7 +402,7 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
         alert("回复发送失败: " + (err instanceof Error ? err.message : String(err)));
       }
     },
-    [user, showAuthModal],
+    [user, showAuthModal, post.id],
   );
 
   /* ── 点赞切换 ── */
@@ -404,9 +420,14 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
   }
 
   /* ── 删除评论 ── */
-  function handleDeleteComment(commentId: string) {
+  async function handleDeleteComment(commentId: string) {
     if (!window.confirm("确定要删除这条评论吗？")) return;
-    setComments((prev) => prev.filter((c) => c.id !== commentId));
+    try {
+      await deleteSharedComment(commentId);
+      setComments((prev) => prev.filter((c) => c.id !== commentId));
+    } catch (err) {
+      alert("删除失败: " + (err instanceof Error ? err.message : "未知错误"));
+    }
   }
 
   /* ── 计算嵌套结构 ── */
@@ -475,7 +496,7 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
                 <Heart className={`h-4 w-4 transition ${liked ? "fill-current" : ""}`} />{liked ? post.likes + 1 : post.likes}
               </button>
               <button onClick={() => setRightTab("comments")} className="cursor-pointer inline-flex items-center gap-1.5 text-sm text-white/40 hover:text-sky-300 transition font-body" type="button">
-                <MessageCircle className="h-4 w-4" />{comments.length}
+                <MessageCircle className="h-4 w-4" />{commentsLoading ? "..." : comments.length}
               </button>
               <button onClick={() => setSaved(!saved)} className={`cursor-pointer inline-flex items-center gap-1.5 text-sm transition font-body ml-auto ${saved ? "text-amber-400" : "text-white/40 hover:text-amber-300"}`} type="button">
                 <Bookmark className={`h-4 w-4 transition ${saved ? "fill-current" : ""}`} />{saved ? "已收藏" : "收藏"}
@@ -501,7 +522,9 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
             {rightTab === "comments" && (
               <>
                 <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                  {rootComments.length === 0 ? (
+                  {commentsLoading ? (
+                    <div className="flex items-center justify-center py-12"><Loader2 className="h-5 w-5 text-white/30 animate-spin" /></div>
+                  ) : rootComments.length === 0 ? (
                     <p className="text-sm text-gray-500 font-body text-center py-12">暂无评论，来抢个沙发吧 ✨</p>
                   ) : (
                     rootComments.map((root) => {
