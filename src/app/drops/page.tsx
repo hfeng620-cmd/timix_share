@@ -6,7 +6,6 @@ import { useEffect, useState } from "react";
 import { DropClaimModal } from "@/components/drop-claim-modal";
 import { Navbar } from "@/components/navbar";
 import { loadCampaigns, type Campaign } from "@/lib/drop-storage";
-import { useForumAuth } from "@/lib/forum-auth";
 
 function CampaignCardSkeleton() {
   return (
@@ -36,7 +35,6 @@ function EmptyState() {
 }
 
 export default function DropsPage() {
-  const { user } = useForumAuth();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);

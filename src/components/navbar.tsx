@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Gift } from "lucide-react";
 import { AuthButton } from "@/components/auth-button";
 import { NotificationBell } from "@/components/notification-bell";
 import { OnlineIndicator } from "@/components/online-indicator";
