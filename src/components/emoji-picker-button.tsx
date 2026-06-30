@@ -175,7 +175,11 @@ export function EmojiPickerButton({
           {showNativePicker ? (
             <div className="border-t border-white/10 px-3 py-3">
               <EmojiPicker
-                categories={[Categories.SMILEYS_PEOPLE, Categories.ANIMALS_NATURE, Categories.SYMBOLS]}
+                categories={[
+                  { category: Categories.SMILEYS_PEOPLE, name: "常用表情" },
+                  { category: Categories.ANIMALS_NATURE, name: "动物自然" },
+                  { category: Categories.SYMBOLS, name: "符号" },
+                ]}
                 height={320}
                 lazyLoadEmojis
                 onEmojiClick={handleEmojiClick}
