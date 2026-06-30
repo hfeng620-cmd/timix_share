@@ -24,7 +24,8 @@ import {
 } from "@/lib/discussion-storage";
 import { FORUM_IMAGE_ACCEPT } from "@/lib/forum-image-safety";
 import { useForumAuth } from "@/lib/forum-auth";
-import { getSafeImageSrc } from "@/lib/url-safety";
+import { ImageLightbox } from "@/components/image-lightbox";
+import { MarkdownContent } from "@/components/markdown-content";
 import { UserProfileCard } from "@/components/user-profile-card";
 
 type DiscussionFeedProps = {
@@ -102,46 +103,6 @@ function parsePostedAt(postedAt: string): Date | null {
 
   const parsed = new Date(postedAt);
   return Number.isNaN(parsed.getTime()) ? null : parsed;
-}
-
-/** Parse @username patterns and forum image markdown into renderable content. */
-function renderBodyContent(text: string, highlightAuthor?: string) {
-  const parts = text.split(/(!\[[^\]]*]\([^)]+\)|@[\w一-鿿]+)/g);
-  return parts.map((part, i) => {
-    const imageMatch = part.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
-    if (imageMatch) {
-      const [, alt, src] = imageMatch;
-      const safeSrc = getSafeImageSrc(src);
-      if (!safeSrc) {
-        return part;
-      }
-
-      return (
-        <img
-          key={i}
-          alt={alt || "帖子图片"}
-          className="my-3 max-h-96 w-auto max-w-full rounded-xl border border-[var(--color-line)] object-cover"
-          loading="lazy"
-          referrerPolicy="no-referrer"
-          src={safeSrc}
-        />
-      );
-    }
-
-    if (/^@[\w一-鿿]+$/.test(part)) {
-      const name = part.slice(1);
-      const isTarget = highlightAuthor && name === highlightAuthor;
-      return (
-        <span
-          key={i}
-          className={`font-semibold ${isTarget ? "rounded bg-[var(--color-brand-soft)] px-0.5 text-[var(--color-brand-deep)]" : "text-[var(--color-brand)]"}`}
-        >
-          {part}
-        </span>
-      );
-    }
-    return part;
-  });
 }
 
 function formatRelativeTime(postedAt: string): string {
@@ -286,6 +247,7 @@ export function DiscussionFeed({
   const [bookmarksOnly, setBookmarksOnly] = useState(false);
   const [pinSaving, setPinSaving] = useState(false);
   const [activeProfileCard, setActiveProfileCard] = useState<ActiveProfileCard | null>(null);
+  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
   const profileCardSequenceRef = useRef(0);
   const sectionRef = useRef<HTMLElement | null>(null);
   const [isSectionRevealed, setIsSectionRevealed] = useState(false);
@@ -390,14 +352,15 @@ export function DiscussionFeed({
 
   // Load user's existing likes from Supabase on mount
   useEffect(() => {
-    const uid = user?.id!;
+    const uid = user?.id;
     if (!uid) { setLikedPosts(new Set()); setLikedReplies(new Set()); return; }
+    const userId = uid;
     let cancelled = false;
     async function loadLikes() {
       try {
         const [postIds, replyIds] = await Promise.all([
-          getUserLikedPostIds(uid),
-          getUserLikedReplyIds(uid),
+          getUserLikedPostIds(userId),
+          getUserLikedReplyIds(userId),
         ]);
         if (cancelled) return;
         setLikedPosts(postIds);
@@ -1417,9 +1380,10 @@ export function DiscussionFeed({
                     <>
                       <p className="mt-4 max-w-4xl text-[15px] leading-7 text-[var(--color-ink)] sm:text-base sm:leading-8">
                         <span className="whitespace-pre-wrap break-words">
-                          {expandedBodies.has(post.issueNumber)
-                            ? renderBodyContent(post.body)
-                            : renderBodyContent(`${post.body.slice(0, 500)}...`)}
+                          <MarkdownContent
+                            text={expandedBodies.has(post.issueNumber) ? post.body : `${post.body.slice(0, 500)}...`}
+                            onImageClick={setLightboxImage}
+                          />
                         </span>
                       </p>
                       <button
@@ -1442,7 +1406,7 @@ export function DiscussionFeed({
                     </>
                   ) : (
                     <p className="mt-4 max-w-4xl whitespace-pre-wrap break-words text-[15px] leading-7 text-[var(--color-ink)] sm:text-base sm:leading-8">
-                      {renderBodyContent(post.body)}
+                      <MarkdownContent text={post.body} onImageClick={setLightboxImage} />
                     </p>
                   )}
                   <div className="mt-4 flex flex-wrap gap-2">
@@ -1573,7 +1537,11 @@ export function DiscussionFeed({
                               </div>
                               <p className="mt-1 text-sm leading-7 text-[var(--color-ink)]">
                                 <span className="whitespace-pre-wrap break-words">
-                                  {renderBodyContent(reply.body)}
+                                  <MarkdownContent
+                                    text={reply.body}
+                                    imageClassName="max-h-48 w-auto cursor-zoom-in rounded-md border border-white/10 object-cover mt-2 transition-opacity hover:opacity-90"
+                                    onImageClick={setLightboxImage}
+                                  />
                                 </span>
                               </p>
                               <div className="mt-1 flex items-center gap-3">
@@ -1728,6 +1696,10 @@ export function DiscussionFeed({
             )
           }
         />
+      ) : null}
+
+      {lightboxImage ? (
+        <ImageLightbox src={lightboxImage} onClose={() => setLightboxImage(null)} />
       ) : null}
 
       <style jsx>{`

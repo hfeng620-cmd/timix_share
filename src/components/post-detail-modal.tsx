@@ -3,10 +3,13 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import {
   Heart, MessageCircle, Bookmark, X,
-  Send, Loader2, Pencil, Trash2, ChevronDown,
+  Send, Loader2, Pencil, Trash2, ChevronDown, ImageIcon,
 } from "lucide-react";
 import { lockBodyScroll } from "@/lib/body-scroll-lock";
 import { useForumAuth } from "@/lib/forum-auth";
+import { ImageLightbox } from "@/components/image-lightbox";
+import { MarkdownContent } from "@/components/markdown-content";
+import { uploadPostImage } from "@/lib/post-image-upload";
 import {
   loadEditLogs, type EditLogEntry,
   loadSharedComments, createSharedComment, deleteSharedComment,
@@ -69,6 +72,7 @@ function NestedReplyModal({
   currentUserId,
   onSendReply,
   onToggleLike,
+  onOpenLightbox,
   onClose,
 }: {
   rootComment: CommentItem;
@@ -76,11 +80,14 @@ function NestedReplyModal({
   currentUserId: string | null;
   onSendReply: (parentId: string, text: string) => void;
   onToggleLike: (commentId: string) => void;
+  onOpenLightbox: (src: string) => void;
   onClose: () => void;
 }) {
   const [replyText, setReplyText] = useState("");
   const [replyTarget, setReplyTarget] = useState<{ authorName: string } | null>(null);
+  const [replyUploading, setReplyUploading] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const replyFileInputRef = useRef<HTMLInputElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
 
   /* 挂载时聚焦遮罩层，用于捕获 Esc */
@@ -120,6 +127,45 @@ function NestedReplyModal({
     }
   }
 
+  async function uploadAndInsertReplyImage(file: File) {
+    setReplyUploading(true);
+    try {
+      const url = await uploadPostImage(file);
+      const textarea = inputRef.current;
+      const start = textarea?.selectionStart ?? replyText.length;
+      const end = textarea?.selectionEnd ?? start;
+      const markdown = `![图片](${url})`;
+      const next = replyText.slice(0, start) + markdown + replyText.slice(end);
+      setReplyText(next);
+      requestAnimationFrame(() => {
+        const cursor = start + markdown.length;
+        inputRef.current?.focus();
+        inputRef.current?.setSelectionRange(cursor, cursor);
+      });
+    } finally {
+      setReplyUploading(false);
+    }
+  }
+
+  async function handleReplyPaste(e: React.ClipboardEvent<HTMLTextAreaElement>) {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    for (const item of items) {
+      if (item.type.startsWith("image/")) {
+        e.preventDefault();
+        const file = item.getAsFile();
+        if (!file) return;
+        try {
+          await uploadAndInsertReplyImage(file);
+        } catch (err) {
+          alert(err instanceof Error ? err.message : "粘贴图片上传失败，请稍后重试。");
+        }
+        return;
+      }
+    }
+  }
+
   return (
     <div
       ref={overlayRef}
@@ -155,9 +201,13 @@ function NestedReplyModal({
                 <span className="text-sm font-medium text-white/80 font-body">{rootComment.authorName}</span>
                 <span className="text-[11px] text-gray-500 font-body">{formatRelativeTime(rootComment.createdAt)}</span>
               </div>
-              <p className="mt-1 text-sm leading-relaxed text-white/60 font-body whitespace-pre-wrap break-words">
-                {rootComment.content}
-              </p>
+              <div className="mt-1 whitespace-pre-wrap break-words text-sm leading-relaxed text-white/60 font-body">
+                <MarkdownContent
+                  text={rootComment.content}
+                  imageClassName="max-h-48 w-auto cursor-zoom-in rounded-md border border-white/10 object-cover mt-2 transition-opacity hover:opacity-90"
+                  onImageClick={onOpenLightbox}
+                />
+              </div>
               <div className="mt-2 flex items-center gap-4">
                 <button onClick={() => onToggleLike(rootComment.id)} className={`text-xs transition font-body ${rootComment.likedBy.has(currentUserId ?? "") ? "text-rose-400" : "text-gray-500 hover:text-gray-300"}`} type="button">
                   <Heart className={`h-3.5 w-3.5 inline mr-1 ${rootComment.likedBy.has(currentUserId ?? "") ? "fill-current" : ""}`} />
@@ -190,9 +240,13 @@ function NestedReplyModal({
                     <span className="text-sm font-medium text-white/70 font-body">{reply.authorName}</span>
                     <span className="text-[11px] text-gray-500 font-body">{formatRelativeTime(reply.createdAt)}</span>
                   </div>
-                  <p className="mt-1 text-sm leading-relaxed text-white/45 font-body whitespace-pre-wrap break-words">
-                    {reply.content}
-                  </p>
+                  <div className="mt-1 whitespace-pre-wrap break-words text-sm leading-relaxed text-white/45 font-body">
+                    <MarkdownContent
+                      text={reply.content}
+                      imageClassName="max-h-48 w-auto cursor-zoom-in rounded-md border border-white/10 object-cover mt-2 transition-opacity hover:opacity-90"
+                      onImageClick={onOpenLightbox}
+                    />
+                  </div>
                   <div className="mt-1.5 flex items-center gap-4">
                     <button onClick={() => onToggleLike(reply.id)} className={`text-xs transition font-body ${reply.likedBy.has(currentUserId ?? "") ? "text-rose-400" : "text-gray-500 hover:text-gray-300"}`} type="button">
                       <Heart className={`h-3 w-3 inline mr-1 ${reply.likedBy.has(currentUserId ?? "") ? "fill-current" : ""}`} />
@@ -222,10 +276,37 @@ function NestedReplyModal({
               placeholder="输入回复... (Enter 发送, Shift+Enter 换行)"
               value={replyText}
               onChange={(e) => setReplyText(e.target.value)}
+              onPaste={handleReplyPaste}
               onKeyDown={handleKeyDown}
               rows={2}
               autoFocus
             />
+            <input
+              ref={replyFileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                try {
+                  await uploadAndInsertReplyImage(file);
+                } catch (err) {
+                  alert(err instanceof Error ? err.message : "图片上传失败，请稍后重试。");
+                } finally {
+                  if (replyFileInputRef.current) replyFileInputRef.current.value = "";
+                }
+              }}
+            />
+            <button
+              className="shrink-0 cursor-pointer rounded-full p-2 text-zinc-500 transition hover:text-white disabled:opacity-40"
+              onClick={() => replyFileInputRef.current?.click()}
+              disabled={replyUploading}
+              title="上传图片"
+              type="button"
+            >
+              {replyUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImageIcon className="h-4 w-4" />}
+            </button>
             <button
               className="shrink-0 cursor-pointer rounded-full bg-white/15 px-4 py-2 text-xs text-white/50 hover:bg-white/25 transition disabled:opacity-30 font-body"
               onClick={() => { if (replyText.trim()) { onSendReply(rootComment.id, replyText); setReplyText(""); setReplyTarget(null); } }}
@@ -289,8 +370,12 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
   }, [post.id]);
 
   const [commentText, setCommentText] = useState("");
+  const [commentUploading, setCommentUploading] = useState(false);
+  const commentTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const commentFileInputRef = useRef<HTMLInputElement>(null);
   const [liked, setLiked] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
 
   /* ── 编辑日志 ── */
   const [editLogs, setEditLogs] = useState<EditLogEntry[]>([]);
@@ -438,6 +523,45 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
   const activeRoot = rootComments.find((c) => c.id === nestedRootId);
   const activeReplies = nestedRootId ? getReplies(nestedRootId) : [];
 
+  async function uploadAndInsertCommentImage(file: File) {
+    setCommentUploading(true);
+    try {
+      const url = await uploadPostImage(file);
+      const textarea = commentTextareaRef.current;
+      const start = textarea?.selectionStart ?? commentText.length;
+      const end = textarea?.selectionEnd ?? start;
+      const markdown = `![图片](${url})`;
+      const next = commentText.slice(0, start) + markdown + commentText.slice(end);
+      setCommentText(next);
+      requestAnimationFrame(() => {
+        const cursor = start + markdown.length;
+        commentTextareaRef.current?.focus();
+        commentTextareaRef.current?.setSelectionRange(cursor, cursor);
+      });
+    } finally {
+      setCommentUploading(false);
+    }
+  }
+
+  async function handleCommentPaste(e: React.ClipboardEvent<HTMLTextAreaElement>) {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    for (const item of items) {
+      if (item.type.startsWith("image/")) {
+        e.preventDefault();
+        const file = item.getAsFile();
+        if (!file) return;
+        try {
+          await uploadAndInsertCommentImage(file);
+        } catch (err) {
+          alert(err instanceof Error ? err.message : "粘贴图片上传失败，请稍后重试。");
+        }
+        return;
+      }
+    }
+  }
+
   return (
     <>
       {/* ═══ 主弹窗 ═══ */}
@@ -485,8 +609,12 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
 
               <p className="mt-5 text-sm leading-relaxed text-white/50 font-body">{post.summary}</p>
 
-              <div className="mt-6 text-sm leading-relaxed text-gray-300 font-body space-y-4">
-                {post.body ? post.body.split("\n").filter(Boolean).map((para, i) => <p key={i}>{para}</p>) : <p>项目详细说明内容。</p>}
+              <div className="mt-6 whitespace-pre-wrap break-words text-sm leading-relaxed text-gray-300 font-body">
+                {post.body ? (
+                  <MarkdownContent text={post.body} onImageClick={setLightboxImage} />
+                ) : (
+                  <p>项目详细说明内容。</p>
+                )}
               </div>
             </div>
 
@@ -530,7 +658,6 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
                     rootComments.map((root) => {
                       const replies = getReplies(root.id);
                       const previewReplies = replies.slice(0, 2);
-                      const remainingCount = replies.length - 2;
                       const isRootLiked = root.likedBy.has(user?.id ?? "");
                       return (
                         <div key={root.id} className="group">
@@ -548,9 +675,13 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
                                 <span className="text-sm font-medium text-white/70 font-body">{root.authorName}</span>
                                 <span className="text-[11px] text-gray-500 font-body">{formatRelativeTime(root.createdAt)}</span>
                               </div>
-                              <p className="mt-1 text-sm leading-relaxed text-white/45 font-body whitespace-pre-wrap break-words">
-                                {root.content}
-                              </p>
+                              <div className="mt-1 whitespace-pre-wrap break-words text-sm leading-relaxed text-white/45 font-body">
+                                <MarkdownContent
+                                  text={root.content}
+                                  imageClassName="max-h-48 w-auto cursor-zoom-in rounded-md border border-white/10 object-cover mt-2 transition-opacity hover:opacity-90"
+                                  onImageClick={setLightboxImage}
+                                />
+                              </div>
                               <div className="mt-1.5 flex items-center gap-4">
                                 <button onClick={() => handleToggleCommentLike(root.id)} className={`cursor-pointer text-xs transition font-body ${isRootLiked ? "text-rose-400" : "text-gray-500 hover:text-gray-300"}`} type="button">
                                   <Heart className={`h-3.5 w-3.5 inline mr-1 ${isRootLiked ? "fill-current" : ""}`} />
@@ -586,7 +717,13 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
                                     <div className="min-w-0">
                                       <span className="text-xs font-medium text-white/60 font-body">{reply.authorName}</span>
                                       <span className="ml-1.5 text-[10px] text-gray-500 font-body">{formatRelativeTime(reply.createdAt)}</span>
-                                      <p className="mt-0.5 text-xs leading-relaxed text-white/35 font-body whitespace-pre-wrap break-words">{reply.content}</p>
+                                      <div className="mt-0.5 whitespace-pre-wrap break-words text-xs leading-relaxed text-white/35 font-body">
+                                        <MarkdownContent
+                                          text={reply.content}
+                                          imageClassName="max-h-48 w-auto cursor-zoom-in rounded-md border border-white/10 object-cover mt-2 transition-opacity hover:opacity-90"
+                                          onImageClick={setLightboxImage}
+                                        />
+                                      </div>
                                       <button onClick={() => handleToggleCommentLike(reply.id)} className={`cursor-pointer text-[10px] transition font-body mt-0.5 ${isReplyLiked ? "text-rose-400" : "text-gray-600 hover:text-gray-400"}`} type="button">
                                         <Heart className={`h-3 w-3 inline mr-0.5 ${isReplyLiked ? "fill-current" : ""}`} />
                                         {reply.likedBy.size > 0 ? reply.likedBy.size : ""}
@@ -626,7 +763,8 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
                 <div className="shrink-0 p-4 border-t border-white/10 bg-zinc-900/50">
                   <div className="relative">
                     <textarea
-                      className="w-full min-h-[44px] resize-none rounded-xl bg-white/5 border border-white/10 px-4 py-3 pr-12 text-sm text-white placeholder:text-white/25 font-body outline-none focus:border-white/30 transition"
+                      ref={commentTextareaRef}
+                      className="w-full min-h-[44px] resize-none rounded-xl bg-white/5 border border-white/10 py-3 pl-10 pr-12 text-sm text-white placeholder:text-white/25 font-body outline-none focus:border-white/30 transition"
                       placeholder="说点什么... (Enter 发送, Shift+Enter 换行)"
                       onKeyDown={(e) => {
                         if (e.nativeEvent.isComposing) return;
@@ -634,8 +772,35 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
                       }}
                       value={commentText}
                       onChange={(e) => setCommentText(e.target.value)}
+                      onPaste={handleCommentPaste}
                       rows={2}
                     />
+                    <input
+                      ref={commentFileInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        try {
+                          await uploadAndInsertCommentImage(file);
+                        } catch (err) {
+                          alert(err instanceof Error ? err.message : "图片上传失败，请稍后重试。");
+                        } finally {
+                          if (commentFileInputRef.current) commentFileInputRef.current.value = "";
+                        }
+                      }}
+                    />
+                    <button
+                      className="absolute bottom-2 left-2 cursor-pointer rounded-full p-1.5 text-zinc-500 transition hover:text-white disabled:opacity-40"
+                      type="button"
+                      onClick={() => commentFileInputRef.current?.click()}
+                      disabled={commentUploading}
+                      title="上传图片"
+                    >
+                      {commentUploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ImageIcon className="h-3.5 w-3.5" />}
+                    </button>
                     <button
                       className="absolute right-2 bottom-2 cursor-pointer rounded-full bg-white/15 p-1.5 text-white/50 hover:bg-white/25 hover:text-white transition disabled:opacity-30"
                       type="button"
@@ -686,9 +851,13 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
           currentUserId={user?.id ?? null}
           onSendReply={handleSendReply}
           onToggleLike={handleToggleCommentLike}
+          onOpenLightbox={setLightboxImage}
           onClose={() => setNestedRootId(null)}
         />
       )}
+      {lightboxImage ? (
+        <ImageLightbox src={lightboxImage} onClose={() => setLightboxImage(null)} />
+      ) : null}
     </>
   );
 }
