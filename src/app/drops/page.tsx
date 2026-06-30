@@ -1,7 +1,7 @@
 "use client";
 
 import { Gift, Sparkles, Timer } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { DropClaimModal } from "@/components/drop-claim-modal";
 import { Navbar } from "@/components/navbar";
@@ -39,11 +39,23 @@ export default function DropsPage() {
   const [loading, setLoading] = useState(true);
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
 
+  const refreshCampaigns = useCallback(async () => {
+    const data = await loadCampaigns();
+    setCampaigns(data);
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
     loadCampaigns()
       .then((data) => {
-        if (!cancelled) setCampaigns(data);
+        if (!cancelled) {
+          setCampaigns(data);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setCampaigns([]);
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -65,10 +77,10 @@ export default function DropsPage() {
             福利 Drop
           </div>
           <h1 className="text-3xl font-heading italic leading-[1.15] text-white md:text-4xl">
-            限量兑换码福利
+            福利 Drop
           </h1>
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/55 md:text-base font-body">
-            完成赞助商注册并提交真实体验反馈，即可自动领取专属兑换码。先到先得，发完即止。
+            限量中转站福利，先到先得。完成赞助商注册并提交真实体验反馈，即可自动领取专属兑换码。
           </p>
         </div>
 
@@ -112,7 +124,7 @@ export default function DropsPage() {
               return (
                 <article
                   key={campaign.id}
-                  className="relative flex flex-col rounded-2xl border border-white/10 bg-zinc-900/40 p-6 backdrop-blur-md transition hover:bg-zinc-800/50 hover:border-white/20"
+                  className="relative flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-zinc-900/40 p-6 backdrop-blur-xl transition-all hover:bg-zinc-800/50 hover:border-white/20"
                 >
                   {/* Sponsor badge */}
                   <div className="flex items-center gap-2 mb-1">
@@ -146,7 +158,7 @@ export default function DropsPage() {
                         {Math.round(progressPct)}% 已领
                       </span>
                     </div>
-                    <div className="h-1.5 w-full rounded-full overflow-hidden bg-zinc-800">
+                    <div className="h-1.5 w-full overflow-hidden rounded-full bg-zinc-800">
                       <div
                         className="h-full rounded-full bg-gradient-to-r from-blue-500 to-cyan-400 transition-all duration-700"
                         style={{ width: `${Math.min(progressPct, 100)}%` }}
@@ -158,8 +170,8 @@ export default function DropsPage() {
                   <button
                     className={`mt-5 flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-bold transition font-body ${
                       isSoldOut
-                        ? "cursor-not-allowed border border-white/5 bg-white/[0.02] text-zinc-500"
-                        : "bg-white text-black hover:bg-zinc-200 shadow-[0_0_30px_rgba(255,255,255,0.08)] hover:shadow-[0_0_40px_rgba(255,255,255,0.15)]"
+                        ? "cursor-not-allowed border border-white/5 bg-white/[0.02] text-zinc-600"
+                        : "bg-cyan-300 text-black shadow-[0_0_24px_rgba(34,211,238,0.18)] hover:bg-cyan-200"
                     }`}
                     disabled={isSoldOut}
                     onClick={() => setSelectedCampaign(campaign)}
@@ -187,6 +199,9 @@ export default function DropsPage() {
       {/* ── Claim Modal ── */}
       <DropClaimModal
         campaign={selectedCampaign}
+        onClaimed={() => {
+          void refreshCampaigns();
+        }}
         open={Boolean(selectedCampaign)}
         onClose={() => setSelectedCampaign(null)}
       />

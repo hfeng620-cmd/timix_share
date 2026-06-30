@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Copy, ExternalLink, Loader2, Sparkles, X } from "lucide-react";
+import { Check, Copy, ExternalLink, Gift, Loader2, PartyPopper, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { claimPromoCode, type Campaign } from "@/lib/drop-storage";
@@ -8,6 +8,7 @@ import { useForumAuth } from "@/lib/forum-auth";
 
 type DropClaimModalProps = {
   campaign: Campaign | null;
+  onClaimed?: () => void;
   open: boolean;
   onClose: () => void;
 };
@@ -20,7 +21,7 @@ const RATINGS = [
   { value: "还有欠缺", label: "🤨 还有欠缺" },
 ] as const;
 
-export function DropClaimModal({ campaign, open, onClose }: DropClaimModalProps) {
+export function DropClaimModal({ campaign, onClaimed, open, onClose }: DropClaimModalProps) {
   const { user } = useForumAuth();
 
   // ── State machine ──
@@ -97,13 +98,14 @@ export function DropClaimModal({ campaign, open, onClose }: DropClaimModalProps)
 
     if (result.ok) {
       setClaimedCode(result.code);
+      onClaimed?.();
       setView("success");
     } else {
       setErrorCode(result.errorCode ?? null);
       setErrorMessage(result.error);
       setView("error");
     }
-  }, [campaign, user, account, rating, suggestion]);
+  }, [campaign, user, account, rating, suggestion, onClaimed]);
 
   // ── Copy to clipboard ──
   const handleCopy = useCallback(async () => {
@@ -124,7 +126,7 @@ export function DropClaimModal({ campaign, open, onClose }: DropClaimModalProps)
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-xl"
+      className="fixed inset-0 z-[100] flex items-center justify-center overscroll-none bg-black/85 backdrop-blur-xl"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -149,18 +151,18 @@ export function DropClaimModal({ campaign, open, onClose }: DropClaimModalProps)
         {view === "success" && (
           <div className="flex flex-col items-center px-8 py-12 text-center">
             <div className="flex h-20 w-20 items-center justify-center rounded-full border border-emerald-400/30 bg-emerald-400/10 shadow-[0_0_60px_rgba(52,211,153,0.15)]">
-              <Sparkles className="h-10 w-10 text-emerald-300" />
+              <PartyPopper className="h-10 w-10 text-emerald-300" />
             </div>
             <h2 className="mt-6 text-2xl font-black text-white">
-              恭喜获得专属福利！
+              恭喜！这是您的专属兑换码：
             </h2>
             <p className="mt-2 text-sm text-zinc-400">
               您的专属兑换码已生成，请妥善保管。
             </p>
 
-            {/* Code display — upgraded styling */}
-            <div className="mt-6 flex w-full items-center justify-between p-5 bg-zinc-950 border border-zinc-700 rounded-xl">
-              <code className="font-mono text-2xl tracking-widest text-emerald-400 font-bold select-all">
+            {/* Code display */}
+            <div className="mt-8 flex w-full items-center justify-between gap-4 rounded-xl border border-zinc-700 bg-zinc-950 p-5">
+              <code className="select-all text-2xl font-bold font-mono tracking-[0.3em] text-emerald-400">
                 {claimedCode}
               </code>
               <button
@@ -267,7 +269,7 @@ export function DropClaimModal({ campaign, open, onClose }: DropClaimModalProps)
             }`}
           >
             <div className="pr-6">
-              <h2 className="text-xl font-bold text-white">专属福利发放</h2>
+              <h2 className="text-xl font-bold text-white">领取 {campaign.sponsor_name} 专属福利</h2>
               <p className="mt-1 text-sm text-zinc-400">
                 {campaign.sponsor_name} · {campaign.title}
               </p>
@@ -276,7 +278,7 @@ export function DropClaimModal({ campaign, open, onClose }: DropClaimModalProps)
             {/* Step 1: Sponsor URL */}
             <div className="mt-8">
               <p className="text-sm font-semibold text-zinc-300">
-                第 1 步 · 前往赞助商平台注册
+                第一步：请先前往 {campaign.sponsor_name} 注册账号
               </p>
               <a
                 className="mt-3 flex items-center gap-2 rounded-xl border border-white/10 bg-zinc-900 px-5 py-4 text-base font-bold text-cyan-300 transition hover:border-cyan-400/30 hover:bg-zinc-900/80"
@@ -388,7 +390,7 @@ export function DropClaimModal({ campaign, open, onClose }: DropClaimModalProps)
                         正在开启盲盒...
                       </>
                     ) : (
-                      "立即领取"
+                      "提交并开奖"
                     )}
                   </button>
                 </div>
