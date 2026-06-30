@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { X, Check } from "lucide-react";
 
-type ThemeId = "cyber" | "industrial" | "zen";
+type ThemeId = "cyber" | "industrial" | "zen" | "apple-light";
 
 interface ThemeDef {
   id: ThemeId;
@@ -38,6 +38,14 @@ const THEMES: ThemeDef[] = [
     desc: "克制、留白、通透 — 薄荷蓝绿传递理性思考的从容节奏。",
     colors: ["#5eead4", "#2dd4bf", "#14b8a6"],
     gradient: "linear-gradient(135deg, #5eead4, #2dd4bf, #14b8a6)",
+  },
+  {
+    id: "apple-light",
+    name: "极简白 & 3D 几何",
+    enName: "Apple Light",
+    desc: "通透、克制、空间折射 — 极简白底搭配悬浮玻璃几何背景。",
+    colors: ["#ffffff", "#f5f5f7", "#0066cc"],
+    gradient: "linear-gradient(135deg, #ffffff, #f5f5f7, #d2d2d7)",
   },
 ];
 
@@ -109,8 +117,8 @@ export function AppearanceModal({ open, onClose }: Props) {
           </p>
         </div>
 
-        {/* 三栏主题卡片 */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {/* 主题卡片 */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {THEMES.map((theme) => {
             const isActive = active === theme.id;
             return (
