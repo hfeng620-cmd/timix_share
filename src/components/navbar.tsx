@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Gift } from "lucide-react";
 import { AuthButton } from "@/components/auth-button";
 import { NotificationBell } from "@/components/notification-bell";
 import { OnlineIndicator } from "@/components/online-indicator";
@@ -11,6 +12,7 @@ const links = [
   { label: "中转站榜单", href: "/stations" },
   { label: "论坛入口", href: "/community" },
   { label: "模型择优", href: "/models" },
+  { label: "福利Drop", href: "/drops" },
   { label: "热门有趣项目Share", href: "/guides" },
 ];
 
