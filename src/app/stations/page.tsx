@@ -1,4 +1,5 @@
 import { Navbar } from "@/components/navbar";
+import { StationMonitorPanel } from "@/components/station-monitor-panel";
 import { StationsBoard } from "@/components/stations-board";
 
 export default function StationsPage() {
@@ -30,6 +31,10 @@ export default function StationsPage() {
               <p className="mt-1 text-sm font-semibold text-white">{item.desc}</p>
             </div>
           ))}
+        </div>
+
+        <div className="mb-6">
+          <StationMonitorPanel />
         </div>
 
         <div className="rounded-3xl bg-black/30 backdrop-blur-xl border border-white/10 shadow-2xl p-4 sm:p-6">
