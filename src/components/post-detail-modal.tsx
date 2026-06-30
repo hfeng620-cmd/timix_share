@@ -13,6 +13,7 @@ import { MarkdownContent } from "@/components/markdown-content";
 import { uploadPostImage } from "@/lib/post-image-upload";
 import {
   loadEditLogs, type EditLogEntry,
+  toggleCommentLike, type Liker,
   loadSharedComments, createSharedComment, deleteSharedComment,
   type SharedComment,
 } from "@/lib/share-storage";
@@ -31,7 +32,7 @@ type CommentItem = {
   authorAvatar: string | null;
   content: string;
   createdAt: string;
-  likedBy: Set<string>;
+  likes: Liker[];
 };
 
 type PostNode = {
@@ -39,7 +40,7 @@ type PostNode = {
   title: string;
   summary: string;
   tag: string;
-  likes: number;
+  likes: Liker[];
   comments: number;
   bookmarks: number;
   authorId: string;
@@ -62,6 +63,17 @@ function formatRelativeTime(input: string): string {
   const h = Math.floor(m / 60);
   if (h < 24) return `${h}小时前`;
   return `${Math.floor(h / 24)}天前`;
+}
+
+/* ═══════════════════════════════════════════
+   LikeIndicator — 点赞用户文案
+   ═══════════════════════════════════════════ */
+
+function LikeIndicator({ likers }: { likers: Liker[] }) {
+  if (likers.length === 0) return null;
+  if (likers.length === 1) return <span className="text-xs text-zinc-500 ml-1.5">{likers[0].displayName} 赞过</span>;
+  if (likers.length === 2) return <span className="text-xs text-zinc-500 ml-1.5">{likers[0].displayName}、{likers[1].displayName} 赞过</span>;
+  return <span className="text-xs text-zinc-500 ml-1.5">{likers[0].displayName}、{likers[1].displayName} 等 {likers.length} 人赞过</span>;
 }
 
 /* ═══════════════════════════════════════════
@@ -226,10 +238,11 @@ function NestedReplyModal({
                 />
               </div>
               <div className="mt-2 flex items-center gap-4">
-                <button onClick={() => onToggleLike(rootComment.id)} className={`text-xs transition font-body ${rootComment.likedBy.has(currentUserId ?? "") ? "text-rose-400" : "text-gray-500 hover:text-gray-300"}`} type="button">
-                  <Heart className={`h-3.5 w-3.5 inline mr-1 ${rootComment.likedBy.has(currentUserId ?? "") ? "fill-current" : ""}`} />
-                  {rootComment.likedBy.size > 0 ? rootComment.likedBy.size : ""}
+                <button onClick={() => onToggleLike(rootComment.id)} className={`text-xs transition font-body ${rootComment.likes.some(l => l.userId === currentUserId) ? "text-rose-400" : "text-gray-500 hover:text-gray-300"}`} type="button">
+                  <Heart className={`h-3.5 w-3.5 inline mr-1 ${rootComment.likes.some(l => l.userId === currentUserId) ? "fill-current" : ""}`} />
+                  {rootComment.likes.length > 0 ? rootComment.likes.length : ""}
                 </button>
+                <LikeIndicator likers={rootComment.likes} />
                 <button onClick={() => focusReplyTo(rootComment.authorName)} className="text-xs text-gray-500 hover:text-gray-300 transition font-body" type="button">
                   <MessageCircle className="h-3.5 w-3.5 inline mr-1" />回复
                 </button>
@@ -265,10 +278,11 @@ function NestedReplyModal({
                     />
                   </div>
                   <div className="mt-1.5 flex items-center gap-4">
-                    <button onClick={() => onToggleLike(reply.id)} className={`text-xs transition font-body ${reply.likedBy.has(currentUserId ?? "") ? "text-rose-400" : "text-gray-500 hover:text-gray-300"}`} type="button">
-                      <Heart className={`h-3 w-3 inline mr-1 ${reply.likedBy.has(currentUserId ?? "") ? "fill-current" : ""}`} />
-                      {reply.likedBy.size > 0 ? reply.likedBy.size : ""}
+                    <button onClick={() => onToggleLike(reply.id)} className={`text-xs transition font-body ${reply.likes.some(l => l.userId === currentUserId) ? "text-rose-400" : "text-gray-500 hover:text-gray-300"}`} type="button">
+                      <Heart className={`h-3 w-3 inline mr-1 ${reply.likes.some(l => l.userId === currentUserId) ? "fill-current" : ""}`} />
+                      {reply.likes.length > 0 ? reply.likes.length : ""}
                     </button>
+                    <LikeIndicator likers={reply.likes} />
                     <button onClick={() => focusReplyTo(reply.authorName)} className="text-xs text-gray-500 hover:text-gray-300 transition font-body" type="button">
                       <MessageCircle className="h-3 w-3 inline mr-1" />回复
                     </button>
@@ -359,7 +373,7 @@ type Props = {
 };
 
 export function PostDetailModal({ post, onClose, onEdit }: Props) {
-  const { user, isAdmin, isOwner, showAuthModal } = useForumAuth();
+  const { user, displayName, isAdmin, isOwner, showAuthModal } = useForumAuth();
   const canEdit = !!(user && (isAdmin || isOwner || user.id === post.authorId));
 
   /* ── 评论状态 ── */
@@ -382,7 +396,7 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
           authorAvatar: r.authorAvatar,
           content: r.body,
           createdAt: r.createdAt,
-          likedBy: new Set<string>(),
+          likes: r.likes ?? [],
         }));
         setComments(mapped);
       } catch {
@@ -468,7 +482,7 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
         authorAvatar: saved.authorAvatar,
         content: saved.body,
         createdAt: saved.createdAt,
-        likedBy: new Set(),
+        likes: [],
       };
       setComments((prev) => [...prev, newComment]);
       setCommentText("");
@@ -506,7 +520,7 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
           authorAvatar: saved.authorAvatar,
           content: saved.body,
           createdAt: saved.createdAt,
-          likedBy: new Set(),
+          likes: [],
         };
         setComments((prev) => [...prev, newReply]);
       } catch (err: unknown) {
@@ -517,18 +531,38 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
     [user, showAuthModal, post.id],
   );
 
-  /* ── 点赞切换 ── */
-  function handleToggleCommentLike(commentId: string) {
+  /* ── 点赞切换 (乐观 UI + toggleCommentLike) ── */
+  async function handleToggleCommentLike(commentId: string) {
     if (!user) { showAuthModal(); return; }
-    setComments((prev) =>
-      prev.map((c) => {
+    const userId = user.id;
+    const profile: Liker = {
+      userId,
+      displayName: displayName ?? (user.user_metadata?.full_name as string) ?? user.email ?? "",
+      avatarUrl: (user.user_metadata?.avatar_url as string) ?? null,
+    };
+    let previousLikes: Liker[] = [];
+    setComments((prev) => {
+      const next = prev.map((c) => {
         if (c.id !== commentId) return c;
-        const next = new Set(c.likedBy);
-        if (next.has(user.id)) next.delete(user.id);
-        else next.add(user.id);
-        return { ...c, likedBy: next };
-      }),
-    );
+        previousLikes = c.likes;
+        const alreadyLiked = c.likes.some((l) => l.userId === userId);
+        if (alreadyLiked) {
+          return { ...c, likes: c.likes.filter((l) => l.userId !== userId) };
+        }
+        return { ...c, likes: [...c.likes, profile] };
+      });
+      return next;
+    });
+    try {
+      const latestLikes = await toggleCommentLike(commentId, userId);
+      setComments((prev) =>
+        prev.map((c) => (c.id === commentId ? { ...c, likes: latestLikes } : c)),
+      );
+    } catch {
+      setComments((prev) =>
+        prev.map((c) => (c.id === commentId ? { ...c, likes: previousLikes } : c)),
+      );
+    }
   }
 
   /* ── 删除评论 ── */
@@ -674,7 +708,7 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
             {/* Bottom action bar */}
             <div className="shrink-0 flex items-center gap-5 px-8 py-4 border-t border-white/10 bg-zinc-950/50">
               <button onClick={() => setLiked(!liked)} className={`cursor-pointer inline-flex items-center gap-1.5 text-sm transition font-body ${liked ? "text-rose-400" : "text-white/40 hover:text-rose-300"}`} type="button">
-                <Heart className={`h-4 w-4 transition ${liked ? "fill-current" : ""}`} />{liked ? post.likes + 1 : post.likes}
+                <Heart className={`h-4 w-4 transition ${liked ? "fill-current" : ""}`} />{liked ? post.likes.length + 1 : post.likes.length}
               </button>
               <button onClick={() => setRightTab("comments")} className="cursor-pointer inline-flex items-center gap-1.5 text-sm text-white/40 hover:text-sky-300 transition font-body" type="button">
                 <MessageCircle className="h-4 w-4" />{commentsLoading ? "..." : comments.length}
@@ -711,7 +745,7 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
                     rootComments.map((root) => {
                       const replies = getReplies(root.id);
                       const previewReplies = replies.slice(0, 2);
-                      const isRootLiked = root.likedBy.has(user?.id ?? "");
+                      const isRootLiked = root.likes.some((l) => l.userId === (user?.id ?? ""));
                       return (
                         <div key={root.id} className="group">
                           {/* 根评论 */}
@@ -738,8 +772,9 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
                               <div className="mt-1.5 flex items-center gap-4">
                                 <button onClick={() => handleToggleCommentLike(root.id)} className={`cursor-pointer text-xs transition font-body ${isRootLiked ? "text-rose-400" : "text-gray-500 hover:text-gray-300"}`} type="button">
                                   <Heart className={`h-3.5 w-3.5 inline mr-1 ${isRootLiked ? "fill-current" : ""}`} />
-                                  {root.likedBy.size > 0 ? root.likedBy.size : ""}
+                                  {root.likes.length > 0 ? root.likes.length : ""}
                                 </button>
+                                <LikeIndicator likers={root.likes} />
                                 <button onClick={() => setNestedRootId(root.id)} className="cursor-pointer text-xs text-gray-500 hover:text-gray-300 transition font-body" type="button">
                                   <MessageCircle className="h-3.5 w-3.5 inline mr-1" />回复
                                 </button>
@@ -757,7 +792,7 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
                           {previewReplies.length > 0 && (
                             <div className="mt-2 ml-10 pl-3 border-l-2 border-white/5 space-y-2">
                               {previewReplies.map((reply) => {
-                                const isReplyLiked = reply.likedBy.has(user?.id ?? "");
+                                const isReplyLiked = reply.likes.some((l) => l.userId === (user?.id ?? ""));
                                 return (
                                   <div key={reply.id} className="flex gap-2">
                                     {reply.authorAvatar ? (
@@ -779,8 +814,9 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
                                       </div>
                                       <button onClick={() => handleToggleCommentLike(reply.id)} className={`cursor-pointer text-[10px] transition font-body mt-0.5 ${isReplyLiked ? "text-rose-400" : "text-gray-600 hover:text-gray-400"}`} type="button">
                                         <Heart className={`h-3 w-3 inline mr-0.5 ${isReplyLiked ? "fill-current" : ""}`} />
-                                        {reply.likedBy.size > 0 ? reply.likedBy.size : ""}
+                                        {reply.likes.length > 0 ? reply.likes.length : ""}
                                       </button>
+                                      <LikeIndicator likers={reply.likes} />
                                     </div>
                                   </div>
                                 );

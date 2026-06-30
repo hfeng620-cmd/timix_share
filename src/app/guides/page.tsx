@@ -9,7 +9,7 @@ import {
 import { Navbar } from "@/components/navbar";
 import { lockBodyScroll } from "@/lib/body-scroll-lock";
 import { useForumAuth } from "@/lib/forum-auth";
-import { loadFolders, loadAllPosts, createFolder, createSharePost, deleteSharePost, deleteFolder, updateFolder, updateSharePost, getFolderCreator, getFolderContributors, loadEditLogs, toggleHot, type ShareFolder, type SharePost, type Contributor, type EditLogEntry } from "@/lib/share-storage";
+import { loadFolders, loadAllPosts, createFolder, createSharePost, deleteSharePost, deleteFolder, updateFolder, updateSharePost, getFolderCreator, getFolderContributors, loadEditLogs, toggleHot, togglePostLike, type ShareFolder, type SharePost, type Contributor, type EditLogEntry, type Liker } from "@/lib/share-storage";
 import { EditPanelModal } from "@/components/edit-panel-modal";
 import { ShareCreateModal, type CreateMode } from "@/components/share-create-modal";
 import { PostDetailModal } from "@/components/post-detail-modal";
@@ -36,7 +36,7 @@ type PostNode = {
   title: string;
   summary: string;
   tag: string;
-  likes: number;
+  likes: import('@/lib/share-storage').Liker[];
   comments: number;
   bookmarks: number;
   authorId: string;
@@ -66,7 +66,7 @@ function buildTreeFromDb(dbFolders: ShareFolder[], dbPosts: SharePost[]): Folder
     const childFolders = (childrenMap.get(f.id) ?? []).map(convertFolder);
     const childPosts: PostNode[] = (postsByFolder.get(f.id) ?? []).map((p) => ({
       type: "post", id: p.id, title: p.title, summary: p.summary,
-      tag: f.name, likes: p.likesCount, comments: p.commentsCount, bookmarks: 0,
+      tag: f.name, likes: p.likes, comments: p.commentsCount, bookmarks: 0,
       authorId: p.authorId, authorName: p.authorName, authorAvatar: p.authorAvatar,
       createdAt: p.createdAt, body: p.body, isHot: p.isHot,
     }));
@@ -75,7 +75,7 @@ function buildTreeFromDb(dbFolders: ShareFolder[], dbPosts: SharePost[]): Folder
   const rootFolders = (childrenMap.get(null) ?? []).map(convertFolder);
   const rootPosts: PostNode[] = (postsByFolder.get("__root__") ?? []).map((p) => ({
     type: "post", id: p.id, title: p.title, summary: p.summary,
-    tag: "root", likes: p.likesCount, comments: p.commentsCount, bookmarks: 0,
+    tag: "root", likes: p.likes, comments: p.commentsCount, bookmarks: 0,
     authorId: p.authorId, authorName: p.authorName, authorAvatar: p.authorAvatar,
     createdAt: p.createdAt, body: p.body, isHot: p.isHot,
   }));
@@ -92,7 +92,7 @@ const OLD_MOCK: FolderNode = {
             {
               type: "post", id: "p1", title: "Codex CLI 实战：用自然语言操控终端",
               summary: "OpenAI Codex 命令行工具深度体验，附常用 prompt 模板和避坑记录。",
-              tag: "Codex", likes: 2340, comments: 156, bookmarks: 892, authorId: "",
+              tag: "Codex", likes: [], comments: 156, bookmarks: 892, authorId: "",
               authorName: null, authorAvatar: null, createdAt: "", body: "", isHot: false,
             },
           ],
@@ -102,7 +102,7 @@ const OLD_MOCK: FolderNode = {
             {
               type: "post", id: "p2", title: "Claude Code 终极配置指南",
               summary: "从零搭建 Claude Code 开发环境，MCP 插件、自定义 hooks 与快捷键映射。",
-              tag: "ClaudeCode", likes: 1890, comments: 98, bookmarks: 654, authorId: "",
+              tag: "ClaudeCode", likes: [], comments: 98, bookmarks: 654, authorId: "",
               authorName: null, authorAvatar: null, createdAt: "", body: "", isHot: false,
             },
           ],
@@ -119,7 +119,7 @@ const OLD_MOCK: FolderNode = {
             {
               type: "post", id: "p3", title: "Tauri 2.0 桌面应用开发指南",
               summary: "基于 Rust 的轻量级跨平台桌面应用框架，替代 Electron 的首选方案。",
-              tag: "前端", likes: 2780, comments: 187, bookmarks: 940, authorId: "",
+              tag: "前端", likes: [], comments: 187, bookmarks: 940, authorId: "",
               authorName: null, authorAvatar: null, createdAt: "", body: "", isHot: false,
             },
           ],
@@ -131,6 +131,15 @@ const OLD_MOCK: FolderNode = {
     },
   ],
 };
+
+/* ── Like indicator ── */
+
+function LikeIndicator({ likers }: { likers: { displayName: string }[] }) {
+  if (likers.length === 0) return null;
+  if (likers.length === 1) return <span className="text-xs text-zinc-500 ml-1">{likers[0].displayName} 赞过</span>;
+  if (likers.length === 2) return <span className="text-xs text-zinc-500 ml-1">{likers[0].displayName}、{likers[1].displayName} 赞过</span>;
+  return <span className="text-xs text-zinc-500 ml-1">{likers[0].displayName}、{likers[1].displayName} 等 {likers.length} 人赞过</span>;
+}
 
 /* ── Helpers ── */
 
@@ -170,8 +179,30 @@ function getBreadcrumb(tree: FolderNode, indices: number[]): Breadcrumb {
 /* ── Post card ── */
 
 function PostCard({ post, onClick, onEdit, onDelete, onToggleHot }: { post: PostNode; onClick: () => void; onEdit?: () => void; onDelete?: () => void; onToggleHot?: () => void }) {
-  const { user, isAdmin, isOwner } = useForumAuth();
+  const { user, isAdmin, isOwner, displayName } = useForumAuth();
   const canEdit = !!(user && (isAdmin || isOwner || user.id === post.authorId));
+  const [likers, setLikers] = useState(post.likes);
+  const [likePending, setLikePending] = useState(false);
+  useEffect(() => { setLikers(post.likes); }, [post.likes]);
+  const liked = user ? likers.some((l) => l.userId === user.id) : false;
+  async function handleLike(e: React.MouseEvent) {
+    e.stopPropagation();
+    if (!user || likePending) return;
+    setLikePending(true);
+    const optimisticName = displayName ?? user.email?.split("@")[0] ?? "我";
+    const next = liked
+      ? likers.filter((l) => l.userId !== user!.id)
+      : [...likers, { userId: user!.id, displayName: optimisticName, avatarUrl: (user!.user_metadata?.avatar_url as string) ?? null }];
+    setLikers(next);
+    try {
+      const fresh = await togglePostLike(post.id, user.id);
+      setLikers(fresh);
+    } catch {
+      setLikers(likers);
+    } finally {
+      setLikePending(false);
+    }
+  }
   return (
     <div
       onClick={onClick}
@@ -215,7 +246,7 @@ function PostCard({ post, onClick, onEdit, onDelete, onToggleHot }: { post: Post
         )}
       </div>
       <div className="mt-3 flex items-center gap-5 text-xs text-white/30 font-body">
-        <span className="inline-flex items-center gap-1"><Heart className="h-3 w-3" />{post.likes >= 1000 ? `${(post.likes / 1000).toFixed(1)}k` : post.likes}</span>
+        <button type="button" onClick={handleLike} disabled={likePending} className={`inline-flex items-center gap-1 transition ${liked ? "text-red-400" : ""} ${user ? "hover:text-red-400 cursor-pointer" : "cursor-default"}`}><Heart className={`h-3 w-3 ${liked ? "fill-current" : ""}`} />{likers.length >= 1000 ? `${(likers.length / 1000).toFixed(1)}k` : likers.length}<LikeIndicator likers={likers} /></button>
         <span className="inline-flex items-center gap-1"><MessageCircle className="h-3 w-3" />{post.comments}</span>
         <span className="inline-flex items-center gap-1"><Bookmark className="h-3 w-3" />{post.bookmarks}</span>
       </div>
@@ -226,7 +257,7 @@ function PostCard({ post, onClick, onEdit, onDelete, onToggleHot }: { post: Post
 /* ── Hot sidebar ── */
 
 function HotSidebar({ allPosts, onPostClick }: { allPosts: (PostNode & { path: string })[], onPostClick: (p: PostNode) => void }) {
-  const hot = [...allPosts].filter((p) => p.likes > 0 || p.comments > 0 || p.isHot).sort((a, b) => { if (a.isHot && !b.isHot) return -1; if (!a.isHot && b.isHot) return 1; return b.likes - a.likes; }).slice(0, 10);
+  const hot = [...allPosts].filter((p) => p.likes.length > 0 || p.comments > 0 || p.isHot).sort((a, b) => { if (a.isHot && !b.isHot) return -1; if (!a.isHot && b.isHot) return 1; return b.likes.length - a.likes.length; }).slice(0, 10);
 
   function fireColor(rank: number) {
     if (rank === 0) return "text-orange-400";
