@@ -112,7 +112,7 @@ export default function DropsPage() {
               return (
                 <article
                   key={campaign.id}
-                  className="relative flex flex-col rounded-2xl border border-white/10 bg-zinc-900/40 p-6 backdrop-blur-md transition hover:border-white/20"
+                  className="relative flex flex-col rounded-2xl border border-white/10 bg-zinc-900/40 p-6 backdrop-blur-md transition hover:bg-zinc-800/50 hover:border-white/20"
                 >
                   {/* Sponsor badge */}
                   <div className="flex items-center gap-2 mb-1">
@@ -146,9 +146,9 @@ export default function DropsPage() {
                         {Math.round(progressPct)}% 已领
                       </span>
                     </div>
-                    <div className="h-2 w-full overflow-hidden rounded-full bg-white/8">
+                    <div className="h-1.5 w-full rounded-full overflow-hidden bg-zinc-800">
                       <div
-                        className="h-full rounded-full bg-white transition-all duration-700"
+                        className="h-full rounded-full bg-gradient-to-r from-blue-500 to-cyan-400 transition-all duration-700"
                         style={{ width: `${Math.min(progressPct, 100)}%` }}
                       />
                     </div>
@@ -158,8 +158,8 @@ export default function DropsPage() {
                   <button
                     className={`mt-5 flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-bold transition font-body ${
                       isSoldOut
-                        ? "cursor-not-allowed border border-white/5 bg-white/[0.02] text-zinc-600"
-                        : "bg-white text-black hover:bg-zinc-200"
+                        ? "cursor-not-allowed border border-white/5 bg-white/[0.02] text-zinc-500"
+                        : "bg-white text-black hover:bg-zinc-200 shadow-[0_0_30px_rgba(255,255,255,0.08)] hover:shadow-[0_0_40px_rgba(255,255,255,0.15)]"
                     }`}
                     disabled={isSoldOut}
                     onClick={() => setSelectedCampaign(campaign)}
@@ -168,7 +168,7 @@ export default function DropsPage() {
                     {isSoldOut ? (
                       <>
                         <Timer className="h-4 w-4" />
-                        已发放完毕
+                        已抢空
                       </>
                     ) : (
                       <>
