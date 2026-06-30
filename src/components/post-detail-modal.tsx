@@ -40,7 +40,7 @@ type PostNode = {
   title: string;
   summary: string;
   tag: string;
-  likes: number;
+  likes: number | Liker[];
   comments: number;
   bookmarks: number;
   authorId: string;
@@ -50,6 +50,40 @@ type PostNode = {
   authorAvatar?: string | null;
   createdAt?: string;
 };
+
+function normalizePostLikers(likes: PostNode["likes"]): Liker[] {
+  return Array.isArray(likes) ? likes : [];
+}
+
+function getPostLikesCount(likes: PostNode["likes"]): number {
+  return Array.isArray(likes) ? likes.length : likes;
+}
+
+function LikeIndicator({ likers }: { likers: Liker[] }) {
+  if (likers.length === 0) return null;
+  const preview = likers.slice(0, 3);
+  const names = likers.map((liker) => liker.displayName || "匿名用户").join("、");
+
+  return (
+    <span className="group relative inline-flex -space-x-2">
+      {preview.map((liker) => (
+        <span
+          key={liker.userId}
+          className="flex h-6 w-6 items-center justify-center overflow-hidden rounded-full border border-zinc-900 bg-zinc-800 text-[10px] text-zinc-300"
+        >
+          {liker.avatarUrl ? (
+            <img alt="" className="h-full w-full object-cover" referrerPolicy="no-referrer" src={liker.avatarUrl} />
+          ) : (
+            (liker.displayName || "?").slice(0, 1)
+          )}
+        </span>
+      ))}
+      <span className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 hidden w-max max-w-xs -translate-x-1/2 rounded-xl border border-white/10 bg-zinc-950 px-3 py-2 text-xs text-zinc-300 shadow-2xl group-hover:block">
+        {names}
+      </span>
+    </span>
+  );
+}
 
 type SlashEmojiItem = {
   aliases: string[];
@@ -524,18 +558,20 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
   const [showCommentEmojiPicker, setShowCommentEmojiPicker] = useState(false);
   const commentTextareaRef = useRef<HTMLTextAreaElement>(null);
   const commentFileInputRef = useRef<HTMLInputElement>(null);
-  const [postIsLiked, setPostIsLiked] = useState(post.likes.some((l) => l.userId === user?.id));
-  const [postLikers, setPostLikers] = useState<Liker[]>(post.likes);
-  const [postLikesCount, setPostLikesCount] = useState(post.likes.length);
+  const initialPostLikers = normalizePostLikers(post.likes);
+  const [postIsLiked, setPostIsLiked] = useState(initialPostLikers.some((l) => l.userId === user?.id));
+  const [postLikers, setPostLikers] = useState<Liker[]>(initialPostLikers);
+  const [postLikesCount, setPostLikesCount] = useState(getPostLikesCount(post.likes));
   const [postLikePending, setPostLikePending] = useState(false);
   const [saved, setSaved] = useState(false);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
 
   useEffect(() => {
     if (postLikePending) return;
-    setPostLikers(post.likes);
-    setPostLikesCount(post.likes.length);
-    setPostIsLiked(post.likes.some((l) => l.userId === user?.id));
+    const nextLikers = normalizePostLikers(post.likes);
+    setPostLikers(nextLikers);
+    setPostLikesCount(getPostLikesCount(post.likes));
+    setPostIsLiked(nextLikers.some((l) => l.userId === user?.id));
   }, [post.id, post.likes, postLikePending, user?.id]);
 
   /* ── 编辑日志 ── */
@@ -681,10 +717,11 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
     if (!user) { showAuthModal(); return; }
 
     setPostLikePending(true);
+    const userMetadata = user.user_metadata ?? {};
     const profile: Liker = {
       userId: user.id,
-      displayName: displayName ?? (user.user_metadata?.full_name as string) ?? user.email ?? "",
-      avatarUrl: (user.user_metadata?.avatar_url as string) ?? null,
+      displayName: (userMetadata.display_name as string) ?? (userMetadata.full_name as string) ?? user.email ?? "",
+      avatarUrl: (userMetadata.avatar_url as string) ?? null,
     };
 
     const prev = postIsLiked;
