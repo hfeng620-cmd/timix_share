@@ -96,7 +96,7 @@ export function EmojiPickerButton({
 
       {open ? (
         <div
-          className={`absolute bottom-full mb-3 z-[220] overflow-hidden rounded-2xl border border-white/10 bg-zinc-950/95 shadow-2xl ${
+          className={`absolute bottom-full mb-3 z-[220] w-[360px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-white/10 bg-zinc-950/95 shadow-2xl ${
             align === "right" ? "right-0" : "left-0"
           } ${pickerClassName}`}
         >

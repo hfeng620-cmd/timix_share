@@ -50,6 +50,13 @@ type PostNode = {
   createdAt?: string;
 };
 
+type SlashEmojiItem = {
+  aliases: string[];
+  insertText: string;
+  label: string;
+  preview: string;
+};
+
 /* ═══════════════════════════════════════════
    相对时间格式化
    ═══════════════════════════════════════════ */
@@ -62,6 +69,84 @@ function formatRelativeTime(input: string): string {
   const h = Math.floor(m / 60);
   if (h < 24) return `${h}小时前`;
   return `${Math.floor(h / 24)}天前`;
+}
+
+const SLASH_EMOJI_ITEMS: SlashEmojiItem[] = [
+  { label: "笑哭", preview: "😂", insertText: "😂", aliases: ["xk", "xiaoku", "笑哭"] },
+  { label: "爱心", preview: "❤️", insertText: "❤️", aliases: ["xin", "ax", "aixin", "爱心"] },
+  { label: "心碎", preview: "💔", insertText: "💔", aliases: ["xs", "xinsui", "心碎"] },
+  { label: "西瓜", preview: "🍉", insertText: "🍉", aliases: ["xg", "xig", "xigua", "西瓜"] },
+  { label: "吃惊", preview: "😲", insertText: "😲", aliases: ["cj", "xia", "chijing", "吃惊"] },
+  { label: "思考", preview: "🤔", insertText: "🤔", aliases: ["sk", "xj", "sikao", "思考"] },
+  { label: "墨镜", preview: "😎", insertText: "😎", aliases: ["mj", "xyx", "mojing", "墨镜"] },
+  { label: "狗头", preview: "🐕", insertText: "[狗头]", aliases: ["gt", "gou", "goutou", "doge", "狗头"] },
+  { label: "吃瓜", preview: "🍉", insertText: "[吃瓜]", aliases: ["cg", "gua", "chigua", "吃瓜"] },
+  { label: "泪目", preview: "🥹", insertText: "[泪目]", aliases: ["lm", "leimu", "泪目", "哭"] },
+  { label: "捂脸", preview: "🫣", insertText: "[捂脸]", aliases: ["wl", "wulian", "捂脸", "尴尬"] },
+  { label: "妙啊", preview: "😏", insertText: "[妙啊]", aliases: ["ma", "miaoa", "妙啊"] },
+  { label: "破防", preview: "💥", insertText: "[破防]", aliases: ["pf", "pofang", "破防"] },
+  { label: "点赞", preview: "👍", insertText: "[点赞]", aliases: ["dz", "zan", "like", "点赞"] },
+  { label: "666", preview: "🔥", insertText: "[666]", aliases: ["666", "liuliu", "nb"] },
+  { label: "草", preview: "🌿", insertText: "[草]", aliases: ["cao", "c", "草"] },
+  { label: "火箭", preview: "🚀", insertText: "[火箭]", aliases: ["hj", "rocket", "huojian", "火箭"] },
+];
+
+function getActiveSlashEmoji(text: string, cursor: number) {
+  const beforeCursor = text.slice(0, cursor);
+  const match = beforeCursor.match(/(?:^|\s)\/([^\s/]*)$/);
+  if (!match) return null;
+
+  const query = (match[1] ?? "").trim().toLowerCase();
+  const matches = SLASH_EMOJI_ITEMS.filter((item) => {
+    const keywords = [item.label, ...item.aliases].map((keyword) => keyword.trim().toLowerCase());
+    if (!query) return true;
+    return keywords.some((keyword) => keyword === query || keyword.startsWith(query) || keyword.includes(query));
+  }).slice(0, 8);
+
+  return {
+    exactMatch: query
+      ? matches.find((item) => [item.label, ...item.aliases].map((keyword) => keyword.trim().toLowerCase()).includes(query)) ?? null
+      : null,
+    matches,
+    rangeEnd: cursor,
+    rangeStart: cursor - query.length - 1,
+  };
+}
+
+function SlashEmojiSuggestions({
+  activeSlash,
+  onPick,
+}: {
+  activeSlash: ReturnType<typeof getActiveSlashEmoji>;
+  onPick: (item: SlashEmojiItem) => void;
+}) {
+  if (!activeSlash?.matches.length) return null;
+
+  return (
+    <div className="absolute bottom-[calc(100%+10px)] right-0 z-[230] w-[260px] overflow-hidden rounded-xl border border-white/10 bg-zinc-950/95 py-1.5 shadow-2xl">
+      {activeSlash.matches.map((item) => (
+        <button
+          key={`${item.insertText}-${item.aliases[0]}`}
+          className={`flex w-full items-center gap-3 px-3 py-2 text-left text-xs transition ${
+            activeSlash.exactMatch?.insertText === item.insertText
+              ? "bg-white/[0.08] text-white"
+              : "text-zinc-400 hover:bg-white/[0.05] hover:text-white"
+          }`}
+          onMouseDown={(event) => {
+            event.preventDefault();
+            onPick(item);
+          }}
+          type="button"
+        >
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/[0.06] text-base">{item.preview}</span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-[13px]">{item.label}</span>
+            <span className="mt-0.5 block text-[10px] text-zinc-500">/{item.aliases[0]}</span>
+          </span>
+        </button>
+      ))}
+    </div>
+  );
 }
 
 /* ═══════════════════════════════════════════
@@ -121,6 +206,21 @@ function NestedReplyModal({
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (e.nativeEvent.isComposing) return;
+    const activeSlash = getActiveSlashEmoji(replyText, inputRef.current?.selectionStart ?? replyText.length);
+    if (activeSlash?.matches.length) {
+      if (e.key === "Tab" || (e.key === "Enter" && !e.shiftKey)) {
+        e.preventDefault();
+        applyReplySlashEmoji(activeSlash.matches[0], true);
+        return;
+      }
+
+      if (e.key === " " && activeSlash.exactMatch) {
+        e.preventDefault();
+        applyReplySlashEmoji(activeSlash.exactMatch, true);
+        return;
+      }
+    }
+
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       if (!replyText.trim()) return;
@@ -138,6 +238,26 @@ function NestedReplyModal({
     const nextCursor = start + emoji.length;
 
     setReplyText(next);
+    requestAnimationFrame(() => {
+      inputRef.current?.focus();
+      inputRef.current?.setSelectionRange(nextCursor, nextCursor);
+    });
+  }
+
+  function applyReplySlashEmoji(item: SlashEmojiItem, appendSpace: boolean) {
+    const textarea = inputRef.current;
+    const start = textarea?.selectionStart ?? replyText.length;
+    const end = textarea?.selectionEnd ?? start;
+    const activeSlash = getActiveSlashEmoji(replyText, start);
+    if (!activeSlash) return;
+
+    const head = replyText.slice(0, activeSlash.rangeStart);
+    const tail = replyText.slice(Math.max(end, activeSlash.rangeEnd));
+    const shouldAppendSpace = appendSpace && !/^[\s，。！？、,.!?)]/.test(tail);
+    const inserted = `${item.insertText}${shouldAppendSpace ? " " : ""}`;
+    const nextCursor = head.length + inserted.length;
+
+    setReplyText(`${head}${inserted}${tail}`);
     requestAnimationFrame(() => {
       inputRef.current?.focus();
       inputRef.current?.setSelectionRange(nextCursor, nextCursor);
@@ -182,6 +302,8 @@ function NestedReplyModal({
       }
     }
   }
+
+  const activeReplySlashEmoji = getActiveSlashEmoji(replyText, inputRef.current?.selectionStart ?? replyText.length);
 
   return (
     <div
@@ -286,10 +408,11 @@ function NestedReplyModal({
               回复 <span className="text-sky-400">@{replyTarget.authorName}</span>
             </p>
           )}
-          <div className="flex gap-3">
+          <div className="relative flex gap-3">
+            <SlashEmojiSuggestions activeSlash={activeReplySlashEmoji} onPick={(item) => applyReplySlashEmoji(item, true)} />
             <textarea
               ref={inputRef}
-              className="flex-1 min-h-[44px] resize-none rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-sm text-white placeholder:text-white/25 font-body outline-none focus:border-white/30 transition"
+              className="flex-1 min-h-[44px] resize-none rounded-xl bg-white/5 border border-white/10 px-4 py-3 pr-28 text-sm text-white placeholder:text-white/25 font-body outline-none focus:border-white/30 transition"
               placeholder="输入回复... (Enter 发送, Shift+Enter 换行)"
               value={replyText}
               onChange={(e) => setReplyText(e.target.value)}
@@ -584,6 +707,26 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
     });
   }
 
+  function applyCommentSlashEmoji(item: SlashEmojiItem, appendSpace: boolean) {
+    const textarea = commentTextareaRef.current;
+    const start = textarea?.selectionStart ?? commentText.length;
+    const end = textarea?.selectionEnd ?? start;
+    const activeSlash = getActiveSlashEmoji(commentText, start);
+    if (!activeSlash) return;
+
+    const head = commentText.slice(0, activeSlash.rangeStart);
+    const tail = commentText.slice(Math.max(end, activeSlash.rangeEnd));
+    const shouldAppendSpace = appendSpace && !/^[\s，。！？、,.!?)]/.test(tail);
+    const inserted = `${item.insertText}${shouldAppendSpace ? " " : ""}`;
+    const nextCursor = head.length + inserted.length;
+
+    setCommentText(`${head}${inserted}${tail}`);
+    requestAnimationFrame(() => {
+      commentTextareaRef.current?.focus();
+      commentTextareaRef.current?.setSelectionRange(nextCursor, nextCursor);
+    });
+  }
+
   async function handleCommentPaste(e: React.ClipboardEvent<HTMLTextAreaElement>) {
     const items = e.clipboardData?.items;
     if (!items) return;
@@ -602,6 +745,8 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
       }
     }
   }
+
+  const activeCommentSlashEmoji = getActiveSlashEmoji(commentText, commentTextareaRef.current?.selectionStart ?? commentText.length);
 
   return (
     <>
@@ -815,12 +960,28 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
                 {/* 底部评论输入框 */}
                 <div className="shrink-0 p-4 border-t border-white/10 bg-zinc-900/50">
                   <div className="relative">
+                    <SlashEmojiSuggestions activeSlash={activeCommentSlashEmoji} onPick={(item) => applyCommentSlashEmoji(item, true)} />
                     <textarea
                       ref={commentTextareaRef}
-                      className="w-full min-h-[44px] resize-none rounded-xl bg-white/5 border border-white/10 py-3 pl-10 pr-20 text-sm text-white placeholder:text-white/25 font-body outline-none focus:border-white/30 transition"
+                      className="w-full min-h-[44px] resize-none rounded-xl bg-white/5 border border-white/10 py-3 pl-10 pr-24 text-sm text-white placeholder:text-white/25 font-body outline-none focus:border-white/30 transition"
                       placeholder="说点什么... (Enter 发送, Shift+Enter 换行)"
                       onKeyDown={(e) => {
                         if (e.nativeEvent.isComposing) return;
+                        const activeSlash = getActiveSlashEmoji(commentText, commentTextareaRef.current?.selectionStart ?? commentText.length);
+                        if (activeSlash?.matches.length) {
+                          if (e.key === "Tab" || (e.key === "Enter" && !e.shiftKey)) {
+                            e.preventDefault();
+                            applyCommentSlashEmoji(activeSlash.matches[0], true);
+                            return;
+                          }
+
+                          if (e.key === " " && activeSlash.exactMatch) {
+                            e.preventDefault();
+                            applyCommentSlashEmoji(activeSlash.exactMatch, true);
+                            return;
+                          }
+                        }
+
                         if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSendComment(); }
                       }}
                       value={commentText}
