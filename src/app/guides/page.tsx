@@ -173,7 +173,7 @@ function PostCard({ post, onClick, onEdit, onDelete, onToggleHot }: { post: Post
           <p className="mt-1.5 text-sm leading-relaxed text-white/45 font-body line-clamp-2">{post.summary}</p>
         </div>
         {canEdit && (onEdit || onDelete) && (
-          <div className="relative shrink-0 opacity-0 group-hover:opacity-100 transition" onClick={(e) => e.stopPropagation()}>
+          <div className="relative shrink-0 opacity-70 transition hover:opacity-100" onClick={(e) => e.stopPropagation()}>
             <button className="rounded-lg p-1.5 text-white/30 hover:text-white hover:bg-white/10 transition" title="更多操作" type="button"
               onClick={(e) => { e.stopPropagation(); const menu = (e.currentTarget as HTMLElement).nextElementSibling as HTMLElement; if (menu) menu.classList.toggle('hidden'); }}>
               <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
@@ -566,7 +566,7 @@ export default function GuidesPage() {
 
                     {/* Three-dot menu — only on real DB folders */}
                     {hasRealData && dbId && (
-                      <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition" onClick={(e) => e.stopPropagation()}>
+                      <div className="absolute top-3 right-3 opacity-70 transition hover:opacity-100" onClick={(e) => e.stopPropagation()}>
                         <button className="rounded-lg p-1.5 text-white/30 hover:text-white hover:bg-white/10 transition" type="button"
                           onClick={(e) => { e.stopPropagation(); const menu = (e.currentTarget as HTMLElement).nextElementSibling as HTMLElement; if (menu) menu.classList.toggle('hidden'); }}>
                           <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
