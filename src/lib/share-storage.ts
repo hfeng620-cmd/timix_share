@@ -20,6 +20,12 @@ export type Contributor = {
   avatarUrl: string | null;
 };
 
+export type Liker = {
+  userId: string;
+  displayName: string;
+  avatarUrl: string | null;
+};
+
 export type SharePost = {
   id: string;
   title: string;
@@ -31,6 +37,7 @@ export type SharePost = {
   authorAvatar: string | null;
   likesCount: number;
   commentsCount: number;
+  likes: Liker[];
   createdAt: string;
   isHot: boolean;
   hotUntil: string | null;
@@ -106,23 +113,28 @@ export async function loadAllPosts(): Promise<SharePost[]> {
   try {
     const { data, error } = await getSupabaseClient()
       .from("shared_posts")
-      .select("id, title, summary, body, folder_id, author_id, likes_count, comments_count, created_at, is_hot, hot_until")
+      .select("id, title, summary, body, folder_id, author_id, likes_count, comments_count, created_at, is_hot, hot_until, likes:share_post_likes(user_id, profiles:forum_profiles(display_name, avatar_url))")
       .order("created_at", { ascending: false })
       .limit(100);
     if (error) throw error;
     const rows = (data ?? []) as Record<string, unknown>[];
     const profiles = await loadProfilesById(rows.map((r) => r.author_id as string));
-    return rows.map((row) => ({
-      id: row.id as string, title: row.title as string, summary: row.summary as string,
-      body: row.body as string, folderId: (row.folder_id as string) ?? null,
-      authorId: row.author_id as string,
-      authorName: profiles.get(row.author_id as string)?.displayName ?? null,
-      authorAvatar: profiles.get(row.author_id as string)?.avatarUrl ?? null,
-      likesCount: (row.likes_count as number) ?? 0, commentsCount: (row.comments_count as number) ?? 0,
-      createdAt: row.created_at as string,
-      isHot: (row.is_hot as boolean) ?? false,
-      hotUntil: (row.hot_until as string) ?? null,
-    }));
+    return rows.map((row) => {
+      const uniqueLikers = parseLikers((row.likes as unknown[]) ?? []);
+
+      return {
+        id: row.id as string, title: row.title as string, summary: row.summary as string,
+        body: row.body as string, folderId: (row.folder_id as string) ?? null,
+        authorId: row.author_id as string,
+        authorName: profiles.get(row.author_id as string)?.displayName ?? null,
+        authorAvatar: profiles.get(row.author_id as string)?.avatarUrl ?? null,
+        likesCount: uniqueLikers.length, commentsCount: (row.comments_count as number) ?? 0,
+        likes: uniqueLikers,
+        createdAt: row.created_at as string,
+        isHot: (row.is_hot as boolean) ?? false,
+        hotUntil: (row.hot_until as string) ?? null,
+      };
+    });
   } catch { return []; }
 }
 
@@ -179,6 +191,7 @@ export async function createSharePost(title: string, summary: string, body: stri
     authorName: profile?.displayName ?? null,
     authorAvatar: profile?.avatarUrl ?? null,
     likesCount: (row.likes_count as number) ?? 0, commentsCount: (row.comments_count as number) ?? 0,
+    likes: [],
     createdAt: row.created_at as string,
     isHot: false, hotUntil: null,
   };
@@ -270,16 +283,33 @@ export type SharedComment = {
   body: string;
   parentCommentId: string | null;
   isHidden: boolean;
+  likes: Liker[];
   createdAt: string;
 };
 
-/** 加载某个帖子的所有评论 */
+/** 解析 likes 关联数据为 Liker[]，去重 */
+function parseLikers(likesRaw: unknown[]): Liker[] {
+  const seen = new Set<string>();
+  return likesRaw
+    .map((like: any) => ({
+      userId: like.user_id as string,
+      displayName: (like.profiles as any)?.display_name ?? "未知用户",
+      avatarUrl: (like.profiles as any)?.avatar_url ?? null,
+    }))
+    .filter((l) => {
+      if (seen.has(l.userId)) return false;
+      seen.add(l.userId);
+      return true;
+    });
+}
+
+/** 加载某个帖子的所有评论（含点赞数据） */
 export async function loadSharedComments(postId: string): Promise<SharedComment[]> {
   if (!isSupabaseConfigured()) return [];
   try {
     const { data, error } = await getSupabaseClient()
       .from("shared_post_comments")
-      .select("id, post_id, author_id, body, parent_comment_id, is_hidden, created_at")
+      .select("id, post_id, author_id, body, parent_comment_id, is_hidden, created_at, likes:share_comment_likes(user_id, profiles:forum_profiles(display_name, avatar_url))")
       .eq("post_id", postId)
       .order("created_at", { ascending: true });
 
@@ -312,6 +342,7 @@ export async function loadSharedComments(postId: string): Promise<SharedComment[
       body: row.body as string,
       parentCommentId: (row.parent_comment_id as string) ?? null,
       isHidden: (row.is_hidden as boolean) ?? false,
+      likes: parseLikers((row.likes as unknown[]) ?? []),
       createdAt: row.created_at as string,
     }));
   } catch { return []; }
@@ -369,6 +400,7 @@ export async function createSharedComment(
     body: row.body as string,
     parentCommentId: (row.parent_comment_id as string) ?? null,
     isHidden: (row.is_hidden as boolean) ?? false,
+    likes: [],
     createdAt: row.created_at as string,
   };
 }
@@ -381,4 +413,106 @@ export async function deleteSharedComment(commentId: string): Promise<void> {
     .delete()
     .eq("id", commentId);
   if (error) throw new Error(`删除失败: ${error.message}`);
+}
+
+/* ═══════════════════════════════════════════
+   点赞 Toggle（帖子 & 评论）
+   ═══════════════════════════════════════════ */
+
+/** 切换帖子点赞：已赞则取消，未赞则添加。返回最新点赞用户列表。 */
+export async function togglePostLike(
+  postId: string,
+  userId: string,
+): Promise<Liker[]> {
+  if (!isSupabaseConfigured()) throw new Error("Supabase 未配置。");
+  const supabase = getSupabaseClient();
+
+  // 检查是否已点赞
+  const { data: existing } = await supabase
+    .from("share_post_likes")
+    .select("id")
+    .eq("post_id", postId)
+    .eq("user_id", userId)
+    .single();
+
+  if (existing) {
+    // 已赞 → 取消
+    const { error } = await supabase
+      .from("share_post_likes")
+      .delete()
+      .eq("post_id", postId)
+      .eq("user_id", userId);
+    if (error) throw new Error(`取消点赞失败: ${error.message}`);
+  } else {
+    // 未赞 → 添加
+    const { error } = await supabase
+      .from("share_post_likes")
+      .insert({ post_id: postId, user_id: userId });
+    if (error) throw new Error(`点赞失败: ${error.message}`);
+  }
+
+  // 返回最新的点赞列表
+  return loadPostLikers(postId);
+}
+
+/** 切换评论点赞：已赞则取消，未赞则添加。返回最新点赞用户列表。 */
+export async function toggleCommentLike(
+  commentId: string,
+  userId: string,
+): Promise<Liker[]> {
+  if (!isSupabaseConfigured()) throw new Error("Supabase 未配置。");
+  const supabase = getSupabaseClient();
+
+  // 检查是否已点赞
+  const { data: existing } = await supabase
+    .from("share_comment_likes")
+    .select("id")
+    .eq("comment_id", commentId)
+    .eq("user_id", userId)
+    .single();
+
+  if (existing) {
+    // 已赞 → 取消
+    const { error } = await supabase
+      .from("share_comment_likes")
+      .delete()
+      .eq("comment_id", commentId)
+      .eq("user_id", userId);
+    if (error) throw new Error(`取消点赞失败: ${error.message}`);
+  } else {
+    // 未赞 → 添加
+    const { error } = await supabase
+      .from("share_comment_likes")
+      .insert({ comment_id: commentId, user_id: userId });
+    if (error) throw new Error(`点赞失败: ${error.message}`);
+  }
+
+  // 返回最新的点赞列表
+  return loadCommentLikers(commentId);
+}
+
+/** 加载帖子的赞用户列表 */
+export async function loadPostLikers(postId: string): Promise<Liker[]> {
+  if (!isSupabaseConfigured()) return [];
+  try {
+    const { data } = await getSupabaseClient()
+      .from("share_post_likes")
+      .select("user_id, profiles:forum_profiles(display_name, avatar_url)")
+      .eq("post_id", postId)
+      .order("created_at", { ascending: true });
+    return parseLikers((data ?? []) as unknown[]);
+  } catch { return []; }
+}
+
+/** 加载评论的赞用户列表 */
+export async function loadCommentLikers(commentId: string): Promise<Liker[]> {
+  if (!isSupabaseConfigured()) return [];
+  try {
+    const { data } = await getSupabaseClient()
+      .from("share_comment_likes")
+      .select("user_id, profiles:forum_profiles(display_name, avatar_url)")
+      .eq("comment_id", commentId)
+      .order("created_at", { ascending: true });
+    return parseLikers((data ?? []) as unknown[]);
+  } catch { return []; }
 }
