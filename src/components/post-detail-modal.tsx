@@ -13,7 +13,7 @@ import { MarkdownContent } from "@/components/markdown-content";
 import { uploadPostImage } from "@/lib/post-image-upload";
 import {
   loadEditLogs, type EditLogEntry,
-  toggleCommentLike, type Liker,
+  toggleCommentLike, togglePostLike, type Liker,
   loadSharedComments, createSharedComment, deleteSharedComment,
   type SharedComment,
 } from "@/lib/share-storage";
@@ -537,9 +537,19 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
   const [showCommentEmojiPicker, setShowCommentEmojiPicker] = useState(false);
   const commentTextareaRef = useRef<HTMLTextAreaElement>(null);
   const commentFileInputRef = useRef<HTMLInputElement>(null);
-  const [liked, setLiked] = useState(false);
+  const [postIsLiked, setPostIsLiked] = useState(post.likes.some((l) => l.userId === user?.id));
+  const [postLikers, setPostLikers] = useState<Liker[]>(post.likes);
+  const [postLikesCount, setPostLikesCount] = useState(post.likes.length);
+  const [postLikePending, setPostLikePending] = useState(false);
   const [saved, setSaved] = useState(false);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (postLikePending) return;
+    setPostLikers(post.likes);
+    setPostLikesCount(post.likes.length);
+    setPostIsLiked(post.likes.some((l) => l.userId === user?.id));
+  }, [post.id, post.likes, postLikePending, user?.id]);
 
   /* ── 编辑日志 ── */
   const [editLogs, setEditLogs] = useState<EditLogEntry[]>([]);
@@ -699,6 +709,44 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
     }
   }
 
+  async function handlePostLike() {
+    if (postLikePending) return;
+    if (!user) { showAuthModal(); return; }
+
+    setPostLikePending(true);
+    const profile: Liker = {
+      userId: user.id,
+      displayName: displayName ?? (user.user_metadata?.full_name as string) ?? user.email ?? "",
+      avatarUrl: (user.user_metadata?.avatar_url as string) ?? null,
+    };
+
+    const prev = postIsLiked;
+    const prevCount = postLikesCount;
+    const prevLikers = [...postLikers];
+    const next = !prev;
+
+    setPostIsLiked(next);
+    setPostLikesCount((c) => c + (next ? 1 : -1));
+    setPostLikers(next
+      ? [...prevLikers, profile]
+      : prevLikers.filter((l) => l.userId !== user.id)
+    );
+
+    try {
+      const result = await togglePostLike(post.id, user.id);
+      setPostLikers(result);
+      setPostLikesCount(result.length);
+      setPostIsLiked(result.some((l: Liker) => l.userId === user.id));
+    } catch {
+      setPostIsLiked(prev);
+      setPostLikesCount(prevCount);
+      setPostLikers(prevLikers);
+      alert("点赞失败，请稍后重试");
+    } finally {
+      setPostLikePending(false);
+    }
+  }
+
   /* ── 计算嵌套结构 ── */
   const rootComments = comments.filter((c) => c.parentId === null);
   const getReplies = (rootId: string) => comments.filter((c) => c.parentId === rootId);
@@ -852,9 +900,10 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
 
             {/* Bottom action bar */}
             <div className="shrink-0 flex items-center gap-5 px-8 py-4 border-t border-white/10 bg-zinc-950/50">
-              <button onClick={() => setLiked(!liked)} className={`cursor-pointer inline-flex items-center gap-1.5 text-sm transition font-body ${liked ? "text-rose-400" : "text-white/40 hover:text-rose-300"}`} type="button">
-                <Heart className={`h-4 w-4 transition ${liked ? "fill-current" : ""}`} />{liked ? post.likes.length + 1 : post.likes.length}
+              <button onClick={handlePostLike} disabled={postLikePending} className={`cursor-pointer inline-flex items-center gap-1.5 text-sm transition font-body disabled:cursor-not-allowed disabled:opacity-60 ${postIsLiked ? "text-rose-400" : "text-white/40 hover:text-rose-300"}`} type="button">
+                <Heart className={`h-4 w-4 transition ${postIsLiked ? "fill-current" : ""}`} />{postLikesCount}
               </button>
+              <LikeIndicator likers={postLikers} />
               <button onClick={() => setRightTab("comments")} className="cursor-pointer inline-flex items-center gap-1.5 text-sm text-white/40 hover:text-sky-300 transition font-body" type="button">
                 <MessageCircle className="h-4 w-4" />{commentsLoading ? "..." : comments.length}
               </button>
