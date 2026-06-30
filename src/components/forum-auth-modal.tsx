@@ -52,6 +52,30 @@ function getPasswordValidationError(password: string) {
   return null;
 }
 
+function PasswordRules({ password }: { password: string }) {
+  const rules = [
+    { label: `至少 ${PASSWORD_MIN_LENGTH} 位`, ok: password.length >= PASSWORD_MIN_LENGTH },
+    { label: "包含 1 个大写字母", ok: PASSWORD_UPPERCASE_PATTERN.test(password) },
+    { label: "包含 1 个数字", ok: PASSWORD_NUMBER_PATTERN.test(password) },
+  ];
+
+  return (
+    <div className="rounded-[12px] border border-[var(--color-line)] bg-[var(--color-soft)] px-3 py-2 text-xs">
+      <p className="mb-1 font-semibold text-[var(--color-muted)]">密码要求</p>
+      <div className="flex flex-wrap gap-2">
+        {rules.map((rule) => (
+          <span
+            key={rule.label}
+            className={rule.ok ? "text-emerald-600" : "text-[var(--color-muted)]"}
+          >
+            {rule.ok ? "✓" : "○"} {rule.label}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function readPendingRegistration(): PendingRegistrationState | null {
   try {
     const raw = sessionStorage.getItem(PENDING_REGISTRATION_KEY);
@@ -226,8 +250,10 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
 
     setEmail((current) => current || pending.email);
     setDisplayNameInput((current) => current || pending.displayName);
-    setOtpSent(pending.otpSent);
-  }, [open, isConnected, mode]);
+    // Passwords are intentionally never persisted. If the page was refreshed after
+    // sending a code, return to the editable step so users can re-enter the password.
+    setOtpSent(pending.otpSent && Boolean(password && confirmPassword));
+  }, [open, isConnected, mode, password, confirmPassword]);
 
   // Pre-fill display name when setting password for the first time.
   useEffect(() => {
@@ -587,6 +613,7 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
                   type="password"
                   value={password}
                 />
+                <PasswordRules password={password} />
                 <label className="sr-only" htmlFor="auth-setup-confirm">确认密码</label>
                 <input
                   aria-describedby={error ? "auth-error" : undefined}
@@ -722,7 +749,7 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
                 {mode === "login"
                   ? "已设置密码？直接登录"
                   : otpSent
-                    ? "验证码已发送，请查收邮箱"
+                    ? "验证码已发送，请输入邮件里的数字验证码"
                     : "首次使用？填写信息注册账号"
                 }
               </p>
@@ -834,6 +861,7 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
                         type="password"
                         value={password}
                       />
+                      <PasswordRules password={password} />
                       <label className="sr-only" htmlFor="auth-confirm-password">确认密码</label>
                       <input
                         aria-describedby={error ? "auth-error" : undefined}
@@ -867,6 +895,9 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
                         <p className="text-sm font-medium text-[var(--color-ink)]">{normalizedEmail}</p>
                         <p className="text-xs text-[var(--color-muted)]">昵称：{displayNameInput || "未填写"}</p>
                       </div>
+                      <p className="text-xs leading-5 text-[var(--color-muted)]">
+                        请复制邮件中的数字验证码；如果邮件里只有登录链接，请返回重新发送或联系站主检查邮件模板。
+                      </p>
                       <label className="sr-only" htmlFor="auth-otp-code">验证码</label>
                       <input
                         aria-describedby={error ? "auth-error" : undefined}

@@ -125,6 +125,7 @@ export function ForumPostModal({
   const [replyQuote, setReplyQuote] = useState<ReplyQuote | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [composerCursor, setComposerCursor] = useState(0);
 
   useEffect(() => {
     const unlock = lockBodyScroll();
@@ -146,6 +147,7 @@ export function ForumPostModal({
 
   useEffect(() => {
     setComposerValue("");
+    setComposerCursor(0);
     setReplyTarget(null);
     setReplyQuote(null);
     setShowEmojiPicker(false);
@@ -167,6 +169,7 @@ export function ForumPostModal({
       node.focus();
       const end = node.value.length;
       node.setSelectionRange(end, end);
+      setComposerCursor(end);
     });
   }
 
@@ -186,6 +189,7 @@ export function ForumPostModal({
         const cursor = start + markdown.length;
         node.focus();
         node.setSelectionRange(cursor, cursor);
+        setComposerCursor(cursor);
       });
     } finally {
       setUploadingImage(false);
@@ -205,6 +209,7 @@ export function ForumPostModal({
       if (!node) return;
       node.focus();
       node.setSelectionRange(nextCursor, nextCursor);
+      setComposerCursor(nextCursor);
     });
   }
 
@@ -227,6 +232,7 @@ export function ForumPostModal({
       if (!node) return;
       node.focus();
       node.setSelectionRange(nextCursor, nextCursor);
+      setComposerCursor(nextCursor);
     });
 
     return true;
@@ -275,7 +281,7 @@ export function ForumPostModal({
   }
 
   const renderedComments = comments ?? [];
-  const activeSlashEmoji = getActiveSlashEmoji(composerValue, composerRef.current?.selectionStart ?? composerValue.length);
+  const activeSlashEmoji = getActiveSlashEmoji(composerValue, Math.min(composerCursor, composerValue.length));
 
   return createPortal(
     <div
@@ -514,10 +520,13 @@ export function ForumPostModal({
                 <textarea
                   ref={composerRef}
                   className="min-h-[88px] w-full resize-none rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 pr-32 text-sm leading-6 text-zinc-100 outline-none transition placeholder:text-zinc-500 focus:border-white/25"
-                  onChange={(event) => setComposerValue(event.target.value)}
+                  onChange={(event) => {
+                    setComposerValue(event.target.value);
+                    setComposerCursor(event.currentTarget.selectionStart ?? event.target.value.length);
+                  }}
                   onKeyDown={(event) => {
                     if (event.nativeEvent.isComposing) return;
-                    const activeSlash = getActiveSlashEmoji(composerValue, composerRef.current?.selectionStart ?? composerValue.length);
+                    const activeSlash = getActiveSlashEmoji(composerValue, event.currentTarget.selectionStart ?? composerValue.length);
                     if (activeSlash?.matches.length) {
                       if (event.key === "Tab" || (event.key === "Enter" && !event.shiftKey)) {
                         event.preventDefault();
@@ -538,6 +547,7 @@ export function ForumPostModal({
                     }
                   }}
                   onPaste={handlePaste}
+                  onSelect={(event) => setComposerCursor(event.currentTarget.selectionStart ?? composerValue.length)}
                   placeholder={replyTarget ? `回复 @${replyTarget}...` : "说点什么... (Enter 发送, Shift+Enter 换行)"}
                   rows={3}
                   value={composerValue}

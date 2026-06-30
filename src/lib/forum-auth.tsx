@@ -157,6 +157,15 @@ function getAuthErrorMessage(message?: string) {
   if (lower.includes("password should be at least")) {
     return `密码至少需要 ${PASSWORD_MIN_LENGTH} 位。`;
   }
+  if (lower.includes("uppercase") || lower.includes("upper case") || lower.includes("capital")) {
+    return "密码需要至少包含 1 个大写字母。";
+  }
+  if (lower.includes("number") || lower.includes("digit")) {
+    return "密码需要至少包含 1 个数字。";
+  }
+  if (lower.includes("weak password") || lower.includes("password")) {
+    return "密码强度不够：至少 8 位，并包含 1 个大写字母和 1 个数字。";
+  }
 
   return message;
 }
@@ -164,7 +173,7 @@ function getAuthErrorMessage(message?: string) {
 function userNeedsPassword(user: User | null) {
   if (!user) return false;
 
-  return user.user_metadata?.password_set !== true;
+  return user.user_metadata?.registration_incomplete === true || user.user_metadata?.password_set === false;
 }
 
 export function ForumAuthProvider({ children }: { children: React.ReactNode }) {
@@ -359,6 +368,10 @@ export function ForumAuthProvider({ children }: { children: React.ReactNode }) {
         email: normalizedEmail,
         options: {
           shouldCreateUser: true,
+          data: {
+            registration_incomplete: true,
+            password_set: false,
+          },
         },
       });
 
@@ -424,9 +437,14 @@ export function ForumAuthProvider({ children }: { children: React.ReactNode }) {
         password,
       });
 
-      return error
-        ? { ok: false, error: getAuthErrorMessage(error.message) }
-        : { ok: true };
+      if (error) return { ok: false, error: getAuthErrorMessage(error.message) };
+
+      getSupabaseClient().auth.updateUser({
+        data: { registration_incomplete: false, password_set: true },
+      }).catch(() => {
+        /* 登录本身已成功；元数据修正失败不阻断用户。 */
+      });
+      return { ok: true };
     },
     [configured],
   );
@@ -464,7 +482,7 @@ export function ForumAuthProvider({ children }: { children: React.ReactNode }) {
       // Now update password — onAuthStateChange will re-read and find the new name
       const { error } = await supabase.auth.updateUser({
         password,
-        data: { password_set: true, full_name: name },
+        data: { password_set: true, registration_incomplete: false, full_name: name },
       });
 
       if (error) {

@@ -556,6 +556,7 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
   const [commentText, setCommentText] = useState("");
   const [commentUploading, setCommentUploading] = useState(false);
   const [showCommentEmojiPicker, setShowCommentEmojiPicker] = useState(false);
+  const [commentCursor, setCommentCursor] = useState(0);
   const commentTextareaRef = useRef<HTMLTextAreaElement>(null);
   const commentFileInputRef = useRef<HTMLInputElement>(null);
   const initialPostLikers = normalizePostLikers(post.likes);
@@ -642,6 +643,7 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
       };
       setComments((prev) => [...prev, newComment]);
       setCommentText("");
+      setCommentCursor(0);
     } catch (err: unknown) {
       console.error("[评论] 发送失败:", err);
       alert("评论发送失败: " + (err instanceof Error ? err.message : String(err)));
@@ -773,6 +775,7 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
         const cursor = start + markdown.length;
         commentTextareaRef.current?.focus();
         commentTextareaRef.current?.setSelectionRange(cursor, cursor);
+        setCommentCursor(cursor);
       });
     } finally {
       setCommentUploading(false);
@@ -790,6 +793,7 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
     requestAnimationFrame(() => {
       commentTextareaRef.current?.focus();
       commentTextareaRef.current?.setSelectionRange(nextCursor, nextCursor);
+      setCommentCursor(nextCursor);
     });
   }
 
@@ -810,6 +814,7 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
     requestAnimationFrame(() => {
       commentTextareaRef.current?.focus();
       commentTextareaRef.current?.setSelectionRange(nextCursor, nextCursor);
+      setCommentCursor(nextCursor);
     });
   }
 
@@ -832,7 +837,7 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
     }
   }
 
-  const activeCommentSlashEmoji = getActiveSlashEmoji(commentText, commentTextareaRef.current?.selectionStart ?? commentText.length);
+  const activeCommentSlashEmoji = getActiveSlashEmoji(commentText, Math.min(commentCursor, commentText.length));
 
   return (
     <>
@@ -1054,7 +1059,7 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
                       placeholder="说点什么... (Enter 发送, Shift+Enter 换行)"
                       onKeyDown={(e) => {
                         if (e.nativeEvent.isComposing) return;
-                        const activeSlash = getActiveSlashEmoji(commentText, commentTextareaRef.current?.selectionStart ?? commentText.length);
+                        const activeSlash = getActiveSlashEmoji(commentText, e.currentTarget.selectionStart ?? commentText.length);
                         if (activeSlash?.matches.length) {
                           if (e.key === "Tab" || (e.key === "Enter" && !e.shiftKey)) {
                             e.preventDefault();
@@ -1072,8 +1077,12 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
                         if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSendComment(); }
                       }}
                       value={commentText}
-                      onChange={(e) => setCommentText(e.target.value)}
+                      onChange={(e) => {
+                        setCommentText(e.target.value);
+                        setCommentCursor(e.currentTarget.selectionStart ?? e.target.value.length);
+                      }}
                       onPaste={handleCommentPaste}
+                      onSelect={(e) => setCommentCursor(e.currentTarget.selectionStart ?? commentText.length)}
                       rows={2}
                     />
                     <input

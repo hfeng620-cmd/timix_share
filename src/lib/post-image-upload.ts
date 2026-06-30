@@ -2,7 +2,7 @@
 
 import { getSupabaseClient } from "@/lib/supabase";
 
-const BUCKET = "post_images";
+const BUCKET = "forum-images";
 const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_TYPES = ["image/png", "image/jpeg", "image/gif", "image/webp", "image/bmp", "image/svg+xml"];
 
@@ -19,7 +19,7 @@ function getExtension(mimeType: string): string {
 }
 
 /**
- * 上传图片到 Supabase Storage post_images 桶，返回 public URL。
+ * 上传图片到 Supabase Storage forum-images 桶，返回 public URL。
  * 文件名格式: {userId}/{timestamp}-{random}.{ext}
  */
 export async function uploadPostImage(file: File): Promise<string> {

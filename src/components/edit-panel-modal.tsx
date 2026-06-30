@@ -29,12 +29,14 @@ export function EditPanelModal({ open, mode, targetId, initialName, initialDesc,
   const [error, setError] = useState("");
   const [editLogs, setEditLogs] = useState<EditLogEntry[]>([]);
   const [logsLoading, setLogsLoading] = useState(true);
+  const [relativeNow, setRelativeNow] = useState(() => Date.now());
 
   /* 图片上传 Hook */
   const { textareaRef, onPaste, uploading, triggerUpload, FileInput } = usePostImageUpload(body, setBody);
 
   useEffect(() => {
     if (!open) return;
+    setRelativeNow(Date.now());
     setName(initialName); setDesc(initialDesc); setBody(initialBody ?? ""); setLink(initialLink ?? "");
     setError(""); setSaving(false);
     let cancelled = false;
@@ -71,7 +73,7 @@ export function EditPanelModal({ open, mode, targetId, initialName, initialDesc,
   }
 
   function relativeTime(dateStr: string): string {
-    const d = new Date(dateStr); const mins = Math.floor((Date.now() - d.getTime()) / 60000);
+    const d = new Date(dateStr); const mins = Math.floor((relativeNow - d.getTime()) / 60000);
     if (isNaN(mins)) return dateStr;
     if (mins < 1) return "刚刚"; if (mins < 60) return `${mins} 分钟前`;
     const hrs = Math.floor(mins / 60); if (hrs < 24) return `${hrs} 小时前`;

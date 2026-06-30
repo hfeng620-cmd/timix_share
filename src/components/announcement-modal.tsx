@@ -20,6 +20,41 @@ function getTodayKey(): string {
   return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
 }
 
+function escapeHtmlAttribute(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+function getSafeAnnouncementUrl(value: string, type: "image" | "link"): string | null {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+
+  if (trimmed.startsWith("/") && !trimmed.startsWith("//") && !trimmed.startsWith("/\\")) {
+    return trimmed;
+  }
+
+  try {
+    const parsed = new URL(trimmed);
+    const allowedProtocols =
+      type === "image"
+        ? new Set(["http:", "https:"])
+        : new Set(["http:", "https:", "mailto:", "tel:"]);
+
+    if (!allowedProtocols.has(parsed.protocol)) return null;
+    if (type === "image") {
+      parsed.username = "";
+      parsed.password = "";
+    }
+    return parsed.toString();
+  } catch {
+    return null;
+  }
+}
+
 /** Simple markdown renderer: images ![](url), links [text](url), newlines → <br> */
 function renderBody(raw: string): string {
   let html = raw
@@ -27,11 +62,17 @@ function renderBody(raw: string): string {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
   // Images: ![alt](url)
-  html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g,
-    '<img src="$2" alt="$1" class="my-3 max-w-full rounded-xl" />');
+  html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_match, alt: string, url: string) => {
+    const safeUrl = getSafeAnnouncementUrl(url, "image");
+    if (!safeUrl) return "";
+    return `<img src="${escapeHtmlAttribute(safeUrl)}" alt="${escapeHtmlAttribute(alt)}" class="my-3 max-w-full rounded-xl" />`;
+  });
   // Links: [text](url)
-  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g,
-    '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-sky-400 underline hover:text-sky-300">$1</a>');
+  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_match, text: string, url: string) => {
+    const safeUrl = getSafeAnnouncementUrl(url, "link");
+    if (!safeUrl) return text;
+    return `<a href="${escapeHtmlAttribute(safeUrl)}" target="_blank" rel="noopener noreferrer" class="text-sky-400 underline hover:text-sky-300">${text}</a>`;
+  });
   // Newlines
   html = html.replace(/\n/g, "<br>");
   return html;

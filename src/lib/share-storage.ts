@@ -43,6 +43,19 @@ export type SharePost = {
   hotUntil: string | null;
 };
 
+const SHARE_POST_LIKE_TABLES = ["shared_post_likes", "share_post_likes"] as const;
+
+function isMissingRelationError(error: { code?: string; message?: string } | null | undefined) {
+  const message = error?.message?.toLowerCase() ?? "";
+  return (
+    error?.code === "42P01" ||
+    error?.code === "PGRST205" ||
+    message.includes("does not exist") ||
+    message.includes("could not find the table") ||
+    message.includes("could not find a relationship")
+  );
+}
+
 async function loadProfilesById(authorIds: string[]) {
   const profiles = new Map<string, { displayName: string | null; avatarUrl: string | null }>();
   const uniqueIds = [...new Set(authorIds.filter(Boolean))];
@@ -113,14 +126,19 @@ export async function loadAllPosts(): Promise<SharePost[]> {
   try {
     const { data, error } = await getSupabaseClient()
       .from("shared_posts")
-      .select("id, title, summary, body, folder_id, author_id, likes_count, comments_count, created_at, is_hot, hot_until, likes:share_post_likes(user_id, profiles:forum_profiles(display_name, avatar_url))")
+      .select("id, title, summary, body, folder_id, author_id, likes_count, comments_count, created_at, is_hot, hot_until")
       .order("created_at", { ascending: false })
       .limit(100);
     if (error) throw error;
     const rows = (data ?? []) as Record<string, unknown>[];
     const profiles = await loadProfilesById(rows.map((r) => r.author_id as string));
+    const likerEntries = await Promise.all(
+      rows.map(async (row) => [row.id as string, await loadPostLikers(row.id as string)] as const),
+    );
+    const likersByPostId = new Map<string, Liker[]>(likerEntries);
+
     return rows.map((row) => {
-      const uniqueLikers = parseLikers((row.likes as unknown[]) ?? []);
+      const uniqueLikers = likersByPostId.get(row.id as string) ?? [];
 
       return {
         id: row.id as string, title: row.title as string, summary: row.summary as string,
@@ -149,14 +167,11 @@ export async function createFolder(name: string, desc: string, parentId: string 
     .from("shared_folders")
     .insert(payload)
     .select("*").single();
-  alert("【Debug·板块】返回: " + JSON.stringify({ hasData: !!data, errorCode: error?.code, errorMsg: error?.message }));
   if (error) {
     console.error("[share-storage] createFolder 失败:", error, "payload:", payload);
-    alert("【插入板块失败】" + error.message + " (code:" + error.code + ")");
     throw new Error(`创建板块失败: ${error.message} (code: ${error.code})`);
   }
-  if (!data) { alert("【诡异】板块没报错但data为空！"); throw new Error("创建板块失败: 服务器未返回数据。"); }
-  alert("【板块成功】ID: " + data.id);
+  if (!data) throw new Error("创建板块失败: 服务器未返回数据。");
   const row = data as Record<string, unknown>;
   return { id: row.id as string, name: row.name as string, description: (row.description as string) ?? "", parentId: (row.parent_id as string) ?? null, creatorId: (row.creator_id as string) ?? null, creatorName: null, creatorAvatar: null, sortOrder: (row.sort_order as number) ?? 0, createdAt: row.created_at as string };
 }
@@ -427,32 +442,37 @@ export async function togglePostLike(
   if (!isSupabaseConfigured()) throw new Error("Supabase 未配置。");
   const supabase = getSupabaseClient();
 
-  // 检查是否已点赞
-  const { data: existing } = await supabase
-    .from("share_post_likes")
-    .select("id")
-    .eq("post_id", postId)
-    .eq("user_id", userId)
-    .single();
-
-  if (existing) {
-    // 已赞 → 取消
-    const { error } = await supabase
-      .from("share_post_likes")
-      .delete()
+  for (const tableName of SHARE_POST_LIKE_TABLES) {
+    const { data: existing, error: existingError } = await supabase
+      .from(tableName)
+      .select("id")
       .eq("post_id", postId)
-      .eq("user_id", userId);
-    if (error) throw new Error(`取消点赞失败: ${error.message}`);
-  } else {
-    // 未赞 → 添加
-    const { error } = await supabase
-      .from("share_post_likes")
-      .insert({ post_id: postId, user_id: userId });
-    if (error) throw new Error(`点赞失败: ${error.message}`);
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (existingError) {
+      if (isMissingRelationError(existingError)) continue;
+      throw new Error(`读取点赞状态失败: ${existingError.message}`);
+    }
+
+    if (existing) {
+      const { error } = await supabase
+        .from(tableName)
+        .delete()
+        .eq("post_id", postId)
+        .eq("user_id", userId);
+      if (error) throw new Error(`取消点赞失败: ${error.message}`);
+    } else {
+      const { error } = await supabase
+        .from(tableName)
+        .insert({ post_id: postId, user_id: userId });
+      if (error) throw new Error(`点赞失败: ${error.message}`);
+    }
+
+    return loadPostLikers(postId);
   }
 
-  // 返回最新的点赞列表
-  return loadPostLikers(postId);
+  throw new Error("点赞表未创建，请先运行分享点赞迁移。");
 }
 
 /** 切换评论点赞：已赞则取消，未赞则添加。返回最新点赞用户列表。 */
@@ -494,14 +514,42 @@ export async function toggleCommentLike(
 /** 加载帖子的赞用户列表 */
 export async function loadPostLikers(postId: string): Promise<Liker[]> {
   if (!isSupabaseConfigured()) return [];
-  try {
-    const { data } = await getSupabaseClient()
-      .from("share_post_likes")
-      .select("user_id, profiles:forum_profiles(display_name, avatar_url)")
-      .eq("post_id", postId)
-      .order("created_at", { ascending: true });
-    return parseLikers((data ?? []) as unknown[]);
-  } catch { return []; }
+  const supabase = getSupabaseClient();
+
+  for (const tableName of SHARE_POST_LIKE_TABLES) {
+    try {
+      const { data, error } = await supabase
+        .from(tableName)
+        .select("user_id, created_at")
+        .eq("post_id", postId)
+        .order("created_at", { ascending: true });
+
+      if (error) {
+        if (isMissingRelationError(error)) continue;
+        return [];
+      }
+
+      const rows = (data ?? []) as { user_id: string }[];
+      const profiles = await loadProfilesById(rows.map((row) => row.user_id));
+      const seen = new Set<string>();
+
+      return rows
+        .map((row) => ({
+          userId: row.user_id,
+          displayName: profiles.get(row.user_id)?.displayName ?? "未知用户",
+          avatarUrl: profiles.get(row.user_id)?.avatarUrl ?? null,
+        }))
+        .filter((liker) => {
+          if (seen.has(liker.userId)) return false;
+          seen.add(liker.userId);
+          return true;
+        });
+    } catch {
+      continue;
+    }
+  }
+
+  return [];
 }
 
 /** 加载评论的赞用户列表 */
