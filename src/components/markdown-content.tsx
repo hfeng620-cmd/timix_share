@@ -81,12 +81,18 @@ function renderMarkdownPart(
       return part;
     }
 
+    const isDoge = item.insertText === "[狗头]";
+
     return (
       <span
         key={index}
-        className="mx-0.5 inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.06] px-2 py-0.5 text-[12px] font-medium text-zinc-200 align-middle"
+        className={`mx-0.5 inline-flex items-center gap-1.5 align-middle font-medium ${
+          isDoge
+            ? "rounded-2xl border border-amber-300/20 bg-amber-300/10 px-2.5 py-1 text-[12px] text-amber-50 shadow-[0_6px_18px_rgba(251,191,36,0.12)]"
+            : "rounded-full border border-white/10 bg-white/[0.06] px-2 py-0.5 text-[12px] text-zinc-200"
+        }`}
       >
-        <span aria-hidden="true" className="text-[13px] leading-none">
+        <span aria-hidden="true" className={`${isDoge ? "text-[14px]" : "text-[13px]"} leading-none`}>
           {item.preview}
         </span>
         <span>{item.label}</span>

@@ -14,6 +14,12 @@ type ReplyQuote = {
   body: string;
 };
 
+type SlashEmojiItem = {
+  aliases: string[];
+  insertText: string;
+  label: string;
+};
+
 type ForumPostModalProps = {
   post: DiscussionPost;
   comments?: DiscussionReply[];
@@ -46,6 +52,49 @@ function formatRelativeTime(input: string): string {
     if (days < 7) return `${days}天前`;
   }
   return input;
+}
+
+const SLASH_EMOJI_ITEMS: SlashEmojiItem[] = [
+  { label: "笑哭", insertText: "😂", aliases: ["xk", "xiaoku", "笑哭"] },
+  { label: "爱心", insertText: "❤️", aliases: ["xin", "ax", "aixin", "爱心"] },
+  { label: "心碎", insertText: "💔", aliases: ["xs", "xinsui", "心碎"] },
+  { label: "西瓜", insertText: "🍉", aliases: ["xg", "xig", "xigua", "西瓜"] },
+  { label: "吃惊", insertText: "😲", aliases: ["cj", "xia", "chijing", "吃惊"] },
+  { label: "思考", insertText: "🤔", aliases: ["sk", "xj", "sikao", "思考"] },
+  { label: "墨镜", insertText: "😎", aliases: ["mj", "xyx", "mojing", "墨镜"] },
+  { label: "狗头", insertText: "[狗头]", aliases: ["gt", "gou", "goutou", "doge", "狗头"] },
+  { label: "吃瓜", insertText: "[吃瓜]", aliases: ["cg", "gua", "chigua", "吃瓜"] },
+  { label: "泪目", insertText: "[泪目]", aliases: ["lm", "leimu", "泪目", "哭"] },
+  { label: "捂脸", insertText: "[捂脸]", aliases: ["wl", "wulian", "捂脸", "尴尬"] },
+  { label: "妙啊", insertText: "[妙啊]", aliases: ["ma", "miaoa", "妙啊"] },
+  { label: "破防", insertText: "[破防]", aliases: ["pf", "pofang", "破防"] },
+  { label: "点赞", insertText: "[点赞]", aliases: ["dz", "zan", "like", "点赞"] },
+  { label: "666", insertText: "[666]", aliases: ["666", "liuliu", "nb"] },
+  { label: "草", insertText: "[草]", aliases: ["cao", "c", "草"] },
+  { label: "火箭", insertText: "[火箭]", aliases: ["hj", "rocket", "huojian", "火箭"] },
+];
+
+function getActiveSlashEmoji(text: string, cursor: number) {
+  const beforeCursor = text.slice(0, cursor);
+  const match = beforeCursor.match(/(?:^|\s)\/([^\s/]*)$/);
+  if (!match) return null;
+
+  const query = (match[1] ?? "").trim().toLowerCase();
+  const matches = SLASH_EMOJI_ITEMS.filter((item) => {
+    const keywords = [item.label, ...item.aliases].map((keyword) => keyword.trim().toLowerCase());
+    if (!query) return true;
+    return keywords.some((keyword) => keyword === query || keyword.startsWith(query) || keyword.includes(query));
+  }).slice(0, 6);
+
+  return {
+    exactMatch: query
+      ? matches.find((item) => [item.label, ...item.aliases].map((keyword) => keyword.trim().toLowerCase()).includes(query)) ?? null
+      : null,
+    matches,
+    rangeEnd: cursor,
+    rangeStart: cursor - query.length - 1,
+    query,
+  };
 }
 
 export function ForumPostModal({
@@ -159,6 +208,30 @@ export function ForumPostModal({
     });
   }
 
+  function applySlashEmoji(item: SlashEmojiItem, appendSpace: boolean) {
+    const textarea = composerRef.current;
+    const start = textarea?.selectionStart ?? composerValue.length;
+    const end = textarea?.selectionEnd ?? start;
+    const activeSlash = getActiveSlashEmoji(composerValue, start);
+    if (!activeSlash) return false;
+
+    const head = composerValue.slice(0, activeSlash.rangeStart);
+    const tail = composerValue.slice(Math.max(end, activeSlash.rangeEnd));
+    const shouldAppendSpace = appendSpace && !/^[\s，。！？、,.!?)]/.test(tail);
+    const inserted = `${item.insertText}${shouldAppendSpace ? " " : ""}`;
+    const nextCursor = head.length + inserted.length;
+
+    setComposerValue(`${head}${inserted}${tail}`);
+    requestAnimationFrame(() => {
+      const node = composerRef.current;
+      if (!node) return;
+      node.focus();
+      node.setSelectionRange(nextCursor, nextCursor);
+    });
+
+    return true;
+  }
+
   async function handlePaste(event: React.ClipboardEvent<HTMLTextAreaElement>) {
     const items = event.clipboardData?.items;
     if (!items) return;
@@ -202,6 +275,7 @@ export function ForumPostModal({
   }
 
   const renderedComments = comments ?? [];
+  const activeSlashEmoji = getActiveSlashEmoji(composerValue, composerRef.current?.selectionStart ?? composerValue.length);
 
   return createPortal(
     <div
@@ -417,12 +491,47 @@ export function ForumPostModal({
               </p>
             ) : (
               <div className="relative">
+                {activeSlashEmoji?.matches.length ? (
+                  <div className="absolute bottom-[calc(100%+10px)] right-4 z-[230] flex max-w-[280px] flex-wrap justify-end gap-1.5 rounded-2xl border border-white/10 bg-zinc-950/95 px-3 py-2 shadow-2xl">
+                    {activeSlashEmoji.matches.map((item) => (
+                      <button
+                        key={item.insertText}
+                        className={`rounded-full border px-2.5 py-1 text-[11px] transition ${
+                          activeSlashEmoji.exactMatch?.insertText === item.insertText
+                            ? "border-amber-300/25 bg-amber-300/12 text-amber-100"
+                            : "border-white/10 bg-white/[0.04] text-zinc-400 hover:border-white/20 hover:text-white"
+                        }`}
+                        onClick={() => {
+                          applySlashEmoji(item, true);
+                        }}
+                        type="button"
+                      >
+                        /{item.aliases[0]} · {item.label}
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
                 <textarea
                   ref={composerRef}
-                  className="min-h-[88px] w-full resize-none rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 pr-24 text-sm leading-6 text-zinc-100 outline-none transition placeholder:text-zinc-500 focus:border-white/25"
+                  className="min-h-[88px] w-full resize-none rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 pr-32 text-sm leading-6 text-zinc-100 outline-none transition placeholder:text-zinc-500 focus:border-white/25"
                   onChange={(event) => setComposerValue(event.target.value)}
                   onKeyDown={(event) => {
                     if (event.nativeEvent.isComposing) return;
+                    const activeSlash = getActiveSlashEmoji(composerValue, composerRef.current?.selectionStart ?? composerValue.length);
+                    if (activeSlash?.matches.length) {
+                      if (event.key === "Tab" || (event.key === "Enter" && !event.shiftKey)) {
+                        event.preventDefault();
+                        applySlashEmoji(activeSlash.matches[0], true);
+                        return;
+                      }
+
+                      if (event.key === " " && activeSlash.exactMatch) {
+                        event.preventDefault();
+                        applySlashEmoji(activeSlash.exactMatch, true);
+                        return;
+                      }
+                    }
+
                     if (event.key === "Enter" && !event.shiftKey) {
                       event.preventDefault();
                       void handleSubmit();
@@ -442,7 +551,7 @@ export function ForumPostModal({
                   }}
                   type="file"
                 />
-                <div className="absolute bottom-3 right-3 flex items-center gap-2">
+                <div className="absolute bottom-3 right-4 flex items-center gap-2.5">
                   <button
                     className="inline-flex h-9 w-9 items-center justify-center rounded-full text-zinc-500 transition hover:text-zinc-200 disabled:opacity-40"
                     disabled={uploadingImage}

@@ -7,16 +7,16 @@ export type HotEmojiItem = {
 };
 
 export const HOT_EMOJI_ITEMS: HotEmojiItem[] = [
-  { label: "狗头", preview: "🐶", insertText: "[狗头]" },
+  { label: "狗头", preview: "🐕", insertText: "[狗头]" },
   { label: "吃瓜", preview: "🍉", insertText: "[吃瓜]" },
   { label: "泪目", preview: "🥹", insertText: "[泪目]" },
-  { label: "捂脸", preview: "🤦", insertText: "[捂脸]" },
+  { label: "捂脸", preview: "🫣", insertText: "[捂脸]" },
+  { label: "妙啊", preview: "😏", insertText: "[妙啊]" },
+  { label: "破防", preview: "💥", insertText: "[破防]" },
   { label: "点赞", preview: "👍", insertText: "[点赞]" },
-  { label: "火箭", preview: "🚀", insertText: "[火箭]" },
-  { label: "收到", preview: "👌", insertText: "[收到]" },
-  { label: "问号", preview: "❓", insertText: "[问号]" },
   { label: "666", preview: "🔥", insertText: "[666]" },
   { label: "草", preview: "🌿", insertText: "[草]" },
+  { label: "火箭", preview: "🚀", insertText: "[火箭]" },
 ];
 
 export const HOT_EMOJI_MAP = new Map(HOT_EMOJI_ITEMS.map((item) => [item.insertText, item] as const));

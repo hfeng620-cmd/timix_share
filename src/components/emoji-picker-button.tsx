@@ -1,10 +1,25 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import EmojiPicker, { Theme, type EmojiClickData } from "emoji-picker-react";
-import { Smile } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import EmojiPicker, { Categories, Theme, type EmojiClickData } from "emoji-picker-react";
+import { ChevronDown, Smile } from "lucide-react";
 
 import { HOT_EMOJI_ITEMS } from "@/lib/hot-emojis";
+
+const HOT_EMOJI_HINTS: Record<string, string[]> = {
+  "[666]": ["/666", "/nb"],
+  "[吃瓜]": ["/cg", "/吃瓜"],
+  "[妙啊]": ["/ma", "/妙啊"],
+  "[泪目]": ["/lm", "/泪目"],
+  "[点赞]": ["/dz", "/点赞"],
+  "[狗头]": ["/gt", "/狗头"],
+  "[火箭]": ["/hj", "/火箭"],
+  "[破防]": ["/pf", "/破防"],
+  "[捂脸]": ["/wl", "/捂脸"],
+  "[草]": ["/cao", "/草"],
+};
+
+const COMMON_NATIVE_EMOJIS = ["😀", "😂", "🤭", "🥹", "😅", "😎", "🤔", "😲", "😭", "👍", "👀", "❤️", "💔", "🍉", "🎉", "🚀"];
 
 type EmojiPickerButtonProps = {
   open: boolean;
@@ -30,6 +45,7 @@ export function EmojiPickerButton({
   onEmojiSelect,
 }: EmojiPickerButtonProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const [showNativePicker, setShowNativePicker] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -55,6 +71,12 @@ export function EmojiPickerButton({
     };
   }, [onClose, open]);
 
+  useEffect(() => {
+    if (!open) {
+      setShowNativePicker(false);
+    }
+  }, [open]);
+
   function handleEmojiClick(emojiData: EmojiClickData) {
     onEmojiSelect(emojiData.emoji);
     onClose();
@@ -74,38 +96,97 @@ export function EmojiPickerButton({
 
       {open ? (
         <div
-          className={`absolute bottom-full mb-2 z-[220] overflow-hidden rounded-lg border border-white/10 shadow-2xl ${
+          className={`absolute bottom-full mb-3 z-[220] overflow-hidden rounded-2xl border border-white/10 bg-zinc-950/95 shadow-2xl ${
             align === "right" ? "right-0" : "left-0"
           } ${pickerClassName}`}
         >
-          <div className="border-b border-white/10 bg-zinc-950/95 px-3 py-3">
-            <p className="mb-2 text-[11px] font-medium tracking-[0.18em] text-zinc-500">热门表情</p>
-            <div className="flex flex-wrap gap-2">
+          <div className="border-b border-white/10 px-4 py-4">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div>
+                <p className="text-[11px] font-medium tracking-[0.18em] text-zinc-500">热门表情</p>
+                <p className="mt-1 text-[11px] text-zinc-600">先放常用的，狗头和 B 站味重一点的都在这里。</p>
+              </div>
+              <span className="rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[10px] text-zinc-500">
+                `/gt` 这类缩写可用
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-2.5">
               {HOT_EMOJI_ITEMS.map((item) => (
                 <button
                   key={item.insertText}
-                  className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-xs text-zinc-300 transition hover:border-white/20 hover:bg-white/[0.08] hover:text-white"
+                  className={`group flex items-center gap-3 rounded-2xl border px-3.5 py-3 text-left text-xs transition ${
+                    item.insertText === "[狗头]"
+                      ? "border-amber-300/20 bg-amber-400/10 text-amber-50 hover:border-amber-200/40 hover:bg-amber-300/15"
+                      : "border-white/10 bg-white/[0.04] text-zinc-300 hover:border-white/20 hover:bg-white/[0.08] hover:text-white"
+                  }`}
                   onClick={() => {
                     onEmojiSelect(item.insertText);
                     onClose();
                   }}
+                  title={(HOT_EMOJI_HINTS[item.insertText] ?? []).join("  ")}
                   type="button"
                 >
-                  <span aria-hidden="true">{item.preview}</span>
-                  <span>{item.label}</span>
+                  <span
+                    aria-hidden="true"
+                    className={`flex h-10 w-10 items-center justify-center rounded-2xl text-lg ${
+                      item.insertText === "[狗头]" ? "bg-amber-200/15" : "bg-white/[0.06]"
+                    }`}
+                  >
+                    {item.preview}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-medium">{item.label}</span>
+                    <span className="mt-0.5 block text-[10px] text-zinc-500 transition group-hover:text-zinc-300">
+                      {(HOT_EMOJI_HINTS[item.insertText] ?? []).join("  ")}
+                    </span>
+                  </span>
                 </button>
               ))}
             </div>
           </div>
-          <EmojiPicker
-            height={400}
-            lazyLoadEmojis
-            onEmojiClick={handleEmojiClick}
-            searchDisabled={false}
-            skinTonesDisabled
-            theme={Theme.DARK}
-            width={300}
-          />
+          <div className="px-4 py-4">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <p className="text-[11px] font-medium tracking-[0.18em] text-zinc-500">常用原生</p>
+              <button
+                className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[10px] text-zinc-400 transition hover:border-white/20 hover:text-white"
+                onClick={() => setShowNativePicker((current) => !current)}
+                type="button"
+              >
+                更多原生
+                <ChevronDown className={`h-3 w-3 transition ${showNativePicker ? "rotate-180" : ""}`} />
+              </button>
+            </div>
+            <div className="flex flex-wrap gap-2.5">
+              {COMMON_NATIVE_EMOJIS.map((emoji) => (
+                <button
+                  key={emoji}
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-lg transition hover:border-white/20 hover:bg-white/[0.08]"
+                  onClick={() => {
+                    onEmojiSelect(emoji);
+                    onClose();
+                  }}
+                  type="button"
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          </div>
+          {showNativePicker ? (
+            <div className="border-t border-white/10 px-3 py-3">
+              <EmojiPicker
+                categories={[Categories.SMILEYS_PEOPLE, Categories.ANIMALS_NATURE, Categories.SYMBOLS]}
+                height={320}
+                lazyLoadEmojis
+                onEmojiClick={handleEmojiClick}
+                previewConfig={{ showPreview: false }}
+                searchPlaceholder="搜一下原生表情"
+                skinTonesDisabled
+                theme={Theme.DARK}
+                width={330}
+              />
+            </div>
+          ) : null}
         </div>
       ) : null}
     </div>
