@@ -2,12 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Activity } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { AppearanceModal } from "@/components/appearance-modal";
 import { VersionSwitcherModal } from "@/components/version-switcher";
 import { useForumAuth } from "@/lib/forum-auth";
 import { siteLinks } from "@/lib/site-links";
+import { useSystemMonitor } from "@/lib/system-monitor-context";
 
 const HINT_DISMISSED_KEY = "relay-theme-hint-seen";
 
@@ -54,6 +56,7 @@ export function FloatingQuickPanel() {
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const pathname = usePathname();
   const { isAdmin, isOwner } = useForumAuth();
+  const { openMonitor } = useSystemMonitor();
   const canOpenAdmin = isAdmin || isOwner;
 
   useEffect(() => {
@@ -130,6 +133,29 @@ export function FloatingQuickPanel() {
                   <span className="mt-0.5 block text-[11px] leading-4 text-[var(--color-muted)]">新UI / Legacy 经典版</span>
                 </span>
                 <span className="rounded-full bg-[var(--color-panel)] px-2 py-1 text-[10px] font-bold text-[var(--color-brand-deep)]">切换</span>
+              </button>
+
+              <button
+                className="group mt-2 flex w-full items-center justify-between gap-3 rounded-[16px] border border-emerald-400/20 bg-emerald-400/10 px-3 py-2.5 text-left transition hover:border-emerald-300/40 hover:bg-emerald-400/15"
+                onClick={() => { openMonitor(); setOpen(false); }}
+                type="button"
+              >
+                <span className="flex min-w-0 items-center gap-2.5">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full border border-emerald-300/20 bg-black/10 text-emerald-200">
+                    <Activity className="h-4 w-4" />
+                  </span>
+                  <span>
+                    <span className="block text-sm font-black text-[var(--color-ink)] group-hover:text-emerald-100">
+                      系统状态监控
+                    </span>
+                    <span className="mt-0.5 block text-[11px] leading-4 text-[var(--color-muted)]">
+                      VPS / Supabase 运行容量
+                    </span>
+                  </span>
+                </span>
+                <span className="rounded-full bg-black/10 px-2 py-1 font-mono text-[10px] font-bold text-emerald-200">
+                  LIVE
+                </span>
               </button>
             </div>
           </div>

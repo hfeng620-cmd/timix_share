@@ -10,6 +10,7 @@ import { DiscussionFeed } from "@/components/discussion-feed";
 import HotTopicsPanel from "@/components/hot-topics-panel";
 import UserRankPanel from "@/components/user-rank-panel";
 import { siteLinks } from "@/lib/site-links";
+import { useSystemMonitor } from "@/lib/system-monitor-context";
 
 const hubs = [
   { id: "01", title: "站内快反馈", summary: "补一句、报跳价、留试用。", href: "#community-composer", primary: true },
@@ -22,6 +23,7 @@ export default function CommunityPage() {
   const [feedRefreshKey, setFeedRefreshKey] = useState(0);
   const [mobilePanel, setMobilePanel] = useState<"hot" | "rank" | null>(null);
   const [qqModalOpen, setQqModalOpen] = useState(false);
+  const { openMonitor } = useSystemMonitor();
 
   const handleTopicClick = useCallback((postId: string) => {
     const el = document.getElementById(postId);
@@ -46,7 +48,15 @@ export default function CommunityPage() {
                 站内接短反馈，Discussions 放长期主题，QQ 群只处理急同步。
               </p>
             </div>
-            <div className="flex gap-3">
+            <div className="flex flex-wrap gap-3">
+              <button
+                onClick={openMonitor}
+                className="flex cursor-pointer items-center gap-2 rounded-full border border-white/10 bg-zinc-900/50 px-3 py-1.5 text-left backdrop-blur-md transition-colors hover:bg-zinc-800/50"
+                type="button"
+              >
+                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-xs font-medium text-zinc-300">VPS: Normal</span>
+              </button>
               <Link
                 href="#community-composer"
                 className="liquid-glass-strong rounded-full px-5 py-2.5 text-sm font-medium text-white font-body"

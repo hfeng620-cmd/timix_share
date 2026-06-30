@@ -8,6 +8,7 @@ import { FloatingQuickPanel } from "@/components/floating-quick-panel";
 import { ToastContainer } from "@/components/toast-container";
 import { VpsFallbackBanner } from "@/components/vps-fallback-banner";
 import { ForumAuthProvider } from "@/lib/forum-auth";
+import { SystemMonitorProvider } from "@/lib/system-monitor-context";
 import { ToastProvider } from "@/lib/toast-context";
 
 import "./globals.css";
@@ -61,15 +62,17 @@ export default function RootLayout({
           跳到主内容
         </a>
         <ForumAuthProvider>
-          <ToastProvider>
-            <main id="main-content" className="relative z-10 flex min-h-full flex-col">
-              <ErrorBoundary>{children}</ErrorBoundary>
-            </main>
-            <ToastContainer />
-          </ToastProvider>
+          <SystemMonitorProvider>
+            <ToastProvider>
+              <main id="main-content" className="relative z-10 flex min-h-full flex-col">
+                <ErrorBoundary>{children}</ErrorBoundary>
+              </main>
+              <ToastContainer />
+            </ToastProvider>
+            <FloatingQuickPanel />
+          </SystemMonitorProvider>
         </ForumAuthProvider>
         <AnnouncementModal />
-        <FloatingQuickPanel />
         <RegisterCounter />
         <VpsFallbackBanner />
       </body>
