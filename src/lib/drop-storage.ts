@@ -80,7 +80,7 @@ export async function getUserSubmission(
 
 export type ClaimResult =
   | { ok: true; code: string }
-  | { ok: false; error: string };
+  | { ok: false; error: string; errorCode?: "ALREADY_CLAIMED" | "SOLD_OUT" | "CAMPAIGN_NOT_FOUND" };
 
 export async function claimPromoCode(
   campaignId: string,
@@ -103,14 +103,18 @@ export async function claimPromoCode(
     });
 
     if (error) {
-      // 钩出 PostgreSQL RAISE EXCEPTION 的消息
-      const message =
-        error.message.includes("您已经领取过") ? "您已经领取过该福利"
-        : error.message.includes("已被抢空") ? "手慢了，兑换码已被抢空"
-        : error.message.includes("不存在或已结束") ? "该活动不存在或已结束"
-        : error.message;
+      // 识别 PostgreSQL RAISE EXCEPTION 的英文错误码
+      if (error.message.includes("ALREADY_CLAIMED")) {
+        return { ok: false, error: "您已经领取过该福利", errorCode: "ALREADY_CLAIMED" };
+      }
+      if (error.message.includes("SOLD_OUT")) {
+        return { ok: false, error: "手慢了，兑换码已被抢空", errorCode: "SOLD_OUT" };
+      }
+      if (error.message.includes("CAMPAIGN_NOT_FOUND")) {
+        return { ok: false, error: "该活动不存在或已结束", errorCode: "CAMPAIGN_NOT_FOUND" };
+      }
 
-      return { ok: false, error: message };
+      return { ok: false, error: error.message };
     }
 
     return { ok: true, code: String(data ?? "") };
