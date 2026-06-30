@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Navbar } from "@/components/navbar";
+import { CampaignAdmin } from "@/components/campaign-admin";
 import { StationEditorModal } from "@/components/station-editor-modal";
 import { GithubIssueReviewPanel } from "@/components/github-issue-review-panel";
 import { useForumAuth } from "@/lib/forum-auth";
@@ -47,7 +48,7 @@ import {
   type UserGuide,
 } from "@/lib/guide-storage";
 
-type AdminTab = "posts" | "stations" | "import" | "news" | "admins" | "users";
+type AdminTab = "posts" | "stations" | "import" | "news" | "admins" | "users" | "campaigns";
 
 const ANNOUNCEMENT_LIMITS = {
   station: 120,
@@ -1198,6 +1199,7 @@ export default function AdminPage() {
             [
               ["posts", `帖子审核${stats && stats.pending_posts > 0 ? ` (${stats.pending_posts})` : ""}`],
               ["news", `新闻审核${pendingNews.length > 0 ? ` (${pendingNews.length})` : ""}`],
+              ["campaigns", "福利活动"],
               ["stations", "站点管理"],
               ["import", "数据导入导出"],
               ...(isOwner ? [["admins", "管理员管理"] as const] : []),
@@ -1626,6 +1628,9 @@ export default function AdminPage() {
             </div>
           </div>
         )}
+
+        {/* ---- Tab: 福利活动 ---- */}
+        {activeTab === "campaigns" && <CampaignAdmin />}
 
         {/* ---- Tab: 站点管理 ---- */}
         {activeTab === "stations" && (

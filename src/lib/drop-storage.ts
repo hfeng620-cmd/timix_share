@@ -146,3 +146,158 @@ export async function claimPromoCode(
     return { ok: false, error: message };
   }
 }
+
+// ── 管理员：活动管理 ──
+
+export type CampaignAdmin = Campaign;
+
+export async function loadAllCampaigns(): Promise<CampaignAdmin[]> {
+  if (!isSupabaseConfigured()) return [];
+
+  try {
+    const { data, error } = await getSupabaseClient()
+      .from("campaign_summary")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.warn("[loadAllCampaigns] 查询失败:", error.message);
+      return [];
+    }
+
+    return (data ?? []) as CampaignAdmin[];
+  } catch (error) {
+    console.warn("[loadAllCampaigns] 异常:", error);
+    return [];
+  }
+}
+
+export async function createCampaign(params: {
+  title: string;
+  sponsorName: string;
+  sponsorUrl: string;
+  description: string;
+  codeCount: number;
+}): Promise<{ ok: true } | { ok: false; error: string }> {
+  if (!isSupabaseConfigured()) {
+    return { ok: false, error: "Supabase 未配置。" };
+  }
+
+  try {
+    const supabase = getSupabaseClient();
+    const title = params.title.trim();
+    const sponsorName = params.sponsorName.trim();
+    const sponsorUrl = params.sponsorUrl.trim();
+    const description = params.description.trim();
+    const codeCount = Math.max(1, Math.min(1000, Math.floor(params.codeCount)));
+
+    const { data: campaign, error: campaignError } = await supabase
+      .from("campaigns")
+      .insert({
+        title,
+        sponsor_name: sponsorName,
+        sponsor_url: sponsorUrl,
+        description,
+        total_codes: codeCount,
+        is_active: true,
+      })
+      .select("id")
+      .single();
+
+    if (campaignError || !campaign) {
+      return { ok: false, error: campaignError?.message ?? "创建活动失败。" };
+    }
+
+    const prefix = title
+      .replace(/[^a-zA-Z0-9]/g, "")
+      .slice(0, 6)
+      .toUpperCase() || "TIMIX";
+    const codes = Array.from({ length: codeCount }, (_, index) => ({
+      campaign_id: campaign.id,
+      code: `${prefix}-${String(index + 1).padStart(3, "0")}-${crypto.randomUUID().slice(0, 8).toUpperCase()}`,
+    }));
+
+    const { error: codeError } = await supabase.from("promo_codes").insert(codes);
+
+    if (codeError) {
+      await supabase.from("campaigns").delete().eq("id", campaign.id);
+      return { ok: false, error: codeError.message };
+    }
+
+    return { ok: true };
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : "创建活动失败。",
+    };
+  }
+}
+
+export async function toggleCampaignActive(
+  campaignId: string,
+  isActive: boolean,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  if (!isSupabaseConfigured()) {
+    return { ok: false, error: "Supabase 未配置。" };
+  }
+
+  try {
+    const { error } = await getSupabaseClient()
+      .from("campaigns")
+      .update({ is_active: isActive, updated_at: new Date().toISOString() })
+      .eq("id", campaignId);
+
+    if (error) return { ok: false, error: error.message };
+    return { ok: true };
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : "操作失败。",
+    };
+  }
+}
+
+export async function deleteCampaign(
+  campaignId: string,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  if (!isSupabaseConfigured()) {
+    return { ok: false, error: "Supabase 未配置。" };
+  }
+
+  try {
+    const { error } = await getSupabaseClient()
+      .from("campaigns")
+      .delete()
+      .eq("id", campaignId);
+
+    if (error) return { ok: false, error: error.message };
+    return { ok: true };
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : "删除失败。",
+    };
+  }
+}
+
+export async function loadCampaignSubmissions(campaignId: string): Promise<UserSubmission[]> {
+  if (!isSupabaseConfigured()) return [];
+
+  try {
+    const { data, error } = await getSupabaseClient()
+      .from("drop_submissions")
+      .select("*")
+      .eq("campaign_id", campaignId)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.warn("[loadCampaignSubmissions] 查询失败:", error.message);
+      return [];
+    }
+
+    return (data ?? []) as UserSubmission[];
+  } catch (error) {
+    console.warn("[loadCampaignSubmissions] 异常:", error);
+    return [];
+  }
+}

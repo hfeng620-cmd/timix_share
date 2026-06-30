@@ -232,9 +232,45 @@ create policy "Campaigns are publicly readable" on public.campaigns
   for select
   using (true);
 
+drop policy if exists "Admins can manage campaigns" on public.campaigns;
+create policy "Admins can manage campaigns" on public.campaigns
+  for all
+  using (
+    exists (
+      select 1
+      from public.forum_admins fa
+      where fa.user_id = auth.uid()
+    )
+  )
+  with check (
+    exists (
+      select 1
+      from public.forum_admins fa
+      where fa.user_id = auth.uid()
+    )
+  );
+
 drop policy if exists "Anyone can read unclaimed code existence" on public.promo_codes;
 drop policy if exists "Claimed users can read own promo code row" on public.promo_codes;
 -- 不创建 promo_codes select policy：码明文只能通过 claim_promo_code 的返回值获得。
+
+drop policy if exists "Admins can manage promo codes" on public.promo_codes;
+create policy "Admins can manage promo codes" on public.promo_codes
+  for all
+  using (
+    exists (
+      select 1
+      from public.forum_admins fa
+      where fa.user_id = auth.uid()
+    )
+  )
+  with check (
+    exists (
+      select 1
+      from public.forum_admins fa
+      where fa.user_id = auth.uid()
+    )
+  );
 
 drop policy if exists "Users can read own submissions" on public.drop_submissions;
 create policy "Users can read own submissions" on public.drop_submissions
@@ -246,6 +282,8 @@ drop policy if exists "Users can insert own submissions" on public.drop_submissi
 
 grant select on public.campaigns to anon, authenticated;
 grant select on public.campaign_summary to anon, authenticated;
+grant insert, update, delete on public.campaigns to authenticated;
+grant insert, update, delete on public.promo_codes to authenticated;
 grant select on public.drop_submissions to authenticated;
 grant execute on function public.claim_promo_code(uuid, uuid, text, text, text) to authenticated;
 
