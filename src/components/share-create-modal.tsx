@@ -138,9 +138,12 @@ export function ShareCreateModal({ open, mode, currentFolder, folders, onClose, 
                   </div>
                   <div>
                     <label className="block text-xs text-white/40 font-body mb-1.5">相关项目链接</label>
-                    <input type="url" value={link} onChange={(e) => { setLink(e.target.value); setError(""); }}
-                      placeholder="https://github.com/... (选填)" className={inputClass} />
-                    <p className="text-[10px] text-white/25 font-body">选填，可以不填</p>
+                    <input type="text" value={link} onChange={(e) => { setLink(e.target.value); setError(""); }}
+                      placeholder="例如: 官网: https://a.com ;; 备用: https://b.com" className={inputClass} />
+                    <p className="mt-1.5 flex items-center gap-1 text-[11px] font-light tracking-wider text-white/30">
+                      <span className="text-white/50">*</span>
+                      选填。如需放置多个链接，请使用双分号 <span className="rounded bg-emerald-500/10 px-1 font-mono text-emerald-500/50">;;</span> 隔开
+                    </p>
                   </div>
                   <div>
                     <label className="block text-xs text-white/40 font-body mb-1.5">帖子简介</label>

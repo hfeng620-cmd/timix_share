@@ -110,7 +110,11 @@ export function EditPanelModal({ open, mode, targetId, initialName, initialDesc,
                   <div>
                     <label className="block text-xs text-white/40 font-body mb-1.5">链接</label>
                     <input className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none placeholder:text-white/25 focus:border-white/30 transition font-body"
-                      value={link} onChange={(e) => setLink(e.target.value)} placeholder="https://..." />
+                      value={link} onChange={(e) => setLink(e.target.value)} placeholder="例如: 官网: https://a.com ;; 备用: https://b.com" />
+                    <p className="mt-1.5 flex items-center gap-1 text-[11px] font-light tracking-wider text-white/30">
+                      <span className="text-white/50">*</span>
+                      选填。如需放置多个链接，请使用双分号 <span className="rounded bg-emerald-500/10 px-1 font-mono text-emerald-500/50">;;</span> 隔开
+                    </p>
                   </div>
                   <div>
                     <div className="flex items-center justify-between mb-1.5">

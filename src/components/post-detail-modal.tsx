@@ -739,7 +739,7 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
   const rootComments = comments.filter((c) => c.parentId === null);
   const getReplies = (rootId: string) => comments.filter((c) => c.parentId === rootId);
   const postLink = post.link || post.url || "";
-  const linkSegments = postLink.split(/;|；/).map((segment) => segment.trim()).filter(Boolean);
+  const linkSegments = postLink.split(/;;|；；/).map((segment) => segment.trim()).filter(Boolean);
 
   /* 当前打开的楼中楼 */
   const activeRoot = rootComments.find((c) => c.id === nestedRootId);
