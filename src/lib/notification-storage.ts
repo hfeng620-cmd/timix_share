@@ -47,6 +47,16 @@ type SupabaseNotificationRow = {
   created_at: string;
 };
 
+type AnnouncementPostRow = {
+  id: string;
+  title: string;
+  created_at: string;
+};
+
+const ANNOUNCEMENT_NOTIFICATION_PREFIX = "announcement-post:";
+const ANNOUNCEMENT_READ_KEY_PREFIX = "timix-announcement-notifications-read:";
+const ANNOUNCEMENT_HIDDEN_KEY_PREFIX = "timix-announcement-notifications-hidden:";
+
 function mapNotification(row: SupabaseNotificationRow): NotificationItem {
   return {
     id: row.id,
@@ -57,6 +67,72 @@ function mapNotification(row: SupabaseNotificationRow): NotificationItem {
     postId: row.post_id ?? undefined,
     replyId: row.reply_id ?? undefined,
   };
+}
+
+function getStoredAnnouncementIds(prefix: string, userId: string): Set<string> {
+  if (typeof window === "undefined") return new Set();
+  try {
+    const raw = window.localStorage.getItem(`${prefix}${userId}`);
+    const ids = raw ? (JSON.parse(raw) as unknown) : [];
+    return new Set(Array.isArray(ids) ? ids.filter((id): id is string => typeof id === "string") : []);
+  } catch {
+    return new Set();
+  }
+}
+
+function setStoredAnnouncementIds(prefix: string, userId: string, ids: Set<string>) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(`${prefix}${userId}`, JSON.stringify([...ids].slice(-100)));
+  } catch {
+    // localStorage can be unavailable in privacy modes.
+  }
+}
+
+function getAnnouncementPostId(notificationId: string) {
+  return notificationId.startsWith(ANNOUNCEMENT_NOTIFICATION_PREFIX)
+    ? notificationId.slice(ANNOUNCEMENT_NOTIFICATION_PREFIX.length)
+    : null;
+}
+
+async function loadAnnouncementNotifications(
+  userId: string,
+  existingNotifications: NotificationItem[],
+): Promise<NotificationItem[]> {
+  const supabase = getSupabaseClient();
+  const existingAnnouncementKeys = new Set(
+    existingNotifications
+      .filter((item) => item.type === "admin_announcement")
+      .map((item) => item.postId ?? item.message),
+  );
+
+  const { data, error } = await supabase
+    .from("forum_posts")
+    .select("id,title,created_at")
+    .contains("tags", ["公告"])
+    .eq("is_hidden", false)
+    .order("created_at", { ascending: false })
+    .limit(30);
+
+  if (error) {
+    console.warn("[loadAnnouncementNotifications] 查询历史公告失败:", error.message);
+    return [];
+  }
+
+  const readIds = getStoredAnnouncementIds(ANNOUNCEMENT_READ_KEY_PREFIX, userId);
+  const hiddenIds = getStoredAnnouncementIds(ANNOUNCEMENT_HIDDEN_KEY_PREFIX, userId);
+
+  return ((data ?? []) as AnnouncementPostRow[])
+    .filter((post) => !hiddenIds.has(post.id))
+    .filter((post) => !existingAnnouncementKeys.has(post.id) && !existingAnnouncementKeys.has(post.title))
+    .map((post) => ({
+      id: `${ANNOUNCEMENT_NOTIFICATION_PREFIX}${post.id}`,
+      type: "admin_announcement",
+      message: post.title,
+      read: readIds.has(post.id),
+      createdAt: new Date(post.created_at).getTime(),
+      postId: post.id,
+    }));
 }
 
 // ── Load & mutate ─────────────────────────────────────
@@ -78,7 +154,11 @@ export async function loadNotifications(): Promise<NotificationItem[]> {
       .limit(30);
 
     if (error) throw error;
-    return ((data ?? []) as SupabaseNotificationRow[]).map(mapNotification);
+    const dbNotifications = ((data ?? []) as SupabaseNotificationRow[]).map(mapNotification);
+    const announcementNotifications = await loadAnnouncementNotifications(userData.user.id, dbNotifications);
+    return [...dbNotifications, ...announcementNotifications]
+      .sort((a, b) => b.createdAt - a.createdAt)
+      .slice(0, 30);
   } catch {
     return [];
   }
@@ -87,6 +167,17 @@ export async function loadNotifications(): Promise<NotificationItem[]> {
 /** Mark a single notification as read. */
 export async function markNotificationRead(id: string): Promise<void> {
   if (!isSupabaseConfigured()) return;
+  const announcementPostId = getAnnouncementPostId(id);
+  if (announcementPostId) {
+    const { data: userData } = await getSupabaseClient().auth.getUser();
+    const userId = userData.user?.id;
+    if (!userId) return;
+    const ids = getStoredAnnouncementIds(ANNOUNCEMENT_READ_KEY_PREFIX, userId);
+    ids.add(announcementPostId);
+    setStoredAnnouncementIds(ANNOUNCEMENT_READ_KEY_PREFIX, userId, ids);
+    return;
+  }
+
   await getSupabaseClient()
     .from("notifications")
     .update({ read: true })
@@ -100,6 +191,16 @@ export async function markAllNotificationsRead(): Promise<void> {
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) return;
 
+  const { data: announcementPosts } = await supabase
+    .from("forum_posts")
+    .select("id")
+    .contains("tags", ["公告"])
+    .eq("is_hidden", false)
+    .limit(100);
+  const localReadIds = getStoredAnnouncementIds(ANNOUNCEMENT_READ_KEY_PREFIX, userData.user.id);
+  ((announcementPosts ?? []) as Array<{ id: string }>).forEach((post) => localReadIds.add(post.id));
+  setStoredAnnouncementIds(ANNOUNCEMENT_READ_KEY_PREFIX, userData.user.id, localReadIds);
+
   await supabase
     .from("notifications")
     .update({ read: true })
@@ -110,6 +211,17 @@ export async function markAllNotificationsRead(): Promise<void> {
 /** Delete a notification. */
 export async function deleteNotification(id: string): Promise<void> {
   if (!isSupabaseConfigured()) return;
+  const announcementPostId = getAnnouncementPostId(id);
+  if (announcementPostId) {
+    const { data: userData } = await getSupabaseClient().auth.getUser();
+    const userId = userData.user?.id;
+    if (!userId) return;
+    const ids = getStoredAnnouncementIds(ANNOUNCEMENT_HIDDEN_KEY_PREFIX, userId);
+    ids.add(announcementPostId);
+    setStoredAnnouncementIds(ANNOUNCEMENT_HIDDEN_KEY_PREFIX, userId, ids);
+    return;
+  }
+
   await getSupabaseClient()
     .from("notifications")
     .delete()

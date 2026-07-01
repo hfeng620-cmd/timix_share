@@ -842,7 +842,7 @@ export default function AdminPage() {
       const tags = withPopup ? ["公告", "弹窗公告"] : ["公告"];
       const title = "【公告】" + (station || "管理员公告");
 
-      const { error } = await getSupabaseClient()
+      const { data: announcementPost, error } = await getSupabaseClient()
         .from("forum_posts")
         .insert({
           author_id: authorId,
@@ -852,7 +852,9 @@ export default function AdminPage() {
           tags,
           is_hidden: false,
           is_pinned: true,
-        });
+        })
+        .select("id")
+        .single();
       if (error) throw error;
 
       // If popup enabled, broadcast notifications to all users
@@ -860,7 +862,7 @@ export default function AdminPage() {
         const { error: rpcError } = await getSupabaseClient()
           .rpc("broadcast_notification", {
             p_content: title,
-            p_link_url: null,
+            p_link_url: announcementPost?.id ?? null,
           });
         if (rpcError) {
           // Non-fatal: post was already created, just log the broadcast failure

@@ -17,9 +17,9 @@ const emptyForm = {
 
 function parseCodes(text: string) {
   return text
-    .split("\n")
+    .split(/[;\n]+/)
     .map((code) => code.trim())
-    .filter(Boolean);
+    .filter((code) => code.length > 0);
 }
 
 export function AdminDropManager() {
@@ -163,13 +163,13 @@ export function AdminDropManager() {
             </div>
           </div>
           <label className="space-y-2 text-sm text-zinc-300 md:col-span-2">
-            <span>批量兑换码 (每行一个)</span>
+            <span>批量导入真实兑换码 (支持分号 ; 或 回车换行分隔)</span>
             <textarea
               value={bulkCodesText}
               onChange={(event) => setBulkCodesText(event.target.value)}
               rows={10}
               className="w-full resize-y rounded-2xl border border-white/10 bg-black/40 px-4 py-3 font-mono text-sm text-emerald-50 outline-none transition placeholder:text-zinc-600 focus:border-emerald-300/60"
-              placeholder={"XXXX-XXXX-XXXX\nYYYY-YYYY-YYYY\n..."}
+              placeholder={"XXXX-XXXX; YYYY-YYYY; ZZZZ-ZZZZ\n..."}
             />
           </label>
         </div>
