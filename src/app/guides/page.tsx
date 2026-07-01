@@ -393,7 +393,7 @@ export default function GuidesPage() {
   async function saveEditPost() {
     if (!editingPost) return;
     setEditSaving(true);
-    try { await updateSharePost(editingPost.id, editPostTitle, editPostSummary, editPostBody, ""); triggerRefresh(); setEditingPost(null); }
+    try { await updateSharePost(editingPost.id, editPostTitle, editPostSummary, editPostBody, (editingPost as any).link ?? ""); triggerRefresh(); setEditingPost(null); }
     catch (e: any) { alert(e?.message || "更新帖子失败"); }
     finally { setEditSaving(false); }
   }
@@ -731,7 +731,7 @@ export default function GuidesPage() {
           initialName={editingPost.title}
           initialDesc={editingPost.summary}
           initialBody={(editingPost as any).body ?? editingPost.summary}
-          initialLink=""
+          initialLink={(editingPost as any).link ?? ""}
           onClose={() => setEditingPost(null)}
           onSaved={() => { triggerRefresh(); setEditingPost(null); }}
         />

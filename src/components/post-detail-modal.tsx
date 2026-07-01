@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState, useCallback } from "react";
 import {
   Heart, MessageCircle, Bookmark, X,
-  Send, Loader2, Pencil, Trash2, ChevronDown, ImageIcon,
+  Send, Loader2, Pencil, Trash2, ChevronDown, ImageIcon, ExternalLink,
 } from "lucide-react";
 import { lockBodyScroll } from "@/lib/body-scroll-lock";
 import { useForumAuth } from "@/lib/forum-auth";
@@ -43,6 +43,7 @@ type PostNode = {
   id: string;
   title: string;
   summary: string;
+  link?: string | null;
   tag: string;
   likes: number | Liker[];
   comments: number;
@@ -906,6 +907,33 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
               </div>
 
               <p className="mt-5 text-sm leading-relaxed text-white/50 font-body">{post.summary}</p>
+
+              {post.link && (
+                <div className="my-6 flex items-center justify-between rounded-xl border border-white/10 bg-zinc-900/50 p-4">
+                  <div className="flex min-w-0 flex-col pr-4">
+                    <span className="mb-1 text-sm text-zinc-500">项目直达链接</span>
+                    <a
+                      className="truncate font-medium text-emerald-400 transition-colors hover:text-emerald-300"
+                      href={post.link}
+                      onClick={(event) => event.stopPropagation()}
+                      rel="noopener noreferrer"
+                      target="_blank"
+                    >
+                      {post.link}
+                    </a>
+                  </div>
+                  <a
+                    aria-label="打开项目链接"
+                    className="shrink-0 rounded-lg bg-emerald-500/10 p-2 text-emerald-400 transition-colors hover:bg-emerald-500/20"
+                    href={post.link}
+                    onClick={(event) => event.stopPropagation()}
+                    rel="noopener noreferrer"
+                    target="_blank"
+                  >
+                    <ExternalLink className="h-5 w-5" />
+                  </a>
+                </div>
+              )}
 
               <div className="mt-6 whitespace-pre-wrap break-words text-sm leading-relaxed text-gray-300 font-body">
                 {post.body ? (

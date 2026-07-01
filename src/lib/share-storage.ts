@@ -31,6 +31,7 @@ export type SharePost = {
   id: string;
   title: string;
   summary: string;
+  link: string | null;
   body: string;
   folderId: string | null;
   authorId: string;
@@ -153,14 +154,14 @@ export async function loadAllPosts(): Promise<SharePost[]> {
     const supabase = getSupabaseClient();
     let { data, error } = await supabase
       .from("shared_posts")
-      .select("id, title, summary, body, folder_id, author_id, likes_count, comments_count, created_at, is_hot, hot_until, likes:share_post_likes(user_id, profiles:forum_profiles(display_name, nickname, avatar_url, role))")
+      .select("id, title, summary, url, body, folder_id, author_id, likes_count, comments_count, created_at, is_hot, hot_until, likes:share_post_likes(user_id, profiles:forum_profiles(display_name, nickname, avatar_url, role))")
       .order("created_at", { ascending: false })
       .limit(100);
 
     if (error) {
       const fallback = await supabase
         .from("shared_posts")
-        .select("id, title, summary, body, folder_id, author_id, likes_count, comments_count, created_at, is_hot, hot_until, likes:share_post_likes(user_id, profiles:forum_profiles(display_name, avatar_url))")
+        .select("id, title, summary, url, body, folder_id, author_id, likes_count, comments_count, created_at, is_hot, hot_until, likes:share_post_likes(user_id, profiles:forum_profiles(display_name, avatar_url))")
         .order("created_at", { ascending: false })
         .limit(100);
       data = fallback.data;
@@ -175,6 +176,7 @@ export async function loadAllPosts(): Promise<SharePost[]> {
 
       return {
         id: row.id as string, title: row.title as string, summary: row.summary as string,
+        link: (row.url as string) ?? null,
         body: row.body as string, folderId: (row.folder_id as string) ?? null,
         authorId: row.author_id as string,
         authorName: profiles.get(row.author_id as string)?.displayName ?? null,
@@ -225,7 +227,7 @@ export async function createSharePost(title: string, summary: string, body: stri
   const { data, error } = await getSupabaseClient()
     .from("shared_posts")
     .insert(payload)
-    .select("id, title, summary, body, folder_id, author_id, likes_count, comments_count, created_at").single();
+    .select("id, title, summary, url, body, folder_id, author_id, likes_count, comments_count, created_at").single();
   if (error) {
     console.error("[share-storage] createSharePost 失败:", error, "payload:", payload);
     throw new Error(`发布失败: ${error.message} (code: ${error.code})`);
@@ -237,6 +239,7 @@ export async function createSharePost(title: string, summary: string, body: stri
   const profile = (await loadProfilesById([currentUser.id])).get(currentUser.id);
   return {
     id: row.id as string, title: row.title as string, summary: row.summary as string,
+    link: (row.url as string) ?? null,
     body: row.body as string, folderId: (row.folder_id as string) ?? null,
     authorId: row.author_id as string,
     authorName: profile?.displayName ?? null,
