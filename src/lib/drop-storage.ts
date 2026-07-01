@@ -27,8 +27,12 @@ export type UserSubmission = {
   user_id: string;
   promo_code_id: string | null;
   sponsor_account: string;
-  rating: string;
-  suggestion: string;
+  favorite_station?: string | null;
+  sponsor_rating?: string | null;
+  ui_rating?: string | null;
+  timix_feedback?: string | null;
+  rating?: string | null;
+  suggestion?: string | null;
   created_at: string;
 };
 
@@ -94,9 +98,10 @@ function getClaimErrorMessage(message: string) {
   if (message.includes("请先登录")) return "请先登录后再领取福利";
   if (message.includes("登录状态不匹配")) return "登录状态不匹配，请刷新后重试";
   if (message.includes("论坛资料初始化")) return "请先完成论坛资料初始化后再领取福利";
-  if (message.includes("赞助商平台账号")) return "请填写有效的赞助商平台账号";
-  if (message.includes("使用体验评价")) return "请选择有效的使用体验评价";
-  if (message.includes("意见与建议")) return "意见与建议不能超过 1000 个字符";
+  if (message.includes("注册账号") || message.includes("目标平台账号")) return "请填写有效的目标平台注册账号";
+  if (message.includes("稳定") || message.includes("中转站")) return "请填写您认为更好用、更稳定的中转站反馈";
+  if (message.includes("UI") || message.includes("界面")) return "请选择您对 TiMix UI 界面的评价";
+  if (message.includes("TiMix") || message.includes("平台建议")) return "请填写对 TiMix 收集站的建议";
   if (message.includes("您已经领取过")) return "您已经领取过该福利";
   if (message.includes("已被抢空")) return "手慢了，兑换码已被抢空";
   if (message.includes("不存在或已结束")) return "该活动不存在或已结束";
@@ -106,9 +111,10 @@ function getClaimErrorMessage(message: string) {
 export async function claimPromoCode(
   campaignId: string,
   userId: string,
-  sponsorAccount: string,
-  rating: string,
-  suggestion: string,
+  registeredAccount: string,
+  favoriteStation: string,
+  uiRating: string,
+  timixFeedback: string,
 ): Promise<ClaimResult> {
   if (!isSupabaseConfigured()) {
     return { ok: false, error: "Supabase 未配置，无法领取福利。" };
@@ -130,9 +136,10 @@ export async function claimPromoCode(
     const { data, error } = await supabase.rpc("claim_promo_code", {
       p_campaign_id: campaignId,
       p_user_id: authUserId,
-      p_sponsor_account: sponsorAccount.trim(),
-      p_rating: rating,
-      p_suggestion: suggestion.trim(),
+      p_registered_account: registeredAccount.trim(),
+      p_favorite_station: favoriteStation.trim(),
+      p_ui_rating: uiRating,
+      p_timix_feedback: timixFeedback.trim(),
     });
 
     if (error) {

@@ -14,18 +14,19 @@ type DropClaimModalProps = {
 };
 
 const RATINGS = [
-  { value: "神级体验", label: "🌟 神级体验" },
-  { value: "非常实用", label: "👍 非常实用" },
-  { value: "还有欠缺", label: "🤨 还有欠缺" },
+  { value: "夯爆了", label: "🔥 夯爆了" },
+  { value: "NPC", label: "🤖 NPC" },
+  { value: "拉完了", label: "💩 拉完了" },
 ] as const;
 
 export function DropClaimModal({ campaign, onClaimed, open, onClose }: DropClaimModalProps) {
   const { user } = useForumAuth();
 
   // ── Form state ──
-  const [account, setAccount] = useState("");
-  const [rating, setRating] = useState("");
-  const [suggestion, setSuggestion] = useState("");
+  const [registeredAccount, setRegisteredAccount] = useState("");
+  const [favoriteStation, setFavoriteStation] = useState("");
+  const [uiRating, setUiRating] = useState("");
+  const [timixFeedback, setTimixFeedback] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,13 +35,16 @@ export function DropClaimModal({ campaign, onClaimed, open, onClose }: DropClaim
   const [copied, setCopied] = useState(false);
 
   const accountRef = useRef<HTMLInputElement>(null);
+  const favoriteStationRef = useRef<HTMLTextAreaElement>(null);
+  const timixFeedbackRef = useRef<HTMLTextAreaElement>(null);
 
   // ── Reset on open / campaign change ──
   useEffect(() => {
     if (!open) return;
-    setAccount("");
-    setRating("");
-    setSuggestion("");
+    setRegisteredAccount("");
+    setFavoriteStation("");
+    setUiRating("");
+    setTimixFeedback("");
     setError(null);
     setClaimedCode(null);
     setCopied(false);
@@ -68,14 +72,26 @@ export function DropClaimModal({ campaign, onClaimed, open, onClose }: DropClaim
 
     setError(null);
 
-    const trimmedAccount = account.trim();
+    const trimmedAccount = registeredAccount.trim();
     if (!trimmedAccount) {
-      setError("请填写您在赞助商平台注册的账号。");
+      setError("请填写目标平台注册账号。");
       accountRef.current?.focus();
       return;
     }
-    if (!rating) {
-      setError("请选择一个使用体验评价。");
+    const trimmedFavoriteStation = favoriteStation.trim();
+    if (!trimmedFavoriteStation) {
+      setError("请填写您用过的中转站里，哪个更好用、更稳定。");
+      favoriteStationRef.current?.focus();
+      return;
+    }
+    if (!uiRating) {
+      setError("请选择对 TiMix UI 界面的评价。");
+      return;
+    }
+    const trimmedTimixFeedback = timixFeedback.trim();
+    if (!trimmedTimixFeedback) {
+      setError("请填写对 TiMix 收集站的建议。");
+      timixFeedbackRef.current?.focus();
       return;
     }
 
@@ -84,8 +100,9 @@ export function DropClaimModal({ campaign, onClaimed, open, onClose }: DropClaim
       campaign.id,
       user.id,
       trimmedAccount,
-      rating,
-      suggestion,
+      trimmedFavoriteStation,
+      uiRating,
+      trimmedTimixFeedback,
     );
     setSubmitting(false);
 
@@ -95,7 +112,7 @@ export function DropClaimModal({ campaign, onClaimed, open, onClose }: DropClaim
     } else {
       setError(result.error);
     }
-  }, [campaign, user, account, rating, suggestion, onClaimed]);
+  }, [campaign, user, registeredAccount, favoriteStation, uiRating, timixFeedback, onClaimed]);
 
   // ── Copy to clipboard ──
   const handleCopy = useCallback(async () => {
@@ -200,10 +217,10 @@ export function DropClaimModal({ campaign, onClaimed, open, onClose }: DropClaim
               </p>
             </div>
 
-            {/* Step 1: Sponsor URL */}
+            {/* Sponsor URL */}
             <div className="mt-8">
               <p className="text-sm font-semibold text-zinc-300">
-                第一步：请先前往 {campaign.sponsor_name} 注册账号
+                领取前：请先前往目标平台注册账号
               </p>
               <a
                 className="mt-3 flex items-center gap-2 rounded-xl border border-white/10 bg-zinc-900 px-5 py-4 text-base font-bold text-cyan-300 transition hover:border-cyan-400/30 hover:bg-zinc-900/80"
@@ -215,14 +232,14 @@ export function DropClaimModal({ campaign, onClaimed, open, onClose }: DropClaim
                 <ExternalLink className="h-4 w-4 shrink-0 opacity-60" />
               </a>
               <p className="mt-2 text-xs text-zinc-500">
-                请先在赞助商平台完成注册，然后回到这里填写以下表单领取兑换码。
+                请先在目标平台完成注册，然后回到这里填写以下表单领取兑换码。
               </p>
             </div>
 
-            {/* Step 2: Form */}
+            {/* Questionnaire Form */}
             <div className="mt-8">
               <p className="text-sm font-semibold text-zinc-300">
-                第 2 步 · 填写信息并领取
+                完成四步问卷并领取兑换码
               </p>
 
               {!isLoggedIn ? (
@@ -237,7 +254,7 @@ export function DropClaimModal({ campaign, onClaimed, open, onClose }: DropClaim
                       className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-zinc-400"
                       htmlFor="drop-account"
                     >
-                      注册的账号（邮箱/ID）
+                      第一步：目标平台注册账号（邮箱/ID）
                     </label>
                     <input
                       ref={accountRef}
@@ -245,29 +262,53 @@ export function DropClaimModal({ campaign, onClaimed, open, onClose }: DropClaim
                       className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-zinc-500 focus:border-white/30 focus:outline-none"
                       disabled={submitting}
                       id="drop-account"
-                      onChange={(e) => setAccount(e.target.value)}
-                      placeholder="例如 yourname@email.com"
+                      onChange={(e) => setRegisteredAccount(e.target.value)}
+                      placeholder="用于发放核对，防止机器恶意刷码..."
                       type="text"
-                      value={account}
+                      value={registeredAccount}
                     />
                   </div>
 
-                  {/* Rating pills */}
+                  {/* Favorite station */}
+                  <div>
+                    <label
+                      className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-zinc-400"
+                      htmlFor="drop-favorite-station"
+                    >
+                      第二步：在您用过的中转站里，觉得哪个更好用、更稳定？
+                    </label>
+                    <textarea
+                      ref={favoriteStationRef}
+                      className="w-full resize-none rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-zinc-500 focus:border-white/30 focus:outline-none"
+                      disabled={submitting}
+                      id="drop-favorite-station"
+                      onChange={(e) => setFavoriteStation(e.target.value)}
+                      placeholder="例如：XX站的延迟最低，或者XX站的并发最稳..."
+                      rows={3}
+                      value={favoriteStation}
+                    />
+                  </div>
+
+                  {/* UI rating pills */}
                   <fieldset>
                     <legend className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-zinc-400">
-                      使用体验
+                      第三步：你觉得 TiMix 收集站目前的 UI 界面怎么样？
                     </legend>
                     <div className="flex flex-wrap gap-2">
                       {RATINGS.map((item) => (
                         <button
                           key={item.value}
                           className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
-                            rating === item.value
-                              ? "border-cyan-400/50 bg-cyan-400/10 text-cyan-200 shadow-[0_0_20px_rgba(34,211,238,0.08)]"
+                            uiRating === item.value
+                              ? item.value === "夯爆了"
+                                ? "border-orange-400/50 bg-orange-400/10 text-orange-200 shadow-[0_0_20px_rgba(249,115,22,0.12)]"
+                                : item.value === "NPC"
+                                  ? "border-zinc-400/50 bg-zinc-500/10 text-zinc-200 shadow-[0_0_20px_rgba(113,113,122,0.12)]"
+                                  : "border-amber-900/50 bg-amber-900/20 text-amber-200 shadow-[0_0_20px_rgba(120,53,15,0.18)]"
                               : "border-white/10 bg-white/5 text-zinc-400 hover:border-white/20 hover:text-zinc-200"
                           }`}
                           disabled={submitting}
-                          onClick={() => setRating(item.value)}
+                          onClick={() => setUiRating(item.value)}
                           type="button"
                         >
                           {item.label}
@@ -276,22 +317,23 @@ export function DropClaimModal({ campaign, onClaimed, open, onClose }: DropClaim
                     </div>
                   </fieldset>
 
-                  {/* Suggestion */}
+                  {/* TiMix feedback */}
                   <div>
                     <label
                       className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-zinc-400"
-                      htmlFor="drop-suggestion"
+                      htmlFor="drop-timix-feedback"
                     >
-                      意见与建议（可选）
+                      第四步：对 TiMix 的建议（痛点、功能改进等）
                     </label>
                     <textarea
+                      ref={timixFeedbackRef}
                       className="w-full resize-none rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-zinc-500 focus:border-white/30 focus:outline-none"
                       disabled={submitting}
-                      id="drop-suggestion"
-                      onChange={(e) => setSuggestion(e.target.value)}
-                      placeholder="对这次体验有什么想法？"
-                      rows={3}
-                      value={suggestion}
+                      id="drop-timix-feedback"
+                      onChange={(e) => setTimixFeedback(e.target.value)}
+                      placeholder="畅所欲言！你希望 TiMix 增加什么功能？或者哪里用着不爽？你的建议将决定网站的下一次更新..."
+                      rows={4}
+                      value={timixFeedback}
                     />
                   </div>
 
@@ -319,10 +361,10 @@ export function DropClaimModal({ campaign, onClaimed, open, onClose }: DropClaim
                     {submitting ? (
                       <>
                         <Loader2 className="h-4 w-4 animate-spin" />
-                        正在开启盲盒...
+                        正在提交问卷...
                       </>
                     ) : (
-                      "提交并开奖"
+                      "提交问卷并开奖"
                     )}
                   </button>
                 </div>

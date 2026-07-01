@@ -251,9 +251,18 @@ export function CampaignAdmin() {
                         <div key={submission.id} className="rounded-2xl bg-white/[0.03] p-4">
                           <div className="flex flex-wrap items-center justify-between gap-3">
                             <span className="text-sm text-zinc-200">{submission.sponsor_account}</span>
-                            <RatingBadge rating={submission.rating} />
+                            <RatingBadge rating={submission.ui_rating ?? submission.sponsor_rating ?? submission.rating ?? "未评价"} />
                           </div>
-                          {submission.suggestion && <p className="mt-2 text-sm text-zinc-500">{submission.suggestion}</p>}
+                          {submission.favorite_station ? (
+                            <p className="mt-3 rounded-xl bg-white/[0.03] px-3 py-2 text-sm text-zinc-300">
+                              <span className="text-zinc-500">稳定站点反馈：</span>{submission.favorite_station}
+                            </p>
+                          ) : null}
+                          {submission.timix_feedback || submission.suggestion ? (
+                            <p className="mt-2 rounded-xl bg-white/[0.03] px-3 py-2 text-sm text-zinc-400">
+                              <span className="text-zinc-500">TiMix 建议：</span>{submission.timix_feedback ?? submission.suggestion}
+                            </p>
+                          ) : null}
                         </div>
                       ))}
                     </div>
