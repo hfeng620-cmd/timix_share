@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-const IMAGES = ["/bg-1.jpg", "/bg-2.jpg", "/bg-3.jpg", "/bg-4.jpg"];
+const IMAGES = ["/bg-1-hd.jpg", "/bg-2-hd.jpg", "/bg-3-hd.jpg", "/bg-4-hd.jpg"];
 const INTERVAL_MS = 9000;
 
 export function BackgroundSlider() {
@@ -18,13 +18,13 @@ export function BackgroundSlider() {
   }, [current]);
 
   return (
-    <div className="fixed inset-0 z-0 h-screen w-screen">
+    <div className="fixed inset-0 -z-50 h-full w-full">
       {IMAGES.map((src, i) => (
         <img
           key={src}
           src={src}
-          alt=""
-          className={`absolute inset-0 h-full w-full object-cover ${
+          alt="Background"
+          className={`absolute inset-0 h-full w-full object-cover object-center ${
             i === current
               ? "opacity-100"
               : "opacity-0"
@@ -32,7 +32,7 @@ export function BackgroundSlider() {
           style={{ transition: "opacity 2s ease-in-out" }}
         />
       ))}
-      <div className="absolute inset-0 bg-black/45" />
+      <div className="pointer-events-none absolute inset-0 bg-black/60" />
     </div>
   );
 }
