@@ -38,6 +38,21 @@ export type StationEditRecord = {
   createdAt: string;
 };
 
+export type StationEditRequestPayload = Partial<
+  Pick<
+    Station,
+    | "price"
+    | "multiplier"
+    | "packageType"
+    | "status"
+    | "models"
+    | "uptime"
+    | "latency"
+    | "risk"
+    | "note"
+  >
+>;
+
 export const STATIONS_CHANGED_EVENT = "timix:stations-changed";
 
 export function notifyStationsChanged() {
@@ -685,6 +700,31 @@ export async function loadStationEditHistory(
     return ((data ?? []) as Record<string, unknown>[]).map(editRecordFromRow);
   } catch {
     return [];
+  }
+}
+
+export async function submitStationEditRequest(params: {
+  stationId: string;
+  userId: string;
+  suggestedData: StationEditRequestPayload;
+}): Promise<void> {
+  if (!isSupabaseConfigured()) {
+    throw new Error("Supabase 未配置，无法提交修改申请。");
+  }
+  if (!isOfficialStationId(params.stationId)) {
+    throw new Error("这条站点还没有进入正式榜单，暂时不能提交修改申请。");
+  }
+
+  const { error } = await getSupabaseClient()
+    .from("station_edit_requests")
+    .insert({
+      station_id: params.stationId,
+      user_id: params.userId,
+      suggested_data: params.suggestedData,
+    });
+
+  if (error) {
+    throw new Error(`提交修改申请失败: ${error.message}`);
   }
 }
 

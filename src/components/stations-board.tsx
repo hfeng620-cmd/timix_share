@@ -1,14 +1,17 @@
 "use client";
 
 import Link from "next/link";
+import { Pencil } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 import { stationComparisonRows, stationLinkMap } from "@/lib/site-data";
 import { RelayStationDetailModal } from "@/components/relay-station-detail-modal";
 import { DiscussionFeed } from "@/components/discussion-feed";
+import { StationEditModal } from "@/components/station-edit-modal";
 import { SubmissionPanel } from "@/components/submission-panel";
 import { useForumAuth } from "@/lib/forum-auth";
+import { useToast } from "@/lib/toast-context";
 import { getSafeExternalHref } from "@/lib/url-safety";
 import {
   createStation,
@@ -349,7 +352,8 @@ function pickEditableStationFields(station: Partial<Station>): Partial<Station> 
 // ---------------------------------------------------------------------------
 
 export function StationsBoard() {
-  const { isConnected, displayName, isAdmin, isOwner } = useForumAuth();
+  const { isConnected, displayName, isAdmin, isOwner, showAuthModal, user } = useForumAuth();
+  const { addToast } = useToast();
   const canDeleteStations = isAdmin || isOwner;
 
   // ---- data ---------------------------------------------------------------
@@ -368,6 +372,7 @@ export function StationsBoard() {
   // ---- editing ------------------------------------------------------------
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<Partial<Station>>({});
+  const [wikiEditStation, setWikiEditStation] = useState<Station | null>(null);
   const [saving, setSaving] = useState(false);
   const [addingNew, setAddingNew] = useState(false);
   const [quickMenuOpen, setQuickMenuOpen] = useState(false);
@@ -605,6 +610,20 @@ export function StationsBoard() {
     setAddingNew(false);
     setEditForm(pickEditableStationFields(station));
   }, []);
+
+  const openWikiEditModal = useCallback((station: Station) => {
+    if (!isConnected || !user?.id) {
+      addToast("请先登录再提交修改", "error");
+      showAuthModal();
+      return;
+    }
+    if (isStaticStationId(station.id)) {
+      addToast("这条还是本地兜底数据，请先保存为正式站点后再修改。", "error");
+      return;
+    }
+    setEditingId(null);
+    setWikiEditStation(station);
+  }, [addToast, isConnected, showAuthModal, user?.id]);
 
   const cancelEdit = useCallback(() => {
     setEditingId(null);
@@ -1323,7 +1342,7 @@ export function StationsBoard() {
                     >
                       {/* Header row: rank + name + badge */}
                       <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0 flex-1">
+                        <div className="min-w-0 flex-1 pr-10">
                           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--color-muted)]">
                             {rankingBadge(index)}
                           </p>
@@ -1424,7 +1443,7 @@ export function StationsBoard() {
                               className="rounded-full px-2 py-2 text-sm text-[var(--color-muted)] transition hover:bg-[var(--color-soft)] hover:text-[var(--color-brand-deep)]"
                               onClick={(event) => {
                                 event.stopPropagation();
-                                startEdit(station);
+                              openWikiEditModal(station);
                               }}
                               title="编辑此站点"
                               type="button"
@@ -1521,7 +1540,7 @@ export function StationsBoard() {
                 return (
                   <div key={station.id}>
                     <article
-                      className="relative z-10 grid cursor-pointer grid-cols-[1.35fr_0.9fr_0.72fr_0.92fr_0.82fr_0.7fr_0.78fr_0.68fr_0.9fr] items-center gap-x-3 border-b border-white/5 px-5 py-3 text-sm transition hover:bg-white/[0.02]"
+                      className="group relative z-10 grid cursor-pointer grid-cols-[1.35fr_0.9fr_0.72fr_0.92fr_0.82fr_0.7fr_0.78fr_0.68fr_0.9fr] items-center gap-x-3 border-b border-white/5 px-5 py-3 pr-14 text-sm transition hover:bg-white/[0.02]"
                       onClick={() => handleDetailStationClick(station)}
                     >
                       {/* 站点 */}
@@ -1569,6 +1588,17 @@ export function StationsBoard() {
                             );
                           })()}
                         </div>
+                        <button
+                          className="absolute right-4 top-4 z-20 rounded-full p-2 text-zinc-500 transition-colors hover:bg-white/5 hover:text-emerald-400"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            openWikiEditModal(station);
+                          }}
+                          title="编辑此站点"
+                          type="button"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </button>
                         <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-[var(--color-muted)]">
                           {stationHref ? (
                             <a
@@ -1602,19 +1632,17 @@ export function StationsBoard() {
                           >
                             {isShowingHistory ? "收起历史" : "历史"}
                           </button>
-                          {isConnected && (
-                            <button
-                              className="relative z-20 transition hover:text-[var(--color-brand-deep)]"
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                startEdit(station);
-                              }}
-                              title="编辑此站点"
-                              type="button"
-                            >
-                              编辑
-                            </button>
-                          )}
+                          <button
+                            className="relative z-20 transition hover:text-emerald-400"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              openWikiEditModal(station);
+                            }}
+                            title="编辑此站点"
+                            type="button"
+                          >
+                            编辑
+                          </button>
                         </div>
                       </div>
 
@@ -1658,6 +1686,17 @@ export function StationsBoard() {
                         <MiniStatusBars station={station} />
                         <span className="line-clamp-1 text-xs text-[var(--color-muted)]">{station.status || "待检测"}</span>
                       </div>
+                      <button
+                        className="absolute right-3 top-1/2 z-20 -translate-y-1/2 rounded-full p-2 text-zinc-500 opacity-70 transition-colors hover:bg-white/5 hover:text-emerald-400 group-hover:opacity-100"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          openWikiEditModal(station);
+                        }}
+                        title="编辑此站点"
+                        type="button"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </button>
                     </article>
 
                     {/* Edit panel (below row) */}
@@ -1837,6 +1876,16 @@ export function StationsBoard() {
         station={detailStation}
         open={detailStation !== null}
         onClose={() => setDetailStation(null)}
+      />
+
+      <StationEditModal
+        editorName={displayName || "未知用户"}
+        isAdmin={isAdmin || isOwner}
+        onClose={() => setWikiEditStation(null)}
+        onSaved={() => void refreshStations()}
+        open={wikiEditStation !== null}
+        station={wikiEditStation}
+        userId={user?.id ?? null}
       />
 
       {/* ---- Station Discussion Modal (Portal to body) ---- */}
