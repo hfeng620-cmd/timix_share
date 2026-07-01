@@ -243,21 +243,21 @@ export type ModelRanking = {
 };
 
 export const modelRankings: ModelRanking[] = [
-  { rank: 1, name: "Claude Fable 5", provider: "Anthropic", intelligenceIndex: 59.9, medianPrice: "¥16" },
-  { rank: 2, name: "Claude Opus 4.8", provider: "Anthropic", intelligenceIndex: 55.7, medianPrice: "¥8" },
-  { rank: 3, name: "GPT 5.5", provider: "OpenAI", intelligenceIndex: 54.8, medianPrice: "¥2" },
-  { rank: 4, name: "Claude Opus 4.7", provider: "Anthropic", intelligenceIndex: 53.5, medianPrice: "¥8" },
-  { rank: 5, name: "GPT 5.4", provider: "OpenAI", intelligenceIndex: 51.4, medianPrice: "¥1" },
-  { rank: 6, name: "GLM 5.2", provider: "智谱", intelligenceIndex: 51.1, medianPrice: "¥7.6" },
-  { rank: 7, name: "Gemini 3.5 Flash", provider: "Google", intelligenceIndex: 50.2, medianPrice: "¥2.4" },
-  { rank: 8, name: "Claude Sonnet 4.6", provider: "Anthropic", intelligenceIndex: 47.2, medianPrice: "¥4.8" },
-  { rank: 9, name: "Gemini 3.1 Pro Preview", provider: "Google", intelligenceIndex: 46.5, medianPrice: "¥2" },
-  { rank: 10, name: "Qwen3.7 Max", provider: "Alibaba", intelligenceIndex: 46.0, medianPrice: "¥8.2" },
-  { rank: 11, name: "MiniMax M3", provider: "MiniMax", intelligenceIndex: 44.4, medianPrice: "¥2" },
-  { rank: 12, name: "DeepSeek V4 Pro", provider: "DeepSeek", intelligenceIndex: 44.3, medianPrice: "¥3" },
-  { rank: 13, name: "Kimi 2.6", provider: "Moonshot AI", intelligenceIndex: 42.8, medianPrice: "¥5.2" },
-  { rank: 14, name: "mimo-v2.5-pro", provider: "Xiaomi", intelligenceIndex: 42.2, medianPrice: "¥3" },
-  { rank: 15, name: "DeepSeek V4 Flash", provider: "DeepSeek", intelligenceIndex: 40.3, medianPrice: "¥1" },
+  { rank: 1, name: "Claude Fable 5", provider: "Anthropic", intelligenceIndex: 59.9, medianPrice: "¥16.00" },
+  { rank: 2, name: "Claude Opus 4.8", provider: "Anthropic", intelligenceIndex: 55.7, medianPrice: "¥8.00" },
+  { rank: 3, name: "GPT 5.5", provider: "OpenAI", intelligenceIndex: 54.8, medianPrice: "¥2.00" },
+  { rank: 4, name: "Claude Opus 4.7", provider: "Anthropic", intelligenceIndex: 53.5, medianPrice: "¥7.80" },
+  { rank: 5, name: "GPT 5.4", provider: "OpenAI", intelligenceIndex: 51.4, medianPrice: "¥0.88" },
+  { rank: 6, name: "GLM 5.2", provider: "智谱 (Zhipu)", intelligenceIndex: 51.1, medianPrice: "¥7.20" },
+  { rank: 7, name: "Gemini 3.5 Flash", provider: "Google", intelligenceIndex: 50.2, medianPrice: "¥2.30" },
+  { rank: 8, name: "Claude Sonnet 4.6", provider: "Anthropic", intelligenceIndex: 47.2, medianPrice: "¥4.80" },
+  { rank: 9, name: "Gemini 3.1 Pro Preview", provider: "Google", intelligenceIndex: 46.5, medianPrice: "¥1.40" },
+  { rank: 10, name: "Qwen3.7 Max", provider: "Alibaba", intelligenceIndex: 46.0, medianPrice: "¥8.20" },
+  { rank: 11, name: "MiniMax M3", provider: "MiniMax", intelligenceIndex: 44.4, medianPrice: "¥1.70" },
+  { rank: 12, name: "DeepSeek V4 Pro", provider: "DeepSeek", intelligenceIndex: 44.3, medianPrice: "¥3.00" },
+  { rank: 13, name: "Kimi 2.6", provider: "Moonshot AI", intelligenceIndex: 42.8, medianPrice: "¥5.00" },
+  { rank: 14, name: "mimo-v2.5-pro", provider: "Xiaomi", intelligenceIndex: 42.2, medianPrice: "¥3.00" },
+  { rank: 15, name: "DeepSeek V4 Flash", provider: "DeepSeek", intelligenceIndex: 40.3, medianPrice: "¥1.00" },
 ];
 
 export const modelPreviewRows = [

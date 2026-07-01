@@ -46,19 +46,24 @@ export default function ModelsPage() {
                 <tr className="border-b border-white/10 text-xs font-semibold uppercase tracking-[0.18em] text-white/45 font-body">
                   <th className="px-5 py-4">排名</th>
                   <th className="px-5 py-4">模型</th>
-                  <th className="px-5 py-4">提供商</th>
                   <th className="px-5 py-4">智能指数</th>
                   <th className="px-5 py-4">中位价格</th>
                 </tr>
               </thead>
               <tbody>
-                {modelRankings.slice(0, 8).map((model) => (
+                {modelRankings.map((model) => (
                   <tr key={model.rank} className="border-b border-white/5 last:border-0 transition hover:bg-white/[0.03]">
-                    <td className="px-5 py-4 text-white/45 font-body">{model.rank}</td>
-                    <td className="px-5 py-4 font-heading italic text-white">{model.name}</td>
-                    <td className="px-5 py-4 text-white/55 font-body">{model.provider}</td>
-                    <td className="px-5 py-4 text-white/55 font-body">{model.intelligenceIndex}</td>
-                    <td className="px-5 py-4 text-white/45 font-body">{model.medianPrice}</td>
+                    <td className="px-5 py-4 font-mono text-white/45">{String(model.rank).padStart(2, "0")}</td>
+                    <td className="px-5 py-4">
+                      <div className="flex flex-col">
+                        <span className="font-heading text-base italic text-white">{model.name}</span>
+                        <span className="mt-1 text-xs font-semibold uppercase tracking-[0.14em] text-white/40 font-body">
+                          {model.provider}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-5 py-4 font-mono text-white/65">{model.intelligenceIndex.toFixed(1)}</td>
+                    <td className="px-5 py-4 font-mono text-white/55">{model.medianPrice}</td>
                   </tr>
                 ))}
               </tbody>
