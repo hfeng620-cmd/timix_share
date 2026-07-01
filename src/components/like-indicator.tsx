@@ -14,7 +14,8 @@ export function LikeIndicator({ likers }: { likers: Liker[] }) {
   if (!likers || likers.length === 0) return null;
 
   const vipLikers = likers.filter((liker) => isOwnerLiker(liker) || isAdminLiker(liker));
-  const normalLikesCount = Math.max(likers.length - vipLikers.length, 0);
+  const friendLikers = likers.filter((liker) => !isOwnerLiker(liker) && !isAdminLiker(liker));
+  const firstFriend = friendLikers[0];
 
   return (
     <div className="ml-2 flex flex-wrap items-center gap-2 text-xs font-body">
@@ -33,9 +34,9 @@ export function LikeIndicator({ likers }: { likers: Liker[] }) {
           </span>
         );
       })}
-      {normalLikesCount > 0 && (
-        <span className="text-zinc-500">
-          {vipLikers.length > 0 ? "等 " : ""}{normalLikesCount} 位普通用户赞过
+      {firstFriend && (
+        <span className="rounded-md border border-cyan-400/15 bg-cyan-400/10 px-2 py-1 font-medium text-cyan-200">
+          {firstFriend.displayName || "有朋友"}{friendLikers.length > 1 ? " 等朋友赞过" : " 赞过"}
         </span>
       )}
     </div>
