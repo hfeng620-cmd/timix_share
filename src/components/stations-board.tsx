@@ -1632,17 +1632,6 @@ export function StationsBoard() {
                           >
                             {isShowingHistory ? "收起历史" : "历史"}
                           </button>
-                          <button
-                            className="relative z-20 transition hover:text-emerald-400"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              openWikiEditModal(station);
-                            }}
-                            title="编辑此站点"
-                            type="button"
-                          >
-                            编辑
-                          </button>
                         </div>
                       </div>
 

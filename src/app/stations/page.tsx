@@ -1,4 +1,5 @@
 import { Navbar } from "@/components/navbar";
+import { DonateButton } from "@/components/donate-button";
 import { StationMonitorPanel } from "@/components/station-monitor-panel";
 import { StationsBoard } from "@/components/stations-board";
 
@@ -8,16 +9,19 @@ export default function StationsPage() {
       <Navbar />
 
       <section className="relative z-10 mx-auto max-w-[1680px] px-4 pt-28 sm:px-5 lg:px-8">
-        <div className="mb-6">
-          <div className="liquid-glass mb-3 inline-block rounded-full px-3.5 py-1 text-xs font-medium text-white font-body">
-            中转站榜单
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <div className="liquid-glass mb-3 inline-block rounded-full px-3.5 py-1 text-xs font-medium text-white font-body">
+              中转站榜单
+            </div>
+            <h1 className="text-3xl font-heading italic leading-[1.15] text-white md:text-4xl">
+              先在榜单缩候选，再回社区补变化。
+            </h1>
+            <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/55 md:text-base font-body">
+              把倍率、门槛和入口放在一张桌面上，第一轮判断在这里完成，后面验证交给社区。
+            </p>
           </div>
-          <h1 className="text-3xl font-heading italic leading-[1.15] text-white md:text-4xl">
-            先在榜单缩候选，再回社区补变化。
-          </h1>
-          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/55 md:text-base font-body">
-            把倍率、门槛和入口放在一张桌面上，第一轮判断在这里完成，后面验证交给社区。
-          </p>
+          <DonateButton />
         </div>
 
         <div className="grid gap-2 mb-6 sm:grid-cols-3">
