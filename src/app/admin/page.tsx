@@ -1,10 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { MessageSquareText } from "lucide-react";
 
 import { Navbar } from "@/components/navbar";
 import { AdminDropManager } from "@/components/admin-drop-manager";
 import { CampaignAdmin } from "@/components/campaign-admin";
+import { DirectMessageModal } from "@/components/direct-message-modal";
 import { StationEditorModal } from "@/components/station-editor-modal";
 import { GithubIssueReviewPanel } from "@/components/github-issue-review-panel";
 import { useForumAuth } from "@/lib/forum-auth";
@@ -82,6 +84,18 @@ type AuditEntry = {
   action: string;
   target: string;
   time: string;
+};
+
+type AdminUserListItem = {
+  id: string;
+  display_name: string;
+  avatar_url: string | null;
+  created_at: string;
+  isAdmin: boolean;
+  email: string;
+  last_seen: string | null;
+  is_online: boolean;
+  total_replies: number;
 };
 
 function getErrorMessage(error: unknown, fallback: string) {
@@ -195,13 +209,12 @@ export default function AdminPage() {
   const [editorModalOpen, setEditorModalOpen] = useState(false);
 
   // ---- User management state ----
-  const [userList, setUserList] = useState<
-    { id: string; display_name: string; avatar_url: string | null; created_at: string; isAdmin: boolean; email: string; last_seen: string | null; is_online: boolean; total_replies: number }[]
-  >([]);
+  const [userList, setUserList] = useState<AdminUserListItem[]>([]);
   const [userListLoading, setUserListLoading] = useState(false);
   const [userSearch, setUserSearch] = useState("");
   const [userActionStatus, setUserActionStatus] = useState("");
   const [togglingUserId, setTogglingUserId] = useState<string | null>(null);
+  const [activeChatUser, setActiveChatUser] = useState<AdminUserListItem | null>(null);
 
   const isMountedRef = useRef(true);
   const statsRequestRef = useRef(0);
@@ -2397,6 +2410,18 @@ export default function AdminPage() {
                       <span className="hidden sm:inline-flex items-center gap-1 text-xs text-white/30 font-body bg-white/[0.04] px-2.5 py-1 rounded-lg">
                         💬 {user.total_replies}
                       </span>
+                      <button
+                        aria-label={`给 ${user.display_name} 发送私信`}
+                        className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-white/45 opacity-100 transition hover:border-emerald-300/30 hover:bg-emerald-400/10 hover:text-emerald-300 sm:opacity-0 sm:group-hover:opacity-100"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          setActiveChatUser(user);
+                        }}
+                        title="发送私信"
+                        type="button"
+                      >
+                        <MessageSquareText className="h-4 w-4" />
+                      </button>
 
                       {isOwner && (
                         <button
@@ -2417,6 +2442,13 @@ export default function AdminPage() {
             <p className="mt-4 text-sm text-[var(--color-muted)]">{userActionStatus}</p>
           )}
         </div>
+      )}
+
+      {activeChatUser && (
+        <DirectMessageModal
+          onClose={() => setActiveChatUser(null)}
+          targetUser={activeChatUser}
+        />
       )}
 
       {/* ── Announcement confirmation dialog ── */}
