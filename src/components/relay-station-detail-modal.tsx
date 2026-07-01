@@ -89,7 +89,6 @@ export function RelayStationDetailModal({ station, open, onClose }: RelayStation
   useEffect(() => {
     if (!open) return;
 
-    const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
     function handleKeyDown(event: KeyboardEvent) {
@@ -98,7 +97,7 @@ export function RelayStationDetailModal({ station, open, onClose }: RelayStation
 
     document.addEventListener("keydown", handleKeyDown);
     return () => {
-      document.body.style.overflow = previousOverflow;
+      document.body.style.overflow = "unset";
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [open, onClose]);
@@ -140,7 +139,7 @@ export function RelayStationDetailModal({ station, open, onClose }: RelayStation
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md p-4"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm overscroll-none p-4 md:p-8"
       onClick={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}
@@ -155,19 +154,19 @@ export function RelayStationDetailModal({ station, open, onClose }: RelayStation
       </style>
 
       <div
-        className="custom-scrollbar relative flex w-full max-w-4xl max-h-[90vh] flex-col overflow-y-auto bg-zinc-950/90 border border-white/10 rounded-2xl shadow-2xl p-6"
+        className="relative w-full max-w-5xl h-[90vh] md:h-[85vh] bg-zinc-950/95 border border-white/10 rounded-2xl shadow-2xl flex flex-col overflow-hidden"
         onClick={(event) => event.stopPropagation()}
       >
         <button
           aria-label="关闭"
-          className="absolute right-4 top-4 z-50 flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/10 text-zinc-300 backdrop-blur transition hover:bg-white/15 hover:text-white"
+          className="absolute top-4 right-4 z-50 rounded-full bg-zinc-900/50 p-2 text-zinc-400 transition hover:text-white"
           onClick={onClose}
           type="button"
         >
           <X className="h-5 w-5" />
         </button>
 
-        <section className="shrink-0 border-b border-white/10 bg-zinc-900/40 pb-6">
+        <section className="shrink-0 p-6 md:p-8 border-b border-white/10 bg-zinc-900/20">
           <div className="pr-12">
             <div className="flex flex-wrap items-center gap-2">
               <h2 className="text-2xl font-bold text-white">{station.name}</h2>
@@ -238,11 +237,11 @@ export function RelayStationDetailModal({ station, open, onClose }: RelayStation
           </div>
         </section>
 
-        <section className="flex min-h-[420px] flex-1 flex-col overflow-hidden bg-zinc-950 pt-6">
-          <div className="border-b border-white/5 px-6 py-3 text-sm font-medium tracking-widest text-zinc-400">
+        <section className="custom-scrollbar flex-1 overflow-y-auto overscroll-contain bg-zinc-950">
+          <div className="border-b border-white/5 px-6 py-3 text-sm font-medium tracking-widest text-zinc-400 md:px-8">
             用户评价与反馈
           </div>
-          <div className="custom-scrollbar flex-1 overflow-y-auto p-6">
+          <div className="p-6 md:p-8">
             <DiscussionFeed
               hideHeader
               showSyncButton
