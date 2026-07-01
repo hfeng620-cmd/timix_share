@@ -33,7 +33,7 @@ function GlassGeometry() {
 
 export function GlassBackground() {
   return (
-    <div className="pointer-events-none fixed inset-0 -z-50 opacity-90 transition-opacity duration-1000">
+    <div className="pointer-events-none fixed inset-0 z-0 opacity-90 transition-opacity duration-1000">
       <Canvas camera={{ position: [0, 0, 6], fov: 45 }}>
         <ambientLight intensity={1.5} />
         <directionalLight position={[10, 10, 10]} intensity={2} />

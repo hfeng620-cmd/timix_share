@@ -18,7 +18,7 @@ export function BackgroundSlider() {
   }, [current]);
 
   return (
-    <div className="pointer-events-none fixed inset-0 -z-50 h-full w-full">
+    <div className="pointer-events-none fixed inset-0 z-0 h-full w-full">
       {IMAGES.map((src, i) => (
         <img
           key={src}
