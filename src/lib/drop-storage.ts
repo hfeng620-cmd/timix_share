@@ -257,6 +257,67 @@ export async function toggleCampaignActive(
   }
 }
 
+export async function createCampaignWithBulkCodes(params: {
+  title: string;
+  sponsorName: string;
+  sponsorUrl: string;
+  description: string;
+  codeList: string[];
+}): Promise<{ ok: true; campaignId: string } | { ok: false; error: string }> {
+  if (!isSupabaseConfigured()) {
+    return { ok: false, error: "Supabase 未配置。" };
+  }
+
+  try {
+    const supabase = getSupabaseClient();
+    const title = params.title.trim();
+    const sponsorName = params.sponsorName.trim();
+    const sponsorUrl = params.sponsorUrl.trim();
+    const description = params.description.trim();
+    const codeList = params.codeList.map((c) => c.trim()).filter(Boolean);
+
+    if (!title) return { ok: false, error: "请填写活动标题。" };
+    if (!sponsorName) return { ok: false, error: "请填写赞助商名称。" };
+    if (!sponsorUrl || !/^https?:\/\//.test(sponsorUrl)) return { ok: false, error: "请填写以 http(s):// 开头的赞助商链接。" };
+    if (codeList.length === 0) return { ok: false, error: "请至少输入一个兑换码。" };
+
+    // 1. Insert campaign
+    const { data: campaign, error: campaignError } = await supabase
+      .from("campaigns")
+      .insert({
+        title,
+        sponsor_name: sponsorName,
+        sponsor_url: sponsorUrl,
+        description,
+        total_codes: codeList.length,
+        is_active: true,
+      })
+      .select("id")
+      .single();
+
+    if (campaignError || !campaign) {
+      return { ok: false, error: campaignError?.message ?? "创建活动失败。" };
+    }
+
+    // 2. Bulk insert codes
+    const codesToInsert = codeList.map((code) => ({
+      campaign_id: campaign.id,
+      code,
+    }));
+
+    const { error: codesError } = await supabase.from("promo_codes").insert(codesToInsert);
+
+    if (codesError) {
+      await supabase.from("campaigns").delete().eq("id", campaign.id);
+      return { ok: false, error: codesError.message };
+    }
+
+    return { ok: true, campaignId: campaign.id };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : "创建活动失败。" };
+  }
+}
+
 export async function deleteCampaign(
   campaignId: string,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
