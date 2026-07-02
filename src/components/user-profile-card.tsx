@@ -2,6 +2,9 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
+import { MessageSquare } from "lucide-react";
+
+import { DirectMessageModal } from "@/components/direct-message-modal";
 import { getSupabaseClient } from "@/lib/supabase";
 
 const CARD_WIDTH = 360;
@@ -124,6 +127,7 @@ export function UserProfileCard({ userId, position, viewerUserId, onClose }: Use
   const [cardPosition, setCardPosition] = useState(position);
   const [isAnimating, setIsAnimating] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const [isDMOpen, setIsDMOpen] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isClosingRef = useRef(false);
@@ -200,13 +204,14 @@ export function UserProfileCard({ userId, position, viewerUserId, onClose }: Use
   // Close on click outside
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
+      if (isDMOpen) return;
       if (cardRef.current && !cardRef.current.contains(e.target as Node)) {
         handleClose();
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [handleClose]);
+  }, [handleClose, isDMOpen]);
 
   // Close on Escape
   useEffect(() => {
@@ -518,16 +523,37 @@ export function UserProfileCard({ userId, position, viewerUserId, onClose }: Use
                   收起预览
                 </button>
               )}
-              <Link
-                className="block rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] py-2.5 text-center text-sm font-semibold text-[var(--color-ink)] transition hover:border-[var(--color-brand)] hover:text-[var(--color-brand-deep)]"
-                href="/community"
-              >
-                去讨论区
-              </Link>
+              {viewerUserId && !isOwnProfile ? (
+                <button
+                  className="inline-flex items-center justify-center gap-2 rounded-full border border-emerald-500/50 bg-emerald-500/10 py-2.5 text-sm font-semibold text-emerald-400 transition hover:bg-emerald-500/20"
+                  onClick={() => setIsDMOpen(true)}
+                  type="button"
+                >
+                  <MessageSquare className="h-4 w-4" />
+                  私信
+                </button>
+              ) : (
+                <Link
+                  className="block rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] py-2.5 text-center text-sm font-semibold text-[var(--color-ink)] transition hover:border-[var(--color-brand)] hover:text-[var(--color-brand-deep)]"
+                  href="/community"
+                >
+                  去讨论区
+                </Link>
+              )}
             </div>
           </div>
         </>
       )}
+      {isDMOpen && profile ? (
+        <DirectMessageModal
+          onClose={() => setIsDMOpen(false)}
+          targetUser={{
+            id: userId,
+            display_name: name,
+            avatar_url: profile.avatar_url,
+          }}
+        />
+      ) : null}
     </div>
   );
 }

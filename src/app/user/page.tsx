@@ -3,8 +3,11 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
+import { MessageSquare } from "lucide-react";
 
+import { DirectMessageModal } from "@/components/direct-message-modal";
 import { Navbar } from "@/components/navbar";
+import { useForumAuth } from "@/lib/forum-auth";
 import { getSupabaseClient, isSupabaseConfigured } from "@/lib/supabase";
 
 type PublicProfile = {
@@ -31,9 +34,11 @@ function formatJoinDate(value: string | null) {
 function UserProfileContent() {
   const searchParams = useSearchParams();
   const userId = searchParams.get("id") ?? "";
+  const { user: currentUser } = useForumAuth();
   const [profile, setProfile] = useState<PublicProfile | null>(null);
   const [role, setRole] = useState<"owner" | "admin" | "user">("user");
   const [loading, setLoading] = useState(true);
+  const [isDMOpen, setIsDMOpen] = useState(false);
 
   useEffect(() => {
     if (!userId || !isSupabaseConfigured()) {
@@ -76,6 +81,7 @@ function UserProfileContent() {
 
   const name = profile?.display_name?.trim() || "未知用户";
   const tags = Array.isArray(profile?.tags) ? profile.tags.filter(Boolean).slice(0, 5) : [];
+  const isViewingSelf = currentUser?.id === userId;
 
   return (
     <div className="rounded-[28px] border border-[var(--color-line)] bg-[var(--color-panel)] p-6 shadow-[var(--shadow-card)] sm:p-8">
@@ -114,6 +120,18 @@ function UserProfileContent() {
                 )}
               </div>
               <p className="mt-3 text-sm text-[var(--color-muted)]">{formatJoinDate(profile.created_at)}</p>
+              {currentUser && !isViewingSelf ? (
+                <div className="mt-4 flex items-center gap-3">
+                  <button
+                    className="flex items-center gap-2 rounded-xl border border-emerald-500/50 bg-emerald-500/10 px-4 py-2 text-emerald-400 shadow-sm transition-all hover:bg-emerald-500/20"
+                    onClick={() => setIsDMOpen(true)}
+                    type="button"
+                  >
+                    <MessageSquare className="h-4 w-4" />
+                    <span className="text-sm font-medium">私信</span>
+                  </button>
+                </div>
+              ) : null}
             </div>
           </div>
 
@@ -140,6 +158,16 @@ function UserProfileContent() {
           </div>
         </>
       )}
+      {isDMOpen && profile ? (
+        <DirectMessageModal
+          onClose={() => setIsDMOpen(false)}
+          targetUser={{
+            id: userId,
+            display_name: name,
+            avatar_url: profile.avatar_url,
+          }}
+        />
+      ) : null}
     </div>
   );
 }
