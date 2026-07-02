@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-const IMAGES = ["/bg-1-hd.jpg", "/bg-2-hd.jpg", "/bg-3-hd.jpg", "/bg-4-hd.jpg"];
+const IMAGES = ["/bg-1-hd.jpg", "/bg-3-hd.jpg", "/bg-4-hd.jpg"];
 const INTERVAL_MS = 9000;
 
 export function BackgroundSlider() {
