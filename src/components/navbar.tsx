@@ -2,12 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
-import { MessageCircle } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { MessageCircle, X } from "lucide-react";
 import { AuthButton } from "@/components/auth-button";
+import { DirectMessageModal } from "@/components/direct-message-modal";
 import { GlobalInboxModal } from "@/components/global-inbox-modal";
 import { NotificationBell } from "@/components/notification-bell";
 import { OnlineIndicator } from "@/components/online-indicator";
+import { useForumAuth } from "@/lib/forum-auth";
+import { getSupabaseClient, isSupabaseConfigured } from "@/lib/supabase";
 
 const links = [
   { label: "首页", href: "/" },
@@ -18,9 +21,100 @@ const links = [
   { label: "热门有趣项目Share", href: "/guides" },
 ];
 
+type IncomingDirectMessageRow = {
+  id?: string | null;
+  sender_id?: string | null;
+  receiver_id?: string | null;
+  recipient_id?: string | null;
+  to_user_id?: string | null;
+  content?: string | null;
+  body?: string | null;
+  message?: string | null;
+};
+
+type DirectMessagePopupSender = {
+  id: string;
+  displayName: string;
+  avatarUrl: string;
+};
+
+type DirectMessagePopup = {
+  id: string;
+  message: string;
+  sender: DirectMessagePopupSender;
+};
+
+function getRecipientId(row: IncomingDirectMessageRow) {
+  return row.receiver_id ?? row.recipient_id ?? row.to_user_id ?? "";
+}
+
+function getMessageContent(row: IncomingDirectMessageRow) {
+  return row.content ?? row.body ?? row.message ?? "发来一条私信";
+}
+
 export function Navbar() {
   const pathname = usePathname();
+  const { isConnected, user } = useForumAuth();
   const [isInboxOpen, setIsInboxOpen] = useState(false);
+  const [incomingPopup, setIncomingPopup] = useState<DirectMessagePopup | null>(null);
+  const [activeChatUser, setActiveChatUser] = useState<DirectMessagePopupSender | null>(null);
+  const popupTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (!isConnected || !user?.id || !isSupabaseConfigured()) return;
+
+    const supabase = getSupabaseClient();
+    const channel = supabase
+      .channel(`navbar-direct-messages:${user.id}:${Date.now()}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "direct_messages",
+          filter: `receiver_id=eq.${user.id}`,
+        },
+        async (payload) => {
+          const newMessage = payload.new as IncomingDirectMessageRow;
+          if (!newMessage?.sender_id || getRecipientId(newMessage) !== user.id) return;
+
+          const { data: senderProfile } = await supabase
+            .from("forum_profiles")
+            .select("id, display_name, avatar_url")
+            .eq("id", newMessage.sender_id)
+            .maybeSingle();
+
+          const sender = {
+            id: newMessage.sender_id,
+            displayName: String((senderProfile as Record<string, unknown> | null)?.display_name ?? "新朋友"),
+            avatarUrl: String((senderProfile as Record<string, unknown> | null)?.avatar_url ?? ""),
+          };
+
+          setIncomingPopup({
+            id: newMessage.id ?? `${newMessage.sender_id}-${Date.now()}`,
+            message: getMessageContent(newMessage),
+            sender,
+          });
+
+          if (popupTimerRef.current) {
+            window.clearTimeout(popupTimerRef.current);
+          }
+          popupTimerRef.current = window.setTimeout(() => {
+            setIncomingPopup(null);
+            popupTimerRef.current = null;
+          }, 5000);
+        },
+      )
+      .subscribe();
+
+    return () => {
+      if (popupTimerRef.current) {
+        window.clearTimeout(popupTimerRef.current);
+        popupTimerRef.current = null;
+      }
+      supabase.removeChannel(channel);
+    };
+  }, [isConnected, user?.id]);
 
   return (
     <nav className="fixed top-4 left-0 right-0 z-[100] px-4 sm:px-8 lg:px-16">
@@ -101,6 +195,73 @@ export function Navbar() {
         </div>
       </div>
       {isInboxOpen ? <GlobalInboxModal onClose={() => setIsInboxOpen(false)} /> : null}
+      {incomingPopup ? (
+        <div className="fixed right-4 top-20 z-[99999] animate-in fade-in slide-in-from-top-10 duration-300 md:right-8">
+          <div
+            className="group w-80 cursor-pointer rounded-2xl border border-emerald-500/30 bg-zinc-900/95 p-4 shadow-[0_0_30px_rgba(16,185,129,0.15)] backdrop-blur-xl transition-all hover:bg-zinc-800"
+            onClick={() => {
+              setActiveChatUser(incomingPopup.sender);
+              setIncomingPopup(null);
+              if (popupTimerRef.current) {
+                window.clearTimeout(popupTimerRef.current);
+                popupTimerRef.current = null;
+              }
+            }}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-zinc-800">
+                {incomingPopup.sender.avatarUrl ? (
+                  <img
+                    alt={`${incomingPopup.sender.displayName} 的头像`}
+                    className="h-full w-full object-cover"
+                    src={incomingPopup.sender.avatarUrl}
+                  />
+                ) : (
+                  <span className="text-sm text-zinc-500">
+                    {incomingPopup.sender.displayName.charAt(0) || "U"}
+                  </span>
+                )}
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <div className="mb-1 flex items-center gap-2">
+                  <span className="truncate text-sm font-bold text-white">
+                    {incomingPopup.sender.displayName}
+                  </span>
+                  <span className="rounded-md bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-medium text-emerald-400">
+                    发来一条私信
+                  </span>
+                </div>
+                <p className="truncate text-xs text-zinc-400 transition-colors group-hover:text-zinc-300">
+                  {incomingPopup.message}
+                </p>
+              </div>
+
+              <button
+                aria-label="关闭私信提醒"
+                className="shrink-0 rounded-md p-1 text-zinc-500 transition-colors hover:text-white"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setIncomingPopup(null);
+                  if (popupTimerRef.current) {
+                    window.clearTimeout(popupTimerRef.current);
+                    popupTimerRef.current = null;
+                  }
+                }}
+                type="button"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+      {activeChatUser ? (
+        <DirectMessageModal
+          onClose={() => setActiveChatUser(null)}
+          targetUser={activeChatUser}
+        />
+      ) : null}
     </nav>
   );
 }
