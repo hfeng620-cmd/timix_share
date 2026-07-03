@@ -237,7 +237,7 @@ begin
     v_favorite_station,
     v_ui_rating,
     v_timix_feedback,
-    left(v_ui_rating, 120),
+    'NPC',
     v_timix_feedback
   );
 
