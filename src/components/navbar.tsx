@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { MessageCircle, X } from "lucide-react";
 import { AuthButton } from "@/components/auth-button";
 import { DirectMessageModal } from "@/components/direct-message-modal";
@@ -55,10 +56,15 @@ function getMessageContent(row: IncomingDirectMessageRow) {
 export function Navbar() {
   const pathname = usePathname();
   const { isConnected, user } = useForumAuth();
+  const [mounted, setMounted] = useState(false);
   const [isInboxOpen, setIsInboxOpen] = useState(false);
   const [incomingPopup, setIncomingPopup] = useState<DirectMessagePopup | null>(null);
   const [activeChatUser, setActiveChatUser] = useState<DirectMessagePopupSender | null>(null);
   const popupTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!isConnected || !user?.id || !isSupabaseConfigured()) return;
@@ -72,7 +78,6 @@ export function Navbar() {
           event: "INSERT",
           schema: "public",
           table: "direct_messages",
-          filter: `receiver_id=eq.${user.id}`,
         },
         async (payload) => {
           const newMessage = payload.new as IncomingDirectMessageRow;
@@ -115,6 +120,69 @@ export function Navbar() {
       supabase.removeChannel(channel);
     };
   }, [isConnected, user?.id]);
+
+  const incomingPopupPortal = mounted && incomingPopup ? createPortal(
+    <div className="fixed right-4 top-20 z-[99999] animate-in fade-in slide-in-from-top-10 duration-300 md:right-8">
+      <div
+        className="group w-80 cursor-pointer rounded-2xl border border-emerald-500/30 bg-zinc-900/95 p-4 shadow-[0_0_30px_rgba(16,185,129,0.15)] backdrop-blur-xl transition-all hover:bg-zinc-800"
+        onClick={() => {
+          setActiveChatUser(incomingPopup.sender);
+          setIncomingPopup(null);
+          if (popupTimerRef.current) {
+            window.clearTimeout(popupTimerRef.current);
+            popupTimerRef.current = null;
+          }
+        }}
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-zinc-800">
+            {incomingPopup.sender.avatarUrl ? (
+              <img
+                alt={`${incomingPopup.sender.displayName} 的头像`}
+                className="h-full w-full object-cover"
+                src={incomingPopup.sender.avatarUrl}
+              />
+            ) : (
+              <span className="text-sm text-zinc-500">
+                {incomingPopup.sender.displayName.charAt(0) || "U"}
+              </span>
+            )}
+          </div>
+
+          <div className="min-w-0 flex-1">
+            <div className="mb-1 flex items-center gap-2">
+              <span className="truncate text-sm font-bold text-white">
+                {incomingPopup.sender.displayName}
+              </span>
+              <span className="rounded-md bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-medium text-emerald-400">
+                发来一条私信
+              </span>
+            </div>
+            <p className="truncate text-xs text-zinc-400 transition-colors group-hover:text-zinc-300">
+              {incomingPopup.message}
+            </p>
+          </div>
+
+          <button
+            aria-label="关闭私信提醒"
+            className="shrink-0 rounded-md p-1 text-zinc-500 transition-colors hover:text-white"
+            onClick={(event) => {
+              event.stopPropagation();
+              setIncomingPopup(null);
+              if (popupTimerRef.current) {
+                window.clearTimeout(popupTimerRef.current);
+                popupTimerRef.current = null;
+              }
+            }}
+            type="button"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body,
+  ) : null;
 
   return (
     <nav className="fixed top-4 left-0 right-0 z-[100] px-4 sm:px-8 lg:px-16">
@@ -195,67 +263,7 @@ export function Navbar() {
         </div>
       </div>
       {isInboxOpen ? <GlobalInboxModal onClose={() => setIsInboxOpen(false)} /> : null}
-      {incomingPopup ? (
-        <div className="fixed right-4 top-20 z-[99999] animate-in fade-in slide-in-from-top-10 duration-300 md:right-8">
-          <div
-            className="group w-80 cursor-pointer rounded-2xl border border-emerald-500/30 bg-zinc-900/95 p-4 shadow-[0_0_30px_rgba(16,185,129,0.15)] backdrop-blur-xl transition-all hover:bg-zinc-800"
-            onClick={() => {
-              setActiveChatUser(incomingPopup.sender);
-              setIncomingPopup(null);
-              if (popupTimerRef.current) {
-                window.clearTimeout(popupTimerRef.current);
-                popupTimerRef.current = null;
-              }
-            }}
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-zinc-800">
-                {incomingPopup.sender.avatarUrl ? (
-                  <img
-                    alt={`${incomingPopup.sender.displayName} 的头像`}
-                    className="h-full w-full object-cover"
-                    src={incomingPopup.sender.avatarUrl}
-                  />
-                ) : (
-                  <span className="text-sm text-zinc-500">
-                    {incomingPopup.sender.displayName.charAt(0) || "U"}
-                  </span>
-                )}
-              </div>
-
-              <div className="min-w-0 flex-1">
-                <div className="mb-1 flex items-center gap-2">
-                  <span className="truncate text-sm font-bold text-white">
-                    {incomingPopup.sender.displayName}
-                  </span>
-                  <span className="rounded-md bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-medium text-emerald-400">
-                    发来一条私信
-                  </span>
-                </div>
-                <p className="truncate text-xs text-zinc-400 transition-colors group-hover:text-zinc-300">
-                  {incomingPopup.message}
-                </p>
-              </div>
-
-              <button
-                aria-label="关闭私信提醒"
-                className="shrink-0 rounded-md p-1 text-zinc-500 transition-colors hover:text-white"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  setIncomingPopup(null);
-                  if (popupTimerRef.current) {
-                    window.clearTimeout(popupTimerRef.current);
-                    popupTimerRef.current = null;
-                  }
-                }}
-                type="button"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
+      {incomingPopupPortal}
       {activeChatUser ? (
         <DirectMessageModal
           onClose={() => setActiveChatUser(null)}
