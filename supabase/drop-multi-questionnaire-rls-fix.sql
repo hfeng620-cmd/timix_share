@@ -9,6 +9,47 @@
 
 begin;
 
+create table if not exists public.forum_admins (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.site_owners (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  created_at timestamptz not null default now()
+);
+
+insert into public.site_owners (user_id)
+select id
+from auth.users
+where lower(email) = lower('1938355142@qq.com')
+on conflict (user_id) do nothing;
+
+create or replace function public.is_site_owner(check_user_id uuid default auth.uid())
+returns boolean
+language sql
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1 from public.site_owners where user_id = check_user_id
+  );
+$$;
+
+create or replace function public.is_forum_admin(check_user_id uuid default auth.uid())
+returns boolean
+language sql
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1 from public.forum_admins where user_id = check_user_id
+  )
+  or exists (
+    select 1 from public.site_owners where user_id = check_user_id
+  );
+$$;
+
 alter table public.campaigns
   add column if not exists custom_question text,
   add column if not exists custom_options text;
@@ -49,56 +90,38 @@ group by c.id;
 alter table public.campaigns enable row level security;
 alter table public.promo_codes enable row level security;
 alter table public.drop_submissions enable row level security;
+alter table public.forum_admins enable row level security;
+alter table public.site_owners enable row level security;
+
+drop policy if exists "Admins can read admins" on public.forum_admins;
+create policy "Admins can read admins" on public.forum_admins
+  for select using (public.is_forum_admin());
+
+drop policy if exists "Owners can insert admins" on public.forum_admins;
+create policy "Owners can insert admins" on public.forum_admins
+  for insert with check (public.is_site_owner());
+
+drop policy if exists "Owners can delete admins" on public.forum_admins;
+create policy "Owners can delete admins" on public.forum_admins
+  for delete using (public.is_site_owner());
+
+drop policy if exists "Owners can read owners" on public.site_owners;
+create policy "Owners can read owners" on public.site_owners
+  for select using (public.is_forum_admin());
 
 drop policy if exists "Admins can manage campaigns" on public.campaigns;
 drop policy if exists "Admins and owners can manage campaigns" on public.campaigns;
 create policy "Admins and owners can manage campaigns" on public.campaigns
   for all
-  using (
-    exists (
-      select 1 from public.forum_admins fa
-      where fa.user_id = auth.uid()
-    )
-    or exists (
-      select 1 from public.site_owners so
-      where so.user_id = auth.uid()
-    )
-  )
-  with check (
-    exists (
-      select 1 from public.forum_admins fa
-      where fa.user_id = auth.uid()
-    )
-    or exists (
-      select 1 from public.site_owners so
-      where so.user_id = auth.uid()
-    )
-  );
+  using (public.is_forum_admin())
+  with check (public.is_forum_admin());
 
 drop policy if exists "Admins can manage promo codes" on public.promo_codes;
 drop policy if exists "Admins and owners can manage promo codes" on public.promo_codes;
 create policy "Admins and owners can manage promo codes" on public.promo_codes
   for all
-  using (
-    exists (
-      select 1 from public.forum_admins fa
-      where fa.user_id = auth.uid()
-    )
-    or exists (
-      select 1 from public.site_owners so
-      where so.user_id = auth.uid()
-    )
-  )
-  with check (
-    exists (
-      select 1 from public.forum_admins fa
-      where fa.user_id = auth.uid()
-    )
-    or exists (
-      select 1 from public.site_owners so
-      where so.user_id = auth.uid()
-    )
-  );
+  using (public.is_forum_admin())
+  with check (public.is_forum_admin());
 
 drop function if exists public.claim_promo_code(uuid, uuid, text, text, text);
 drop function if exists public.claim_promo_code(uuid, uuid, text, text, text, text);
@@ -230,6 +253,10 @@ grant select on public.campaign_summary to anon, authenticated;
 grant insert, update, delete on public.campaigns to authenticated;
 grant insert, update, delete on public.promo_codes to authenticated;
 grant select on public.drop_submissions to authenticated;
+grant select on public.site_owners to anon, authenticated;
+grant select on public.forum_admins to authenticated;
+grant execute on function public.is_site_owner(uuid) to anon, authenticated;
+grant execute on function public.is_forum_admin(uuid) to anon, authenticated;
 grant execute on function public.claim_promo_code(uuid, uuid, text, text, text, text) to authenticated;
 
 commit;
