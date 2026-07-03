@@ -62,7 +62,7 @@ alter table public.drop_submissions
   drop constraint if exists drop_submissions_ui_rating_check;
 
 alter table public.drop_submissions
-  alter column rating set default 'NPC',
+  alter column rating set default '非常实用',
   alter column suggestion set default '';
 
 create or replace view public.campaign_summary as
@@ -237,7 +237,7 @@ begin
     v_favorite_station,
     v_ui_rating,
     v_timix_feedback,
-    'NPC',
+    '非常实用',
     v_timix_feedback
   );
 
@@ -260,3 +260,4 @@ grant execute on function public.is_forum_admin(uuid) to anon, authenticated;
 grant execute on function public.claim_promo_code(uuid, uuid, text, text, text, text) to authenticated;
 
 commit;
+
