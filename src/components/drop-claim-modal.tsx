@@ -267,8 +267,8 @@ export function DropClaimModal({ campaign, onClaimed, open, onClose }: DropClaim
             </p>
 
             {/* Code display */}
-            <div className="mt-8 flex w-full items-center justify-between gap-4 rounded-xl border border-zinc-700 bg-zinc-950 p-5">
-              <code className="select-all text-2xl font-bold font-mono tracking-[0.3em] text-emerald-400">
+            <div className="mt-8 flex w-full min-w-0 flex-col gap-4 rounded-xl border border-zinc-700 bg-zinc-950 p-5 sm:flex-row sm:items-center sm:justify-between">
+              <code className="block min-w-0 max-w-full select-all break-all font-mono text-lg font-bold leading-8 tracking-[0.18em] text-emerald-400 sm:text-xl sm:tracking-[0.24em]">
                 {claimedCode}
               </code>
               <button
