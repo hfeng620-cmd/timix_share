@@ -22,6 +22,7 @@ const RATINGS = [
 const DEFAULT_QUESTION = "你觉得 TiMix 收集站目前的 UI 界面怎么样？";
 
 type SurveyQuestion = {
+  type: "choice" | "text";
   question: string;
   options: Array<{ value: string; label: string }>;
 };
@@ -48,8 +49,9 @@ function parseCampaignQuestionnaire(campaign: Campaign | null): SurveyQuestion[]
       if (Array.isArray(parsed)) {
         const questions = parsed
           .map((item) => {
-            const record = item as { question?: unknown; options?: unknown };
+            const record = item as { question?: unknown; type?: unknown; options?: unknown };
             const question = String(record.question ?? "").trim();
+            const type: SurveyQuestion["type"] = record.type === "text" ? "text" : "choice";
             const optionValues = parseOptionList(
               Array.isArray(record.options)
                 ? record.options.map((option) => String(option))
@@ -59,11 +61,14 @@ function parseCampaignQuestionnaire(campaign: Campaign | null): SurveyQuestion[]
             );
 
             return {
+              type,
               question,
-              options: optionValues.map((option) => ({ value: option, label: option })),
+              options: type === "choice"
+                ? optionValues.map((option) => ({ value: option, label: option }))
+                : [],
             };
           })
-          .filter((item) => item.question && item.options.length > 0);
+          .filter((item) => item.question && (item.type === "text" || item.options.length > 0));
 
         if (questions.length > 0) return questions;
       }
@@ -76,6 +81,7 @@ function parseCampaignQuestionnaire(campaign: Campaign | null): SurveyQuestion[]
 
   return [
     {
+      type: "choice",
       question: rawQuestion || DEFAULT_QUESTION,
       options: legacyOptions.length > 0
         ? legacyOptions.map((option) => ({ value: option, label: option }))
@@ -104,6 +110,15 @@ export function DropClaimModal({ campaign, onClaimed, open, onClose }: DropClaim
   const timixFeedbackRef = useRef<HTMLTextAreaElement>(null);
 
   const questionnaire = useMemo(() => parseCampaignQuestionnaire(campaign), [campaign]);
+  const usesStructuredQuestionnaire = useMemo(() => {
+    const rawQuestion = campaign?.custom_question?.trim();
+    if (!rawQuestion) return false;
+    try {
+      return Array.isArray(JSON.parse(rawQuestion));
+    } catch {
+      return false;
+    }
+  }, [campaign?.custom_question]);
 
   // ── Reset on open / campaign change ──
   useEffect(() => {
@@ -151,9 +166,10 @@ export function DropClaimModal({ campaign, onClaimed, open, onClose }: DropClaim
       favoriteStationRef.current?.focus();
       return;
     }
-    const unansweredIndex = questionnaire.findIndex((question, index) => !surveyAnswers[String(index)]);
+    const unansweredIndex = questionnaire.findIndex((question, index) => !surveyAnswers[String(index)]?.trim());
     if (unansweredIndex >= 0) {
-      setError(`请选择：${questionnaire[unansweredIndex]?.question ?? "互动问卷"}`);
+      const unansweredQuestion = questionnaire[unansweredIndex];
+      setError(`${unansweredQuestion?.type === "text" ? "请填写" : "请选择"}：${unansweredQuestion?.question ?? "互动问卷"}`);
       return;
     }
     const trimmedTimixFeedback = timixFeedback.trim();
@@ -163,11 +179,12 @@ export function DropClaimModal({ campaign, onClaimed, open, onClose }: DropClaim
       return;
     }
 
-    const surveyPayload = questionnaire.length === 1
+    const surveyPayload = !usesStructuredQuestionnaire && questionnaire.length === 1
       ? surveyAnswers["0"]
       : JSON.stringify(questionnaire.map((question, index) => ({
         question: question.question,
-        answer: surveyAnswers[String(index)],
+        type: question.type,
+        answer: surveyAnswers[String(index)]?.trim() ?? "",
       })));
 
     setSubmitting(true);
@@ -187,7 +204,7 @@ export function DropClaimModal({ campaign, onClaimed, open, onClose }: DropClaim
     } else {
       setError(result.error);
     }
-  }, [campaign, user, registeredAccount, favoriteStation, surveyAnswers, timixFeedback, onClaimed, questionnaire]);
+  }, [campaign, user, registeredAccount, favoriteStation, surveyAnswers, timixFeedback, onClaimed, questionnaire, usesStructuredQuestionnaire]);
 
   // ── Copy to clipboard ──
   const handleCopy = useCallback(async () => {
@@ -381,23 +398,34 @@ export function DropClaimModal({ campaign, onClaimed, open, onClose }: DropClaim
                           <legend className="px-1 text-sm font-semibold text-zinc-200">
                             问题 {index + 1}：{question.question}
                           </legend>
-                          <div className="mt-3 flex flex-wrap gap-2">
-                            {question.options.map((item) => (
-                              <button
-                                key={item.value}
-                                className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
-                                  selectedAnswer === item.value
-                                    ? "border-cyan-300/60 bg-cyan-300/10 text-cyan-100 shadow-[0_0_20px_rgba(34,211,238,0.12)]"
-                                    : "border-white/10 bg-white/5 text-zinc-400 hover:border-white/20 hover:text-zinc-200"
-                                }`}
-                                disabled={submitting}
-                                onClick={() => setSurveyAnswers((next) => ({ ...next, [answerKey]: item.value }))}
-                                type="button"
-                              >
-                                {item.label}
-                              </button>
-                            ))}
-                          </div>
+                          {question.type === "text" ? (
+                            <textarea
+                              className="mt-3 w-full resize-none rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-zinc-500 focus:border-white/30 focus:outline-none"
+                              disabled={submitting}
+                              onChange={(event) => setSurveyAnswers((next) => ({ ...next, [answerKey]: event.target.value }))}
+                              placeholder="请输入你的回答..."
+                              rows={3}
+                              value={selectedAnswer ?? ""}
+                            />
+                          ) : (
+                            <div className="mt-3 flex flex-wrap gap-2">
+                              {question.options.map((item) => (
+                                <button
+                                  key={item.value}
+                                  className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
+                                    selectedAnswer === item.value
+                                      ? "border-cyan-300/60 bg-cyan-300/10 text-cyan-100 shadow-[0_0_20px_rgba(34,211,238,0.12)]"
+                                      : "border-white/10 bg-white/5 text-zinc-400 hover:border-white/20 hover:text-zinc-200"
+                                  }`}
+                                  disabled={submitting}
+                                  onClick={() => setSurveyAnswers((next) => ({ ...next, [answerKey]: item.value }))}
+                                  type="button"
+                                >
+                                  {item.label}
+                                </button>
+                              ))}
+                            </div>
+                          )}
                         </fieldset>
                       );
                     })}

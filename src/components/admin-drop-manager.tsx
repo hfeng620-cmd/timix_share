@@ -15,18 +15,21 @@ const emptyForm = {
 
 type SurveyQuestionDraft = {
   id: string;
+  type: "choice" | "text";
   question: string;
   options: string;
 };
 
 type SurveyQuestionPayload = {
   question: string;
+  type: "choice" | "text";
   options: string[];
 };
 
 function createEmptySurveyQuestion(): SurveyQuestionDraft {
   return {
     id: crypto.randomUUID(),
+    type: "choice",
     question: "",
     options: "",
   };
@@ -78,7 +81,7 @@ export function AdminDropManager() {
     ));
   }
 
-  function updateQuestion(id: string, field: "question" | "options", value: string) {
+  function updateQuestion(id: string, field: "type" | "question" | "options", value: string) {
     setSurveyQuestions((next) => next.map((question) => (
       question.id === id ? { ...question, [field]: value } : question
     )));
@@ -96,20 +99,23 @@ export function AdminDropManager() {
     const invalidQuestion = surveyQuestions.find((question) => {
       const hasQuestion = question.question.trim().length > 0;
       const hasOptions = parseSurveyOptions(question.options).length > 0;
-      return hasQuestion !== hasOptions;
+      if (!hasQuestion && !hasOptions) return false;
+      if (!hasQuestion) return true;
+      return question.type === "choice" && !hasOptions;
     });
 
     if (invalidQuestion) {
-      setStatus({ type: "error", message: "问卷题目和选项需要成对填写；如果不需要该题，请留空。" });
+      setStatus({ type: "error", message: "单选题需要填写题目和选项；自由填写题只需要填写题目。" });
       return;
     }
 
     const validQuestions: SurveyQuestionPayload[] = surveyQuestions
       .map((question) => ({
         question: question.question.trim(),
-        options: parseSurveyOptions(question.options),
+        type: question.type,
+        options: question.type === "choice" ? parseSurveyOptions(question.options) : [],
       }))
-      .filter((question) => question.question && question.options.length > 0);
+      .filter((question) => question.question && (question.type === "text" || question.options.length > 0));
 
     const surveyConfig = validQuestions.length > 0 ? JSON.stringify(validQuestions) : "";
     const firstQuestion = validQuestions[0];
@@ -227,6 +233,28 @@ export function AdminDropManager() {
                   className="flex gap-3 rounded-2xl border border-white/5 bg-zinc-950/50 p-4"
                 >
                   <div className="min-w-0 flex-1 space-y-4">
+                    <div className="space-y-2 text-sm text-zinc-300">
+                      <span>题型</span>
+                      <div className="flex flex-wrap gap-2">
+                        {[
+                          { value: "choice", label: "单选题" },
+                          { value: "text", label: "自由填写题" },
+                        ].map((typeOption) => (
+                          <button
+                            key={typeOption.value}
+                            type="button"
+                            onClick={() => updateQuestion(surveyQuestion.id, "type", typeOption.value)}
+                            className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
+                              surveyQuestion.type === typeOption.value
+                                ? "border-emerald-300/50 bg-emerald-300/15 text-emerald-100"
+                                : "border-white/10 bg-white/5 text-zinc-400 hover:border-white/20 hover:text-zinc-200"
+                            }`}
+                          >
+                            {typeOption.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                     <label className="space-y-2 text-sm text-zinc-300">
                       <span>问题 {index + 1}</span>
                       <input
@@ -236,15 +264,21 @@ export function AdminDropManager() {
                         placeholder="例如：你觉得 TiMix 这次福利活动怎么样？"
                       />
                     </label>
-                    <label className="space-y-2 text-sm text-zinc-300">
-                      <span>选项 (用逗号分隔，中文/英文逗号都可以)</span>
-                      <input
-                        value={surveyQuestion.options}
-                        onChange={(event) => updateQuestion(surveyQuestion.id, "options", event.target.value)}
-                        className="w-full rounded-2xl border border-white/10 bg-zinc-950/70 px-4 py-3 text-white outline-none transition focus:border-emerald-300/60"
-                        placeholder="例如：🔥 夯爆了, 🤖 还不错, 💩 需要改进"
-                      />
-                    </label>
+                    {surveyQuestion.type === "choice" ? (
+                      <label className="space-y-2 text-sm text-zinc-300">
+                        <span>选项 (用逗号分隔，中文/英文逗号都可以)</span>
+                        <input
+                          value={surveyQuestion.options}
+                          onChange={(event) => updateQuestion(surveyQuestion.id, "options", event.target.value)}
+                          className="w-full rounded-2xl border border-white/10 bg-zinc-950/70 px-4 py-3 text-white outline-none transition focus:border-emerald-300/60"
+                          placeholder="例如：🔥 夯爆了, 🤖 还不错, 💩 需要改进"
+                        />
+                      </label>
+                    ) : (
+                      <p className="rounded-2xl border border-cyan-300/10 bg-cyan-300/[0.04] px-4 py-3 text-xs leading-5 text-cyan-100/70">
+                        自由填写题会在领取弹窗里显示为必填文本框，不需要配置选项。
+                      </p>
+                    )}
                   </div>
                   {surveyQuestions.length > 1 ? (
                     <button
