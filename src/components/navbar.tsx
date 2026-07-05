@@ -240,7 +240,7 @@ export function Navbar() {
         <div className="flex items-center gap-2">
           <Link
             href="/stations"
-            className="rounded-full px-4 py-2 text-sm font-medium text-white md:hidden"
+            className="hidden rounded-full px-4 py-2 text-sm font-medium text-white md:hidden"
             style={{
               background: "rgba(255,255,255,0.12)",
               backdropFilter: "blur(28px) saturate(200%)",
@@ -250,12 +250,12 @@ export function Navbar() {
           >
             榜单
           </Link>
-          <OnlineIndicator />
+          <span className="hidden sm:inline"><OnlineIndicator /></span>
           <NotificationBell />
           <PwaInstallButton />
           <button
             aria-label="我的私信"
-            className="relative flex h-10 w-10 items-center justify-center rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] text-[var(--color-muted)] transition hover:border-emerald-500/40 hover:bg-emerald-500/10 hover:text-emerald-300"
+            className="relative hidden h-10 w-10 items-center justify-center rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] text-[var(--color-muted)] transition hover:border-emerald-500/40 hover:bg-emerald-500/10 hover:text-emerald-300 sm:flex"
             onClick={() => setIsInboxOpen(true)}
             title="我的私信"
             type="button"

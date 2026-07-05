@@ -163,7 +163,7 @@ html {
 *, ::before, ::after {
   transition-property: background-color, border-color, color, fill, stroke;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 300ms;
+  transition-duration: 200ms;
 }
 
 /* ═══════════════════════════════════════════
@@ -194,6 +194,7 @@ html {
   background: var(--dt-bg-base);
   min-height: 100%;
   overflow-x: hidden;
+  overscroll-behavior: contain;
 }
 
 body {
@@ -205,6 +206,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
   min-height: 100%;
   overflow-x: hidden;
+  overscroll-behavior: contain;
 }
 
 ::selection {
@@ -294,7 +296,7 @@ button[aria-label="Open Next.js Dev Tools"] { display: none !important; }
   -webkit-tap-highlight-color: transparent;
 }
 .touch-press:active {
-  transform: scale(0.97);
+  transform: scale(0.94);
 }
 
 @media (hover: none) and (pointer: coarse) {
@@ -302,7 +304,7 @@ button[aria-label="Open Next.js Dev Tools"] { display: none !important; }
     -webkit-tap-highlight-color: transparent;
   }
   button:active, a:active, [role="button"]:active {
-    transform: scale(0.97);
+    transform: scale(0.94);
     transition: transform 0.1s ease;
   }
 }
@@ -356,5 +358,45 @@ nav.fixed.top-0 {
 @media (max-width: 1023px) {
   nav.fixed.top-0 {
     padding-top: max(env(safe-area-inset-top, 0px), 4px);
+  }
+}
+
+
+/* Bottom sheet drag handle */
+.sheet-handle {
+  display: flex;
+  justify-content: center;
+  padding: 8px 0 4px;
+  cursor: grab;
+}
+.sheet-handle::after {
+  content: '';
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* GPU compositing for fixed elements */
+nav.fixed {
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+/* Thin auto-hiding scrollbar for mobile */
+@media (hover: none) and (pointer: coarse) {
+  ::-webkit-scrollbar {
+    width: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 2px;
+  }
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
   }
 }
