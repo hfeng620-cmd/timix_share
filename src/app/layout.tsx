@@ -70,7 +70,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
-      <body className="min-h-[100dvh] overflow-y-auto">
+      <body className="min-h-[100dvh]">
         <BackgroundSliderWrapper />
         <a
           className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-full focus:bg-white focus:px-5 focus:py-3 focus:text-sm focus:font-bold focus:text-black"
@@ -81,7 +81,7 @@ export default function RootLayout({
         <ForumAuthProvider>
           <SystemMonitorProvider>
             <ToastProvider>
-              <main id="main-content" className="relative z-10 flex min-h-[100dvh] flex-col overflow-y-visible">
+              <main id="main-content" className="relative z-10 flex min-h-[100dvh] flex-col">
                 <ErrorBoundary><PageTransition>{children}</PageTransition></ErrorBoundary>
               </main>
               <ToastContainer />

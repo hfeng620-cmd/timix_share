@@ -1,8 +1,22 @@
 "use client";
 
 let lockCount = 0;
-let previousBodyOverflow = "";
-let previousBodyComputedOverflowY = "";
+
+function getScrollbarWidth() {
+  if (typeof window === "undefined") return 0;
+  return Math.max(0, window.innerWidth - document.documentElement.clientWidth);
+}
+
+function applyBodyLock() {
+  const scrollbarWidth = getScrollbarWidth();
+  document.body.style.setProperty("--scrollbar-compensation", `${scrollbarWidth}px`);
+  document.body.classList.add("modal-open-lock");
+}
+
+function releaseBodyLock() {
+  document.body.classList.remove("modal-open-lock");
+  document.body.style.removeProperty("--scrollbar-compensation");
+}
 
 export function lockBodyScroll() {
   if (typeof document === "undefined") {
@@ -10,9 +24,7 @@ export function lockBodyScroll() {
   }
 
   if (lockCount === 0) {
-    previousBodyOverflow = document.body.style.overflow;
-    previousBodyComputedOverflowY = window.getComputedStyle(document.body).overflowY;
-    document.body.style.overflow = "hidden";
+    applyBodyLock();
   }
 
   lockCount += 1;
@@ -24,9 +36,7 @@ export function lockBodyScroll() {
     lockCount = Math.max(lockCount - 1, 0);
 
     if (lockCount === 0) {
-      document.body.style.overflow = previousBodyOverflow || (previousBodyComputedOverflowY === "hidden" ? "auto" : "");
-      previousBodyOverflow = "";
-      previousBodyComputedOverflowY = "";
+      releaseBodyLock();
     }
   };
 }

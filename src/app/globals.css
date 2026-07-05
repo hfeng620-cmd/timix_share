@@ -194,10 +194,8 @@ html {
   background: var(--dt-bg-base);
   min-height: 100%;
   overflow-x: hidden;
-  overflow-y: auto !important;
   height: auto;
   position: static;
-  touch-action: pan-y pinch-zoom;
 }
 
 body {
@@ -209,16 +207,18 @@ body {
   -moz-osx-font-smoothing: grayscale;
   min-height: 100%;
   overflow-x: hidden;
-  overflow-y: auto !important;
   height: auto;
   position: static;
-  touch-action: pan-y pinch-zoom;
   -webkit-overflow-scrolling: touch;
 }
 
 #main-content {
-  overflow-y: visible !important;
   min-height: 100dvh;
+}
+
+.modal-open-lock {
+  overflow: hidden !important;
+  padding-right: var(--scrollbar-compensation, 0px);
 }
 
 ::selection {

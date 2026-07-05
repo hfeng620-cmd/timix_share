@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { createPortal } from "react-dom";
 import { useEffect, useRef, useState, useCallback } from "react";
 import {
   Heart, MessageCircle, Bookmark, X,
@@ -350,7 +351,7 @@ function NestedReplyModal({
     <div
       ref={overlayRef}
       tabIndex={-1}
-      className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-xl px-4 outline-none"
+      className="fixed inset-0 z-[200] flex items-center justify-center overscroll-none bg-black/60 px-4 outline-none backdrop-blur-xl"
       onKeyDown={handleOverlayKeyDown}
       onClick={onClose}
     >
@@ -403,7 +404,7 @@ function NestedReplyModal({
         </div>
 
         {/* 全部回复列表 */}
-        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+        <div className="flex-1 overflow-y-auto overscroll-contain px-6 py-4 space-y-4">
           {allReplies.length === 0 ? (
             <p className="text-sm text-gray-500 font-body text-center py-8">暂无回复，来做第一个回应者吧 ✨</p>
           ) : (
@@ -596,6 +597,12 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
 
   /* ── 主弹窗 Esc + 滚动锁 ── */
   const overlayRef = useRef<HTMLDivElement>(null);
+  const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
+
+  useEffect(() => {
+    setPortalTarget(document.body);
+  }, []);
+
   useEffect(() => {
     const unlock = lockBodyScroll();
     overlayRef.current?.focus();
@@ -857,13 +864,15 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
 
   const activeCommentSlashEmoji = getActiveSlashEmoji(commentText, Math.min(commentCursor, commentText.length));
 
-  return (
+  if (!portalTarget) return null;
+
+  return createPortal(
     <>
       {/* ═══ 主弹窗 ═══ */}
       <div
         ref={overlayRef}
         tabIndex={-1}
-        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-xl px-4 outline-none"
+        className="fixed inset-0 z-[100] flex items-center justify-center overscroll-none bg-black/60 px-4 outline-none backdrop-blur-xl"
         onKeyDown={handleMainKeyDown}
         onClick={onClose}
       >
@@ -875,7 +884,7 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
           onClick={(e) => e.stopPropagation()}
         >
           {/* ── Left: 项目内容 (70%) ── */}
-          <div className="flex-1 flex flex-col border-r border-white/10 overflow-y-auto">
+          <div className="flex-1 flex flex-col overflow-y-auto overscroll-contain border-r border-white/10">
             <div className="flex-1 p-8">
               <div className="flex flex-wrap items-start justify-between gap-3 mb-6">
                 <span className="inline-block rounded-full bg-white/10 px-3 py-1 text-xs text-white/50 font-body">{post.tag}</span>
@@ -1036,7 +1045,7 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
             {/* Tab: Comments */}
             {rightTab === "comments" && (
               <>
-                <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                <div className="flex-1 overflow-y-auto overscroll-contain p-4 space-y-4">
                   {commentsLoading ? (
                     <div className="flex items-center justify-center py-12"><Loader2 className="h-5 w-5 text-white/30 animate-spin" /></div>
                   ) : rootComments.length === 0 ? (
@@ -1270,7 +1279,7 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
 
             {/* Tab: Logs */}
             {rightTab === "logs" && (
-              <div className="flex-1 overflow-y-auto p-4">
+              <div className="flex-1 overflow-y-auto overscroll-contain p-4">
                 {logsLoading ? (
                   <div className="flex items-center justify-center py-12"><Loader2 className="h-5 w-5 text-white/30 animate-spin" /></div>
                 ) : editLogs.length === 0 ? (
@@ -1313,6 +1322,7 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
       {lightboxImage ? (
         <ImageLightbox src={lightboxImage} onClose={() => setLightboxImage(null)} />
       ) : null}
-    </>
+    </>,
+    portalTarget,
   );
 }
