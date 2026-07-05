@@ -185,7 +185,8 @@ export function Navbar() {
   ) : null;
 
   return (
-    <nav className="fixed top-4 left-0 right-0 z-[100] px-4 sm:px-8 lg:px-16">
+    <nav className="fixed top-0 left-0 right-0 z-[100] px-4 sm:px-8 lg:px-16 lg:top-4"
+        style={{ paddingTop: "var(--safe-top, 0px)" }}>
       <div className="mx-auto flex max-w-7xl items-center justify-between py-3 gap-3">
         <Link
           href="/"
@@ -249,7 +250,7 @@ export function Navbar() {
             榜单
           </Link>
           <OnlineIndicator />
-          <NotificationBell />
+          <div className="hidden lg:block"><NotificationBell /></div>
           <button
             aria-label="我的私信"
             className="relative flex h-10 w-10 items-center justify-center rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] text-[var(--color-muted)] transition hover:border-emerald-500/40 hover:bg-emerald-500/10 hover:text-emerald-300"

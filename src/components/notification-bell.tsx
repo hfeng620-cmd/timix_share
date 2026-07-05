@@ -218,9 +218,9 @@ export function NotificationBell({
 
       {/* Full-screen overlay modal */}
       {open && createPortal(
-        <div className="fixed inset-0 z-[200] flex items-start justify-center bg-black/50 px-4 pt-[12vh] backdrop-blur-sm">
+        <div className="fixed inset-0 z-[200] flex items-start justify-center bg-black/50 px-4 pt-[12vh] backdrop-blur-sm max-md:items-end max-md:px-0 max-md:pt-0">
           <div
-            className="surface-in w-full max-w-lg overflow-hidden rounded-[24px] border border-[var(--color-line)] bg-[var(--color-panel)] shadow-[0_24px_80px_rgba(15,23,42,0.18)]"
+            className="surface-in w-full max-w-lg overflow-hidden rounded-[24px] border border-[var(--color-line)] bg-[var(--color-panel)] shadow-[0_24px_80px_rgba(15,23,42,0.18)] max-md:max-h-[85dvh] max-md:rounded-b-none max-md:rounded-t-[20px] max-md:border-b-0"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
@@ -255,7 +255,7 @@ export function NotificationBell({
             </div>
 
             {/* List */}
-            <div className="max-h-[60vh] overflow-y-auto">
+            <div className="max-h-[60vh] overflow-y-auto max-md:max-h-[calc(85dvh-60px)]">
               {!isConnected ? (
                 <div className="px-6 py-16 text-center">
                   <p className="text-4xl">🔔</p>

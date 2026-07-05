@@ -89,7 +89,7 @@ export function FloatingQuickPanel() {
 
   return (
     <>
-    <div className="fixed bottom-20 left-3 z-[70] max-w-[calc(100vw-1.5rem)] sm:left-4 lg:bottom-4" data-selection-comments="off" ref={wrapperRef}>
+    <div className="fixed bottom-20 left-3 z-[70] max-w-[calc(100vw-1.5rem)] sm:left-4 lg:bottom-4 hidden lg:block" data-selection-comments="off" ref={wrapperRef}>
       {open ? (
         <div
           aria-label="导航与快捷操作"
