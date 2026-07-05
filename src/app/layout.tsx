@@ -5,7 +5,6 @@ import { BackgroundSliderWrapper } from "@/components/background-slider-wrapper"
 import { ErrorBoundary } from "@/components/error-boundary";
 import { PageTransition } from "@/components/page-transition";
 import { MobileDock } from "@/components/mobile-dock";
-import { PwaInstallPrompt } from "@/components/pwa-install-prompt";
 import { RegisterCounter } from "@/components/register-counter";
 import { FloatingQuickPanel } from "@/components/floating-quick-panel";
 import { ToastContainer } from "@/components/toast-container";
@@ -90,7 +89,6 @@ export default function RootLayout({
             </ToastProvider>
             <FloatingQuickPanel />
             <MobileDock />
-            <PwaInstallPrompt />
           </SystemMonitorProvider>
         </ForumAuthProvider>
         <AnnouncementModal />
