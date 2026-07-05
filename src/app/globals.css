@@ -194,7 +194,10 @@ html {
   background: var(--dt-bg-base);
   min-height: 100%;
   overflow-x: hidden;
-  overscroll-behavior: contain;
+  overflow-y: auto !important;
+  height: auto;
+  position: static;
+  touch-action: pan-y pinch-zoom;
 }
 
 body {
@@ -206,7 +209,16 @@ body {
   -moz-osx-font-smoothing: grayscale;
   min-height: 100%;
   overflow-x: hidden;
-  overscroll-behavior: contain;
+  overflow-y: auto !important;
+  height: auto;
+  position: static;
+  touch-action: pan-y pinch-zoom;
+  -webkit-overflow-scrolling: touch;
+}
+
+#main-content {
+  overflow-y: visible !important;
+  min-height: 100dvh;
 }
 
 ::selection {
