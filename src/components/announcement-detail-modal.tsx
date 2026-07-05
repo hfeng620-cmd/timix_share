@@ -22,6 +22,11 @@ export function AnnouncementDetailModal({ notice, onClose }: Props) {
 
   useEffect(() => {
     setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!notice) return;
+
     const unlock = lockBodyScroll();
 
     function handleKeyDown(event: KeyboardEvent) {
@@ -33,7 +38,7 @@ export function AnnouncementDetailModal({ notice, onClose }: Props) {
       unlock();
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [onClose]);
+  }, [notice, onClose]);
 
   if (!mounted || !notice) return null;
 

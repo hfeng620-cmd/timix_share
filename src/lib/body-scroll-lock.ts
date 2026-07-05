@@ -2,6 +2,7 @@
 
 let lockCount = 0;
 let previousBodyOverflow = "";
+let previousBodyComputedOverflowY = "";
 
 export function lockBodyScroll() {
   if (typeof document === "undefined") {
@@ -10,6 +11,7 @@ export function lockBodyScroll() {
 
   if (lockCount === 0) {
     previousBodyOverflow = document.body.style.overflow;
+    previousBodyComputedOverflowY = window.getComputedStyle(document.body).overflowY;
     document.body.style.overflow = "hidden";
   }
 
@@ -22,8 +24,9 @@ export function lockBodyScroll() {
     lockCount = Math.max(lockCount - 1, 0);
 
     if (lockCount === 0) {
-      document.body.style.overflow = previousBodyOverflow;
+      document.body.style.overflow = previousBodyOverflow || (previousBodyComputedOverflowY === "hidden" ? "auto" : "");
       previousBodyOverflow = "";
+      previousBodyComputedOverflowY = "";
     }
   };
 }
