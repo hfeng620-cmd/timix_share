@@ -60,6 +60,7 @@
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-left: env(safe-area-inset-left, 0px);
   --safe-right: env(safe-area-inset-right, 0px);
+  --mobile-dock-height: 66px;
 }
 
 /* ═══════════════════════════════════════════
@@ -363,10 +364,25 @@ a, button, [role="button"], input, select, textarea {
   touch-action: manipulation;
 }
 
+/* Modal scroll lock: outranks mobile root auto-scroll rules while preserving the saved position. */
+html[data-scroll-locked],
+html[data-scroll-locked] body {
+  overflow: hidden !important;
+  overscroll-behavior: none !important;
+}
+
+html[data-scroll-locked] body {
+  touch-action: none !important;
+}
+
+html[data-scroll-locked] [role="dialog"],
+html[data-scroll-locked] [aria-modal="true"] {
+  touch-action: pan-y !important;
+}
 /* Page content bottom padding for MobileDock */
 @media (max-width: 1023px) {
   main#main-content {
-    padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(var(--mobile-dock-height, 66px) + env(safe-area-inset-bottom, 0px));
   }
 }
 

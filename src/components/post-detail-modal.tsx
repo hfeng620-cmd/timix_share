@@ -355,7 +355,7 @@ function NestedReplyModal({
       onClick={onClose}
     >
       <div
-        className="relative flex max-h-[82dvh] w-full flex-col rounded-t-2xl border border-white/10 bg-zinc-950/95 shadow-2xl sm:max-w-2xl sm:rounded-2xl"
+        className="relative flex max-h-[min(82dvh,calc(100dvh_-_var(--safe-top)_-_12px))] w-full flex-col rounded-t-2xl border border-white/10 bg-zinc-950/95 shadow-2xl sm:max-w-2xl sm:rounded-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -871,7 +871,7 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
           <X className="h-6 w-6" />
         </button>
         <div
-          className="relative flex h-[92dvh] w-full max-w-6xl flex-col overflow-hidden rounded-t-2xl border border-white/10 border-b-0 bg-zinc-950/95 shadow-2xl sm:h-[85vh] sm:flex-row sm:rounded-2xl sm:border-b sm:bg-zinc-950/90"
+          className="relative flex h-auto max-h-[calc(100dvh_-_var(--safe-top))] w-full max-w-6xl flex-col overflow-hidden rounded-t-2xl border border-white/10 border-b-0 bg-zinc-950/95 shadow-2xl sm:h-[85dvh] sm:flex-row sm:rounded-2xl sm:border-b sm:bg-zinc-950/90"
           onClick={(e) => e.stopPropagation()}
         >
           {/* ── Left: 分享内容 ── */}
@@ -1021,7 +1021,7 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
           </div>
 
           {/* ── Right: comments/logs ── */}
-          <div className="flex h-[42vh] w-full shrink-0 flex-col border-t border-white/10 bg-zinc-900/30 sm:h-auto sm:w-[380px] sm:border-t-0">
+          <div className="flex h-[42dvh] max-h-[42dvh] w-full shrink-0 flex-col border-t border-white/10 bg-zinc-900/30 sm:h-auto sm:max-h-none sm:w-[380px] sm:border-t-0">
             {/* Tab header */}
             <div className="shrink-0 flex border-b border-white/10">
               <button onClick={() => setRightTab("comments")} className={`relative flex-1 cursor-pointer py-2.5 text-xs transition font-body sm:py-3 sm:text-sm ${rightTab === "comments" ? "text-white" : "text-gray-500 hover:text-gray-400"}`} type="button">

@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Activity, Flame, Github, MessageSquarePlus, QrCode, Trophy } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { Navbar } from "@/components/navbar";
 import { CommunityPostPanel } from "@/components/community-post-panel";
@@ -12,6 +12,7 @@ import { MobileThemeToggle } from "@/components/mobile-theme-toggle";
 import HotTopicsPanel from "@/components/hot-topics-panel";
 import UserRankPanel from "@/components/user-rank-panel";
 import { siteLinks } from "@/lib/site-links";
+import { lockBodyScroll } from "@/lib/body-scroll-lock";
 import { useSystemMonitor } from "@/lib/system-monitor-context";
 
 const hubs = [
@@ -28,6 +29,10 @@ export default function CommunityPage() {
   const [qqModalOpen, setQqModalOpen] = useState(false);
   const { openMonitor } = useSystemMonitor();
 
+  useEffect(() => {
+    if (!qqModalOpen) return;
+    return lockBodyScroll();
+  }, [qqModalOpen]);
   const handleTopicClick = useCallback((postId: string) => {
     const el = document.getElementById(postId);
     if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -278,8 +283,10 @@ export default function CommunityPage() {
       {/* ── QQ 群二维码毛玻璃弹窗 ── */}
       {qqModalOpen && (
         <div
-          className="fixed inset-0 z-[100] flex items-end justify-center bg-[#09090b]/60 px-0 backdrop-blur-xl md:items-center md:px-4"
+          className="fixed inset-0 z-[100] flex items-end justify-center overscroll-contain bg-[#09090b]/60 px-0 backdrop-blur-xl md:items-center md:px-4"
           onClick={() => setQqModalOpen(false)}
+          role="dialog"
+          aria-modal="true"
         >
           <div
             className="relative w-full max-w-md overflow-hidden rounded-t-3xl border border-white/10 border-b-0 bg-zinc-950/95 shadow-2xl backdrop-blur-xl md:rounded-3xl md:border-b"

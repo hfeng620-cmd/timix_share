@@ -241,12 +241,12 @@ export function GlobalInboxModal({ onClose }: GlobalInboxModalProps) {
     <>
       <div
         aria-modal="true"
-        className="fixed inset-0 z-[220] flex items-center justify-center bg-[#09090b]/60 p-4 backdrop-blur-sm"
+        className="fixed inset-0 z-[220] flex items-end justify-center overscroll-contain bg-[#09090b]/60 p-0 backdrop-blur-sm sm:items-center sm:p-4"
         onClick={onClose}
         role="dialog"
       >
         <div
-          className="relative flex h-[min(600px,calc(100vh-32px))] w-full max-w-md flex-col overflow-hidden rounded-2xl border border-white/10 bg-zinc-950 shadow-2xl"
+          className="relative flex h-auto max-h-[calc(100dvh_-_var(--safe-top)_-_var(--safe-bottom)_-_16px)] w-full max-w-md flex-col overflow-hidden rounded-t-2xl border border-white/10 border-b-0 bg-zinc-950 shadow-2xl sm:h-[min(600px,calc(100dvh-32px))] sm:rounded-2xl sm:border-b"
           onClick={(event) => event.stopPropagation()}
         >
           <div className="flex shrink-0 items-center justify-between border-b border-white/10 bg-zinc-900/70 p-4">

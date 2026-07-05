@@ -277,13 +277,13 @@ export function DirectMessageModal({
     <div
       ref={overlayRef}
       aria-modal="true"
-      className="fixed inset-0 z-[240] flex items-end justify-center overflow-y-auto bg-[#09090b]/75 px-0 pt-6 backdrop-blur-md sm:items-center sm:px-4 sm:py-6"
+      className="fixed inset-0 z-[240] flex min-h-[100dvh] items-end justify-center overflow-y-auto overscroll-contain bg-[#09090b]/75 px-0 pt-[var(--safe-top)] backdrop-blur-md sm:items-center sm:px-4 sm:py-6"
       onClick={onClose}
       role="dialog"
       tabIndex={-1}
     >
       <div
-        className="relative flex h-[min(760px,92dvh)] w-full max-w-2xl flex-col overflow-hidden rounded-t-[28px] border border-white/10 border-b-0 bg-zinc-950/90 text-zinc-100 shadow-[0_34px_120px_rgba(0,0,0,0.55)] backdrop-blur-2xl sm:h-[min(760px,88vh)] sm:rounded-[30px] sm:border-b"
+        className="relative flex h-auto max-h-[calc(100dvh_-_var(--safe-top))] w-full max-w-2xl flex-col overflow-hidden rounded-t-[28px] border border-white/10 border-b-0 bg-zinc-950/90 text-zinc-100 shadow-[0_34px_120px_rgba(0,0,0,0.55)] backdrop-blur-2xl sm:h-[min(760px,88dvh)] sm:rounded-[30px] sm:border-b"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_0%,rgba(56,189,248,0.22),transparent_34%),radial-gradient(circle_at_88%_12%,rgba(245,158,11,0.16),transparent_32%),linear-gradient(135deg,rgba(255,255,255,0.10),transparent_38%)]" />
