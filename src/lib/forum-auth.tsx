@@ -86,6 +86,7 @@ interface ForumAuthState {
   isConfigured: boolean;
   isLoading: boolean;
   needsPassword: boolean;
+  isPasswordRecovery: boolean;
   isAdmin: boolean;
   isOwner: boolean;
   adminUserIds: Set<string>;
@@ -94,6 +95,7 @@ interface ForumAuthState {
   showAuthModal: () => void;
   hideAuthModal: () => void;
   sendEmailCode: (email: string) => Promise<AuthResult>;
+  sendPasswordReset: (email: string) => Promise<AuthResult>;
   verifyOtp: (email: string, token: string) => Promise<AuthResult>;
   signInWithPassword: (email: string, password: string) => Promise<AuthResult>;
   setPassword: (password: string, displayName?: string) => Promise<AuthResult>;
@@ -114,6 +116,7 @@ const defaultState: ForumAuthState = {
   isConfigured: false,
   isLoading: true,
   needsPassword: false,
+  isPasswordRecovery: false,
   isAdmin: false,
   isOwner: false,
   adminUserIds: new Set(),
@@ -122,6 +125,7 @@ const defaultState: ForumAuthState = {
   showAuthModal: () => {},
   hideAuthModal: () => {},
   sendEmailCode: async () => ({ ok: false, error: "认证服务未配置。" }),
+  sendPasswordReset: async () => ({ ok: false, error: "认证服务未配置。" }),
   verifyOtp: async () => ({ ok: false, error: "认证服务未配置。" }),
   signInWithPassword: async () => ({ ok: false, error: "认证服务未配置。" }),
   setPassword: async () => ({ ok: false, error: "认证服务未配置。" }),
@@ -185,6 +189,7 @@ export function ForumAuthProvider({ children }: { children: React.ReactNode }) {
   const [tags, setTags] = useState<string[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
+  const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
   const [adminUserIds, setAdminUserIds] = useState<Set<string>>(new Set());
   const [ownerUserIds, setOwnerUserIds] = useState<Set<string>>(new Set());
   const [authModalOpen, setAuthModalOpen] = useState(false);
@@ -328,7 +333,11 @@ export function ForumAuthProvider({ children }: { children: React.ReactNode }) {
       });
 
     const { data: listener } = supabase.auth.onAuthStateChange(
-      (_event, nextSession) => {
+      (event, nextSession) => {
+        if (event === "PASSWORD_RECOVERY") {
+          setIsPasswordRecovery(true);
+          setAuthModalOpen(true);
+        }
         setSession(nextSession);
         if (nextSession?.user?.id) {
           loadDisplayName(nextSession.user.id);
@@ -340,6 +349,7 @@ export function ForumAuthProvider({ children }: { children: React.ReactNode }) {
           setTags([]);
           setIsAdmin(false);
           setIsOwner(false);
+          setIsPasswordRecovery(false);
           setAdminUserIds(new Set());
           adminLoadedRef.current = false;
           ownerLoadedRef.current = false;
@@ -373,6 +383,32 @@ export function ForumAuthProvider({ children }: { children: React.ReactNode }) {
             password_set: false,
           },
         },
+      });
+
+      return error
+        ? { ok: false, error: getAuthErrorMessage(error.message) }
+        : { ok: true };
+    },
+    [configured],
+  );
+
+  const sendPasswordReset = useCallback(
+    async (email: string): Promise<AuthResult> => {
+      if (!configured) return { ok: false, error: "认证服务未配置。" };
+
+      const normalizedEmail = email.trim().toLowerCase();
+      if (!normalizedEmail) return { ok: false, error: "请输入邮箱。" };
+      if (!isValidEmail(normalizedEmail)) {
+        return { ok: false, error: "请输入有效的邮箱地址。" };
+      }
+
+      const redirectTo =
+        typeof window !== "undefined"
+          ? window.location.href.split("#")[0].split("?")[0]
+          : undefined;
+
+      const { error } = await getSupabaseClient().auth.resetPasswordForEmail(normalizedEmail, {
+        redirectTo,
       });
 
       return error
@@ -489,6 +525,7 @@ export function ForumAuthProvider({ children }: { children: React.ReactNode }) {
         return { ok: false, error: getAuthErrorMessage(error.message) };
       }
 
+      setIsPasswordRecovery(false);
       if (profileWarning) {
         const retryResult = await supabase
           .from("forum_profiles")
@@ -585,6 +622,7 @@ export function ForumAuthProvider({ children }: { children: React.ReactNode }) {
     setDisplayNameState(null);
     setBio("");
     setTags([]);
+    setIsPasswordRecovery(false);
   }, [configured]);
 
   const value = useMemo<ForumAuthState>(() => {
@@ -602,6 +640,7 @@ export function ForumAuthProvider({ children }: { children: React.ReactNode }) {
       isConfigured: configured,
       isLoading,
       needsPassword: userNeedsPassword(user),
+      isPasswordRecovery,
       isAdmin,
       isOwner,
       adminUserIds,
@@ -610,6 +649,7 @@ export function ForumAuthProvider({ children }: { children: React.ReactNode }) {
       showAuthModal,
       hideAuthModal,
       sendEmailCode,
+      sendPasswordReset,
       verifyOtp,
       signInWithPassword,
       setPassword,
@@ -617,7 +657,7 @@ export function ForumAuthProvider({ children }: { children: React.ReactNode }) {
       updateProfile,
       signOut,
     };
-  }, [configured, displayName, bio, tags, isLoading, isAdmin, isOwner, adminUserIds, ownerUserIds, sendEmailCode, verifyOtp, session, setDisplayName, setPassword, signInWithPassword, updateProfile, signOut, authModalOpen, showAuthModal, hideAuthModal]);
+  }, [configured, displayName, bio, tags, isLoading, isAdmin, isOwner, isPasswordRecovery, adminUserIds, ownerUserIds, sendEmailCode, sendPasswordReset, verifyOtp, session, setDisplayName, setPassword, signInWithPassword, updateProfile, signOut, authModalOpen, showAuthModal, hideAuthModal]);
 
   return (
     <ForumAuthContext.Provider value={value}>

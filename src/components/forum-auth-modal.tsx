@@ -13,7 +13,7 @@ type ForumAuthModalProps = {
   onClose: () => void;
 };
 
-type AuthMode = "login" | "register";
+type AuthMode = "login" | "register" | "forgot";
 
 type PendingRegistrationState = {
   email: string;
@@ -135,9 +135,11 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
     isConfigured,
     isLoading,
     needsPassword,
+    isPasswordRecovery,
     isAdmin,
     displayName,
     sendEmailCode,
+    sendPasswordReset,
     signInWithPassword,
     setPassword,
     setDisplayName,
@@ -435,6 +437,59 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
     setPasswordValue("");
   }
 
+  async function handleSendPasswordReset() {
+    if (!normalizedEmail) {
+      setError("请输入邮箱。");
+      return;
+    }
+    if (!isValidEmail(normalizedEmail)) {
+      setError("请输入有效的邮箱地址。");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+    setNotice("");
+
+    const result = await sendPasswordReset(normalizedEmail);
+    setLoading(false);
+
+    if (!result.ok) {
+      setError(result.error ?? "重置邮件发送失败，请稍后重试。");
+      return;
+    }
+
+    setNotice("重置密码邮件已发送，请查收邮箱（也检查垃圾邮件箱）。");
+  }
+
+  async function handleResetPassword() {
+    const passwordError = getPasswordValidationError(password);
+    if (passwordError) {
+      setError(passwordError);
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError("两次输入的密码不一致。");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+    setNotice("");
+
+    const result = await setPassword(password);
+    setLoading(false);
+
+    if (!result.ok) {
+      setError(result.error ?? "密码重置失败，请重新打开邮件链接再试。");
+      return;
+    }
+
+    setPasswordValue("");
+    setConfirmPassword("");
+    setNotice("✓ 新密码已保存，下次可以直接用邮箱和新密码登录。");
+  }
+
   async function handleSetPassword() {
     const displayNameError = getDisplayNameValidationError(displayNameInput);
     if (displayNameError) {
@@ -519,6 +574,16 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
     setConfirmPassword("");
   }
 
+  function switchToForgot() {
+    setMode("forgot");
+    setError("");
+    setNotice("");
+    setOtpSent(false);
+    setOtpCode("");
+    setPasswordValue("");
+    setConfirmPassword("");
+  }
+
   return (
     <div
       aria-modal="true"
@@ -558,9 +623,13 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
           <div className="space-y-5">
             <div>
               <h2 className="text-lg font-bold text-[var(--color-ink)]" id="auth-modal-title">
-                {needsPassword ? "设置登录密码" : "已登录"}
+                {isPasswordRecovery ? "重置登录密码" : needsPassword ? "设置登录密码" : "已登录"}
               </h2>
-              {needsPassword ? (
+              {isPasswordRecovery ? (
+                <p className="mt-1.5 text-xs text-[var(--color-muted)]">
+                  请为 {signedInEmail ?? "当前账号"} 设置一个新密码
+                </p>
+              ) : needsPassword ? (
                 <p className="mt-1.5 text-xs text-[var(--color-muted)]">
                   设置密码完成注册
                 </p>
@@ -580,7 +649,47 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
               )}
             </div>
 
-            {needsPassword ? (
+            {isPasswordRecovery ? (
+              <div className="space-y-3">
+                <label className="sr-only" htmlFor="auth-recovery-password">新密码</label>
+                <input
+                  aria-describedby={error ? "auth-error" : undefined}
+                  aria-invalid={error && registrationPasswordError ? true : undefined}
+                  className="w-full rounded-[12px] border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 text-sm outline-none transition focus:border-[var(--color-brand)]"
+                  id="auth-recovery-password"
+                  onChange={(event) => {
+                    setPasswordValue(event.target.value);
+                    setError("");
+                  }}
+                  placeholder="输入新密码，8位以上，含大写字母和数字"
+                  type="password"
+                  value={password}
+                />
+                <PasswordRules password={password} />
+                <label className="sr-only" htmlFor="auth-recovery-confirm">确认新密码</label>
+                <input
+                  aria-describedby={error ? "auth-error" : undefined}
+                  aria-invalid={error && password !== confirmPassword ? true : undefined}
+                  className="w-full rounded-[12px] border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 text-sm outline-none transition focus:border-[var(--color-brand)]"
+                  id="auth-recovery-confirm"
+                  onChange={(event) => {
+                    setConfirmPassword(event.target.value);
+                    setError("");
+                  }}
+                  placeholder="再次输入新密码"
+                  type="password"
+                  value={confirmPassword}
+                />
+                <button
+                  className="w-full rounded-full bg-[var(--color-brand)] px-5 py-3 text-sm font-bold text-[var(--color-on-brand)] transition hover:bg-[var(--color-brand-deep)] disabled:opacity-60"
+                  disabled={loading || Boolean(registrationPasswordError) || !confirmPassword}
+                  onClick={handleResetPassword}
+                  type="button"
+                >
+                  {loading ? "保存中..." : "保存新密码"}
+                </button>
+              </div>
+            ) : needsPassword ? (
               <div className="space-y-3">
                 <p className="text-sm text-[var(--color-muted)]">
                   请设置密码和昵称。
@@ -743,12 +852,14 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
           <div className="space-y-5">
             <div>
               <h2 className="text-lg font-bold text-[var(--color-ink)]" id="auth-modal-title">
-                {mode === "login" ? "登录" : "注册"}
+                {mode === "login" ? "登录" : mode === "register" ? "注册" : "找回密码"}
               </h2>
               <p className="mt-1.5 text-xs text-[var(--color-muted)]">
                 {mode === "login"
                   ? "已设置密码？直接登录"
-                  : otpSent
+                  : mode === "forgot"
+                    ? "输入注册邮箱，我们会发送重置密码邮件"
+                    : otpSent
                     ? "验证码已发送，请输入邮件里的数字验证码"
                     : "首次使用？填写信息注册账号"
                 }
@@ -756,7 +867,7 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
             </div>
 
             {/* 登录 / 注册 标签切换 */}
-            <div className="grid grid-cols-2 rounded-full bg-[var(--color-soft)] p-1">
+            <div className="grid grid-cols-3 rounded-full bg-[var(--color-soft)] p-1">
               <button
                 className={`rounded-full px-4 py-2 text-sm font-bold transition ${
                   mode === "login"
@@ -778,6 +889,17 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
                 type="button"
               >
                 注册
+              </button>
+              <button
+                className={`rounded-full px-4 py-2 text-sm font-bold transition ${
+                  mode === "forgot"
+                    ? "bg-[var(--color-panel)] text-[var(--color-ink)] shadow-sm"
+                    : "text-[var(--color-muted)] hover:text-[var(--color-ink)]"
+                }`}
+                onClick={switchToForgot}
+                type="button"
+              >
+                找回
               </button>
             </div>
 
@@ -815,17 +937,33 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
                     type="password"
                     value={password}
                   />
-                  <p className="text-xs text-[var(--color-muted)]">
-                    首次使用？{" "}
+                  <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[var(--color-muted)]">
+                    <span>
+                      首次使用？{" "}
+                      <button
+                        className="text-[var(--color-brand)] underline"
+                        onClick={switchToRegister}
+                        type="button"
+                      >
+                        点击注册
+                      </button>
+                    </span>
                     <button
                       className="text-[var(--color-brand)] underline"
-                      onClick={switchToRegister}
+                      onClick={switchToForgot}
                       type="button"
                     >
-                      点击注册
+                      忘记密码？
                     </button>
                   </p>
                 </>
+              ) : mode === "forgot" ? (
+                /* ---- 找回密码模式 ---- */
+                <div className="rounded-[12px] border border-[var(--color-line)] bg-[var(--color-soft)] px-4 py-3">
+                  <p className="text-xs leading-5 text-[var(--color-muted)]">
+                    邮件里的链接会回到你当前打开的网站，所以 VPS 站和 GitHub 静态页都可以各自重置。
+                  </p>
+                </div>
               ) : (
                 /* ---- 注册模式 ---- */
                 <>
@@ -962,15 +1100,32 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
                   loading ||
                   !normalizedEmail ||
                   (mode === "login" && !password) ||
+                  (mode === "forgot" && !normalizedEmail) ||
                   (mode === "register" &&
                     !otpSent &&
                     (!displayNameInput.trim() || !password || !confirmPassword || Boolean(registrationPasswordError))) ||
                   (mode === "register" && otpSent && (otpCode.length < OTP_CODE_MIN_LENGTH || otpCode.length > OTP_CODE_MAX_LENGTH))
                 }
-                onClick={mode === "login" ? handlePasswordLogin : otpSent ? handleVerifyAndRegister : handleSendCode}
+                onClick={
+                  mode === "login"
+                    ? handlePasswordLogin
+                    : mode === "forgot"
+                      ? handleSendPasswordReset
+                      : otpSent
+                        ? handleVerifyAndRegister
+                        : handleSendCode
+                }
                 type="button"
               >
-                {loading ? "处理中..." : mode === "login" ? "登录" : otpSent ? "验证并注册" : "发送验证码"}
+                {loading
+                  ? "处理中..."
+                  : mode === "login"
+                    ? "登录"
+                    : mode === "forgot"
+                      ? "发送重置邮件"
+                      : otpSent
+                        ? "验证并注册"
+                        : "发送验证码"}
               </button>
             </div>
           </div>
