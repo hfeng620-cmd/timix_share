@@ -9,6 +9,7 @@ import { AuthButton } from "@/components/auth-button";
 import { DirectMessageModal } from "@/components/direct-message-modal";
 import { GlobalInboxModal } from "@/components/global-inbox-modal";
 import { NotificationBell } from "@/components/notification-bell";
+import { PwaInstallButton } from "@/components/pwa-install-prompt";
 import { OnlineIndicator } from "@/components/online-indicator";
 import { useForumAuth } from "@/lib/forum-auth";
 import { getSupabaseClient, isSupabaseConfigured } from "@/lib/supabase";
@@ -251,6 +252,7 @@ export function Navbar() {
           </Link>
           <OnlineIndicator />
           <NotificationBell />
+          <PwaInstallButton />
           <button
             aria-label="我的私信"
             className="relative flex h-10 w-10 items-center justify-center rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] text-[var(--color-muted)] transition hover:border-emerald-500/40 hover:bg-emerald-500/10 hover:text-emerald-300"

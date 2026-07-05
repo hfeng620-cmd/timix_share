@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 
 import { Navbar } from "@/components/navbar";
-import { PwaInstallButton } from "@/components/pwa-install-prompt";
 import {
   getUserLikedPosts,
   getUserPosts,
@@ -717,7 +716,6 @@ export default function ProfilePage() {
   return (
     <div className="min-h-[100dvh] text-white">
       <Navbar />
-      <div className="flex justify-end px-4 pt-2 lg:hidden"><PwaInstallButton /></div>
 
       <div className="mx-auto max-w-7xl px-4 pt-28 sm:px-6 lg:px-10">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,var(--color-brand-soft),transparent_34%),radial-gradient(circle_at_85%_20%,var(--color-panel-glow),transparent_22%),linear-gradient(180deg,var(--color-panel),var(--color-soft))]" />
