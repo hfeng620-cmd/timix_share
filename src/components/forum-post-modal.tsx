@@ -320,7 +320,7 @@ export function ForumPostModal({
               </span>
             ))}
             {post.station ? (
-              <span className="rounded-full border border-white/10 bg-sky-500/10 px-3 py-1 text-[11px] font-medium text-sky-200">
+              <span className="rounded-full border border-white/10 bg-white/[0.05] px-3 py-1 text-[11px] font-medium text-zinc-300">
                 {post.station}
               </span>
             ) : null}
@@ -381,12 +381,12 @@ export function ForumPostModal({
                   </span>
                 ) : null}
                 {post.authorId && !ownerUserIds.has(post.authorId) && adminUserIds.has(post.authorId) ? (
-                  <span className="rounded border border-blue-500/20 bg-blue-500/10 px-2 py-0.5 text-xs font-bold text-blue-400">
+                  <span className="rounded border border-white/10 bg-white/[0.06] px-2 py-0.5 text-xs font-bold text-zinc-300">
                     管理员
                   </span>
                 ) : null}
                 {post.authorCustomTitle ? (
-                  <span className="rounded-md border border-purple-500/20 bg-purple-500/10 px-2 py-0.5 text-xs font-bold text-purple-400">
+                  <span className="rounded-md border border-white/10 bg-white/[0.06] px-2 py-0.5 text-xs font-bold text-zinc-300">
                     {post.authorCustomTitle}
                   </span>
                 ) : null}
@@ -493,12 +493,12 @@ export function ForumPostModal({
                               </span>
                             ) : null}
                             {reply.authorId && !ownerUserIds.has(reply.authorId) && adminUserIds.has(reply.authorId) ? (
-                              <span className="rounded border border-blue-500/20 bg-blue-500/10 px-2 py-0.5 text-[10px] font-bold text-blue-400">
+                              <span className="rounded border border-white/10 bg-white/[0.06] px-2 py-0.5 text-[10px] font-bold text-zinc-300">
                                 管理员
                               </span>
                             ) : null}
                             {reply.authorCustomTitle ? (
-                              <span className="rounded-md border border-purple-500/20 bg-purple-500/10 px-2 py-0.5 text-[10px] font-bold text-purple-400">
+                              <span className="rounded-md border border-white/10 bg-white/[0.06] px-2 py-0.5 text-[10px] font-bold text-zinc-300">
                                 {reply.authorCustomTitle}
                               </span>
                             ) : null}
@@ -545,7 +545,7 @@ export function ForumPostModal({
             {replyTarget ? (
               <div className="mb-2 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2">
                 <p className="text-[11px] font-medium text-zinc-400">
-                  回复 <span className="text-sky-300">@{replyTarget}</span>
+                  回复 <span className="text-zinc-300">@{replyTarget}</span>
                 </p>
                 {replyQuote ? (
                   <p className="mt-1 line-clamp-2 text-[11px] leading-5 text-zinc-500">{replyQuote.body}</p>

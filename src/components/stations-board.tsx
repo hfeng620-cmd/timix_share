@@ -169,8 +169,6 @@ const EDITABLE_FIELDS: { key: keyof Station; label: string; type: "input" | "tex
   { key: "sortOrder", label: "排序", type: "input" },
 ];
 
-const EDITABLE_FIELD_KEYS = EDITABLE_FIELDS.map(({ key }) => key);
-
 /** Human-readable labels for snake_case field names returned from edit history. */
 const FIELD_LABELS: Record<string, string> = {
   name: "站点名",
@@ -334,17 +332,6 @@ function stationFormToCreateInput(form: Partial<Station>) {
     groupName: form.groupName,
     sortOrder: form.sortOrder,
   };
-}
-
-function pickEditableStationFields(station: Partial<Station>): Partial<Station> {
-  const next: Partial<Station> = {};
-  for (const key of EDITABLE_FIELD_KEYS) {
-    const value = station[key];
-    if (value !== undefined) {
-      Object.assign(next, { [key]: value });
-    }
-  }
-  return next;
 }
 
 // ---------------------------------------------------------------------------
@@ -604,12 +591,6 @@ export function StationsBoard() {
   // =========================================================================
   // Edit / create / delete handlers
   // =========================================================================
-
-  const startEdit = useCallback((station: Station) => {
-    setEditingId(station.id);
-    setAddingNew(false);
-    setEditForm(pickEditableStationFields(station));
-  }, []);
 
   const openWikiEditModal = useCallback((station: Station) => {
     if (!isConnected || !user?.id) {
@@ -955,8 +936,8 @@ export function StationsBoard() {
   return (
     <>
       {/* ---- Hero + Filters ---- */}
-      <section className="relative mx-auto max-w-[1680px] px-3 py-3 sm:px-5 lg:px-6 lg:py-4">
-        <div className="rounded-[24px] border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-3 shadow-[var(--shadow-card)] sm:px-5">
+      <section className="relative mx-auto max-w-[1680px] px-0 py-1 sm:px-5 lg:px-6 lg:py-4">
+        <div className="hidden rounded-[24px] border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-3 shadow-[var(--shadow-card)] sm:px-5 lg:block">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="max-w-3xl">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-brand-deep)]">
@@ -987,9 +968,9 @@ export function StationsBoard() {
           </div>
         </div>
 
-        <div className="mt-3 grid gap-3 xl:grid-cols-[minmax(0,1fr)_280px] xl:items-start">
+        <div className="mt-3 hidden gap-3 lg:grid xl:grid-cols-[minmax(0,1fr)_280px] xl:items-start">
           {featuredStations.length > 0 ? (
-            <div className="grid items-start gap-3 sm:grid-cols-2 2xl:grid-cols-4">
+            <div className="hidden items-start gap-3 sm:grid-cols-2 lg:grid 2xl:grid-cols-4">
               {featuredStations.map((station, index) => {
                 const stationHref = getSafeExternalHref(station.url);
                 const cardContent = (
@@ -1077,7 +1058,7 @@ export function StationsBoard() {
             <div />
           )}
 
-          <aside className="self-start rounded-[20px] border border-[var(--color-line)] bg-[linear-gradient(180deg,var(--color-panel),color-mix(in_srgb,var(--color-brand-soft)_34%,var(--color-panel)))] p-3 shadow-[var(--shadow-card)]">
+          <aside className="hidden self-start rounded-[20px] border border-[var(--color-line)] bg-[linear-gradient(180deg,var(--color-panel),color-mix(in_srgb,var(--color-brand-soft)_34%,var(--color-panel)))] p-3 shadow-[var(--shadow-card)] xl:block">
             <div className="flex items-start gap-3">
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-[var(--color-brand)] text-sm font-black text-[var(--color-on-brand)]">
                 3
@@ -1129,16 +1110,12 @@ export function StationsBoard() {
           </aside>
         </div>
 
-        <div className="mt-3 rounded-[22px] border border-[var(--color-line)] bg-[var(--color-panel)] p-3 shadow-[var(--shadow-card)] backdrop-blur sm:p-4">
-          <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_260px] lg:items-start">
+        <div className="mobile-station-filter mt-1.5 rounded-[14px] border border-[var(--color-line)] bg-[var(--color-panel)] p-1.5 shadow-[var(--shadow-card)] backdrop-blur sm:p-4 lg:mt-3 lg:rounded-[22px] lg:p-2.5">
+          <div className="hidden gap-3 lg:grid lg:grid-cols-[minmax(0,1fr)_260px] lg:items-start">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
-                快速查找
-              </p>
-              <h2 className="mt-1 text-xl font-black">搜索 / 筛选</h2>
-              <p className="mt-1 max-w-2xl text-sm leading-6 text-[var(--color-muted)]">
-                搜索后直接看总表；详细口径进历史或讨论区。
-              </p>
+              <p className="hidden text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)] lg:block">快速查找</p>
+              <h2 className="text-base font-black lg:mt-1 lg:text-xl">筛选</h2>
+              <p className="mt-1 hidden max-w-2xl text-sm leading-6 text-[var(--color-muted)] lg:block">搜索后直接看总表；详细口径进历史或讨论区。</p>
             </div>
             <div className="hidden gap-2 lg:grid">
               <div className="rounded-[16px] border border-[var(--color-line)] bg-[var(--color-soft)] px-3 py-2.5 text-sm">
@@ -1166,14 +1143,14 @@ export function StationsBoard() {
             </div>
           </div>
 
-          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+          <div className="grid grid-cols-[minmax(0,1fr)_104px] gap-1.5 lg:mt-4 lg:flex lg:flex-wrap lg:items-center lg:gap-3">
             <div className="relative min-w-0 flex-1">
               <input
                 id="station-search"
                 ref={searchInputRef}
-                className="w-full rounded-[18px] border border-[var(--color-line)] bg-[var(--color-soft)] py-3 pl-4 pr-[88px] text-sm outline-none transition focus:border-[var(--color-brand)] focus:bg-white/[0.08] sm:rounded-full"
+                className="h-8 w-full rounded-full border border-[var(--color-line)] bg-[var(--color-soft)] py-0 pl-3 pr-8 text-[11px] outline-none transition focus:border-[var(--color-brand)] focus:bg-white/[0.08] lg:h-auto lg:py-3 lg:pl-4 lg:pr-[88px] lg:text-sm"
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="搜站点名、倍率、试用、免费、Claude、Grok、入口域名都可以"
+                placeholder="搜站点、倍率、试用、模型"
                 value={query}
               />
               <div className="absolute right-3.5 top-1/2 flex -translate-y-1/2 items-center gap-2">
@@ -1187,13 +1164,13 @@ export function StationsBoard() {
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                   </button>
                 ) : null}
-                <span className="select-none rounded-md border border-[var(--color-line)] px-1.5 py-0.5 text-[11px] leading-tight text-[var(--color-muted)]">
+                <span className="hidden select-none rounded-md border border-[var(--color-line)] px-1.5 py-0.5 text-[11px] leading-tight text-[var(--color-muted)] lg:inline">
                   Ctrl+K
                 </span>
               </div>
             </div>
             <select
-              className="w-full cursor-pointer appearance-none rounded-[18px] border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-3 pr-9 text-sm text-[var(--color-ink)] outline-none transition focus:border-[var(--color-brand)] sm:w-auto sm:rounded-full"
+              className="h-8 w-full cursor-pointer appearance-none rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-2.5 py-0 pr-7 text-[11px] text-[var(--color-ink)] outline-none transition focus:border-[var(--color-brand)] lg:h-auto lg:w-auto lg:px-4 lg:py-3 lg:text-sm"
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as SortOption)}
               style={{
@@ -1208,11 +1185,11 @@ export function StationsBoard() {
             </select>
           </div>
 
-          <div className="mt-4 flex flex-wrap gap-2">
+          <div className="mt-1.5 flex flex-nowrap gap-1 overflow-x-auto pb-1 lg:mt-4 lg:flex-wrap lg:gap-2 lg:overflow-visible lg:pb-0">
             {filters.map((filter) => (
               <button
                 key={filter.id}
-                className={`rounded-full px-3 py-2 text-sm font-semibold transition ${
+                className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold transition lg:px-3 lg:py-2 lg:text-sm ${
                   activeFilter === filter.id
                     ? "pill-pulse bg-[var(--color-brand)] text-[var(--color-on-brand)] shadow-[0_10px_24px_var(--color-panel-glow)]"
                     : "border border-[var(--color-line)] bg-[var(--color-panel)] text-[var(--color-muted)] hover:border-[var(--color-brand)] hover:text-[var(--color-brand-deep)]"
@@ -1257,14 +1234,14 @@ export function StationsBoard() {
       </section>
 
       {/* ---- Table ---- */}
-      <section className="relative mx-auto max-w-[1680px] px-3 pb-6 sm:px-5 lg:px-6">
+      <section className="relative mx-auto max-w-[1680px] px-0 pb-4 sm:px-5 lg:px-6 lg:pb-6">
         <div className="grid gap-3 2xl:grid-cols-[minmax(0,1fr)_280px] 2xl:items-start">
-          <div className="overflow-hidden rounded-[22px] border border-[var(--color-line)] bg-[var(--color-panel)] shadow-[var(--shadow-card)]">
+          <div className="mobile-station-table overflow-hidden rounded-[14px] border border-[var(--color-line)] bg-[var(--color-panel)] shadow-[var(--shadow-card)] lg:rounded-[22px]">
           {/* Table header */}
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--color-line)] px-5 py-4">
+          <div className="flex flex-nowrap items-center justify-between gap-2 border-b border-[var(--color-line)] px-2.5 py-1.5 lg:flex-wrap lg:gap-4 lg:px-5 lg:py-4">
             <div>
-              <h2 className="text-2xl font-black">中转站总表</h2>
-              <div className="mt-2 flex items-center gap-3">
+              <h2 className="text-sm font-black lg:text-2xl">榜单 <span className="font-mono text-[11px] text-[var(--color-muted)] lg:hidden">{visibleRows.length}/{filteredRows.length}</span></h2>
+              <div className="mt-2 hidden items-center gap-3 lg:flex">
                 <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--color-muted)]">
                   数据新鲜度
                 </span>
@@ -1284,27 +1261,27 @@ export function StationsBoard() {
                 </span>
               </div>
             </div>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex shrink-0 flex-nowrap gap-1.5 lg:flex-wrap lg:gap-3">
               <button
-                className="rounded-full bg-[var(--color-soft)] px-4 py-2 text-sm font-bold text-[var(--color-brand-deep)] transition hover:bg-[var(--color-brand-soft)]"
+                className="rounded-full bg-[var(--color-soft)] px-2.5 py-1 text-[11px] font-bold text-[var(--color-brand-deep)] transition hover:bg-[var(--color-brand-soft)] lg:px-4 lg:py-2 lg:text-sm"
                 onClick={() => setShowAllRows((value) => !value)}
                 type="button"
               >
-                {showAllRows ? "收起部分结果" : "展开更多中转站"}
+                <span className="lg:hidden">{showAllRows ? "收起" : "更多"}</span><span className="hidden lg:inline">{showAllRows ? "收起部分结果" : "展开更多中转站"}</span>
               </button>
               <Link
                 href="/community"
-                className="rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-2 text-sm font-bold text-[var(--color-ink)] transition hover:border-[var(--color-brand)] hover:text-[var(--color-brand-deep)]"
+                className="hidden rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-2 text-sm font-bold text-[var(--color-ink)] transition hover:border-[var(--color-brand)] hover:text-[var(--color-brand-deep)] sm:inline-flex"
               >
                 去论坛补反馈
               </Link>
             </div>
           </div>
 
-          {/* ---- Mobile card layout (below lg) ---- */}
-          <div className="grid gap-3 p-3 md:grid-cols-2 lg:hidden">
+          {/* ---- Mobile feed layout (below lg) ---- */}
+          <div className="mobile-station-feed divide-y divide-[var(--color-line)] lg:hidden">
             {visibleRows.length === 0 ? (
-              <div className="rounded-[20px] bg-[var(--color-panel)] px-6 py-16 text-center shadow-[var(--shadow-card)] md:col-span-2">
+              <div className="bg-[var(--color-panel)] px-6 py-16 text-center">
                 {stations.length === 0 ? (
                   <>
                     <p className="text-lg font-bold text-[var(--color-muted)]">暂无站点数据</p>
@@ -1337,17 +1314,17 @@ export function StationsBoard() {
                 return (
                   <div key={station.id}>
                     <div
-                      className="relative z-10 cursor-pointer rounded-[20px] border border-[var(--color-line)] bg-[var(--color-panel)] p-4 shadow-[var(--shadow-card)] transition-colors hover:bg-white/5 sm:p-5"
+                      className="mobile-station-row relative z-10 cursor-pointer bg-[var(--color-panel)] px-2.5 py-2 transition-colors active:bg-[var(--color-soft)]"
                       onClick={() => handleDetailStationClick(station)}
                     >
-                      {/* Header row: rank + name + badge */}
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0 flex-1 pr-10">
-                          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--color-muted)]">
-                            {rankingBadge(index)}
-                          </p>
+                      <div className="flex items-center gap-2.5">
+                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[var(--color-line)] bg-[var(--color-soft)] text-[9px] font-black text-[var(--color-muted)]">
+                          {rankingBadge(index).replace("#", "")}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex min-w-0 items-center gap-2">
                           <button
-                            className="relative z-20 mt-1 cursor-pointer break-words text-left text-xl font-black transition hover:text-[var(--color-brand)]"
+                              className="relative z-20 min-w-0 truncate text-left text-[13px] font-black leading-4 text-[var(--color-ink)] transition hover:text-[var(--color-brand)]"
                             onClick={(event) => {
                               event.stopPropagation();
                               handleDetailStationClick(station);
@@ -1356,110 +1333,51 @@ export function StationsBoard() {
                           >
                             {station.name}
                           </button>
-                          {(() => {
-                            const fi = freshnessInfo(station.lastEditAt);
-                            if (!fi) return null;
-                            return (
-                              <span
-                                className={`ml-2 inline-flex items-center gap-1 text-[11px] ${
-                                  fi.isRecent
-                                    ? "text-[var(--color-brand-deep)]"
-                                    : "text-[var(--color-muted)]"
-                                }`}
-                              >
-                                <span
-                                  className={`inline-block h-1.5 w-1.5 rounded-full ${
-                                    fi.isRecent ? "bg-green-500" : "bg-[var(--color-muted)]"
-                                  }`}
-                                />
-                                {fi.label}
+                            {station.badge ? (
+                              <span className="shrink-0 rounded-full bg-[var(--color-brand-soft)] px-1.5 py-0.5 text-[10px] font-bold text-[var(--color-brand-deep)]">
+                                {station.badge}
                               </span>
-                            );
-                          })()}
-                        </div>
-                        <span className="shrink-0 rounded-full bg-[var(--color-brand-soft)] px-2.5 py-1 text-xs font-bold text-[var(--color-brand-deep)]">
-                          {station.badge}
-                        </span>
-                      </div>
-
-                      {/* Price + Multiplier */}
-                      <div className="mt-4 grid grid-cols-2 gap-2.5">
-                        <div className="rounded-[16px] bg-[var(--color-soft)] px-3 py-2.5">
-                          <p className="text-xs text-[var(--color-muted)]">标称价格</p>
-                          <p className="mt-1 font-bold">{station.price}</p>
-                        </div>
-                        <div className="rounded-[16px] bg-[var(--color-soft)] px-3 py-2.5">
-                          <p className="text-xs text-[var(--color-muted)]">倍率</p>
-                          <p className="mt-1 font-bold">{station.multiplier}</p>
-                        </div>
-                      </div>
-
-                      {/* Status + Note */}
-                      <div className="mt-3">
-                        <p className="text-xs text-[var(--color-muted)]">状态</p>
-                        <p className="mt-1 font-bold">{station.status}</p>
-                        {station.note && (
-                          <p className="mt-1 text-sm leading-6 text-[var(--color-muted)]">
-                            {station.note}
+                            ) : null}
+                          </div>
+                          <p className="mt-0.5 truncate text-[10px] leading-[14px] text-[var(--color-muted)]">
+                            {station.note || station.models || station.packageType || "暂无备注"}
                           </p>
-                        )}
-                      </div>
+                        </div>
 
-                      {/* Actions */}
-                      <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-[var(--color-line)] pt-3">
-                        {stationHref ? (
-                          <a
-                            href={stationHref}
-                            rel="noopener noreferrer"
-                            target="_blank"
-                            className="rounded-full bg-[var(--color-brand-soft)] px-3 py-2 text-sm font-semibold text-[var(--color-brand-deep)] transition hover:text-[var(--color-brand)]"
-                            onClick={(event) => event.stopPropagation()}
-                          >
-                            打开站点 →
-                          </a>
-                        ) : (
-                          <span className="text-sm text-[var(--color-muted)]">
-                            {station.entry || station.groupName || "待补"}
-                          </span>
-                        )}
-                        {/* Discussion button */}
-                        <button
-                          className="inline-flex items-center gap-1.5 rounded-full border border-[var(--color-line)] px-3 py-2 text-sm text-[var(--color-muted)] transition hover:text-[var(--color-brand-deep)]"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            setDiscussionStation(station);
-                          }}
-                          title="查看站点讨论"
-                          type="button"
-                        >
-                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                          </svg>
-                          讨论
-                        </button>
-                        <div className="ml-auto flex items-center gap-2">
-                          {isConnected && (
-                            <button
-                              className="rounded-full px-2 py-2 text-sm text-[var(--color-muted)] transition hover:bg-[var(--color-soft)] hover:text-[var(--color-brand-deep)]"
-                              onClick={(event) => {
-                                event.stopPropagation();
-                              openWikiEditModal(station);
-                              }}
-                              title="编辑此站点"
-                              type="button"
+                        <div className="grid w-[76px] shrink-0 grid-cols-1 gap-0.5 text-right">
+                          <p className="truncate text-[11px] font-black leading-4 text-[var(--color-ink)]">
+                            {station.multiplier || station.price || "待补"}
+                          </p>
+                          <p className={`truncate text-[10px] font-bold leading-4 ${uptimeTone(station.uptime)}`}>
+                            {station.uptime || station.status || "待测"}
+                          </p>
+                        </div>
+
+                        <div className="flex shrink-0 items-center gap-1">
+                          {stationHref ? (
+                            <a
+                              aria-label={`打开 ${station.name}`}
+                              className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--color-brand-soft)] text-[10px] font-black text-[var(--color-brand-deep)]"
+                              href={stationHref}
+                              onClick={(event) => event.stopPropagation()}
+                              rel="noopener noreferrer"
+                              target="_blank"
                             >
-                              编辑
-                            </button>
-                          )}
+                              ↗
+                            </a>
+                          ) : null}
                           <button
-                            className="rounded-full px-2 py-2 text-sm text-[var(--color-muted)] underline underline-offset-2 transition hover:bg-[var(--color-soft)] hover:text-[var(--color-brand-deep)]"
+                            aria-label={`${station.name} 讨论`}
+                            className="flex h-7 w-7 items-center justify-center rounded-full border border-[var(--color-line)] text-[var(--color-muted)]"
                             onClick={(event) => {
                               event.stopPropagation();
-                              toggleHistory(station.id);
+                              setDiscussionStation(station);
                             }}
                             type="button"
                           >
-                            {isShowingHistory ? "收起历史" : "历史"}
+                            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                            </svg>
                           </button>
                         </div>
                       </div>
@@ -1563,7 +1481,7 @@ export function StationsBoard() {
                             </span>
                           ) : null}
                           {station.packageType ? (
-                            <span className="rounded border border-cyan-400/20 bg-cyan-400/10 px-1.5 py-0.5 text-[10px] font-bold text-cyan-300">
+                            <span className="rounded border border-white/10 bg-white/[0.05] px-1.5 py-0.5 text-[10px] font-bold text-zinc-300">
                               {station.packageType.slice(0, 8)}
                             </span>
                           ) : null}
@@ -1605,7 +1523,7 @@ export function StationsBoard() {
                               href={stationHref}
                               rel="noopener noreferrer"
                               target="_blank"
-                              className="relative z-20 font-semibold text-cyan-300 transition hover:text-cyan-200"
+                              className="relative z-20 font-semibold text-zinc-300 transition hover:text-white"
                               onClick={(event) => event.stopPropagation()}
                             >
                               打开入口
@@ -1671,7 +1589,7 @@ export function StationsBoard() {
                       <div className="font-mono text-sm font-bold text-zinc-200">{station.latency || "--"}</div>
 
                       {/* 运行状态 */}
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2.5">
                         <MiniStatusBars station={station} />
                         <span className="line-clamp-1 text-xs text-[var(--color-muted)]">{station.status || "待检测"}</span>
                       </div>
@@ -1717,15 +1635,15 @@ export function StationsBoard() {
           </div>
 
           {/* Table footer */}
-          <div className="flex flex-wrap items-center justify-between gap-4 border-t border-[var(--color-line)] px-5 py-4">
-            <p className="text-sm leading-7 text-[var(--color-muted)]">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[var(--color-line)] px-3 py-2.5 lg:gap-4 lg:px-5 lg:py-4">
+            <p className="text-xs leading-5 text-[var(--color-muted)] lg:text-sm lg:leading-7">
               {filteredRows.length === 0
                 ? "没有匹配的站点，试试调整筛选条件。"
                 : `当前显示 ${visibleRows.length} / ${filteredRows.length} 条。`}
             </p>
             {!showAllRows && filteredRows.length > visibleRows.length ? (
               <button
-                className="rounded-full bg-[var(--color-brand)] px-5 py-3 text-sm font-bold text-[var(--color-on-brand)] transition hover:bg-[var(--color-brand-deep)]"
+                className="rounded-full bg-[var(--color-brand)] px-3 py-2 text-xs font-bold text-[var(--color-on-brand)] transition hover:bg-[var(--color-brand-deep)] lg:px-5 lg:py-3 lg:text-sm"
                 onClick={() => setShowAllRows(true)}
                 type="button"
               >
@@ -1817,7 +1735,7 @@ export function StationsBoard() {
       </section>
 
       {/* ---- Submission ---- */}
-      <section className="relative mx-auto max-w-[1680px] px-3 pb-8 sm:px-5 lg:px-6">
+      <section className="relative mx-auto hidden max-w-[1680px] px-3 pb-8 sm:px-5 lg:block lg:px-6">
         <div className="grid gap-4 xl:grid-cols-[minmax(0,1.08fr)_minmax(320px,0.52fr)] xl:items-start">
           <SubmissionPanel />
 
@@ -1887,7 +1805,7 @@ export function StationsBoard() {
           <div className="relative flex h-[85vh] w-[95vw] max-w-4xl flex-col overflow-hidden rounded-[24px] border border-[var(--color-line)] bg-[var(--color-panel)] shadow-[0_20px_60px_rgba(0,0,0,0.3)]">
             {/* Header */}
             <div className="shrink-0 flex items-center justify-between border-b border-[var(--color-line)] px-6 py-4">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2.5">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--color-brand-soft)]">
                   <svg className="h-5 w-5 text-[var(--color-brand-deep)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />

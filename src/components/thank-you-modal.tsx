@@ -31,7 +31,7 @@ export function ThankYouModal({ open, onClose, creators }: Props) {
 
   function roleIcon(role: string) {
     if (role === "founder") return <Star className="h-3 w-3 text-amber-400" />;
-    if (role === "admin") return <Shield className="h-3 w-3 text-blue-400" />;
+    if (role === "admin") return <Shield className="h-3 w-3 text-zinc-300" />;
     return <User className="h-3 w-3 text-zinc-500" />;
   }
 

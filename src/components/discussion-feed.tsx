@@ -1387,12 +1387,12 @@ export function DiscussionFeed({
                       </span>
                     ) : null}
                     {post.authorId && !ownerUserIds.has(post.authorId) && adminUserIds.has(post.authorId) ? (
-                      <span className="rounded border border-blue-500/20 bg-blue-500/10 px-2 py-0.5 text-xs font-bold text-blue-400">
+                      <span className="rounded border border-white/10 bg-white/[0.06] px-2 py-0.5 text-xs font-bold text-zinc-300">
                         管理员
                       </span>
                     ) : null}
                     {post.authorCustomTitle ? (
-                      <span className="rounded-md border border-purple-500/20 bg-purple-500/10 px-2 py-0.5 text-xs font-bold text-purple-400">
+                      <span className="rounded-md border border-[var(--color-line)] bg-[var(--color-soft)] px-2 py-0.5 text-xs font-semibold text-[var(--color-muted)]">
                         {post.authorCustomTitle}
                       </span>
                     ) : null}
@@ -1526,7 +1526,7 @@ export function DiscussionFeed({
                   </div>
                   <div className="mt-5 grid grid-cols-2 gap-2 border-t border-[var(--color-line)] pt-3 sm:flex sm:flex-wrap sm:items-center sm:gap-3">
                     <button
-                      className="rounded-full bg-[var(--color-brand)] px-3 py-2.5 text-sm font-bold text-[var(--color-on-brand)] shadow-[0_10px_24px_var(--color-panel-glow)] transition hover:bg-[var(--color-brand-deep)] sm:px-4"
+                      className="rounded-full bg-[var(--color-brand)] px-3 py-2.5 text-sm font-semibold text-[var(--color-on-brand)] shadow-[0_10px_24px_var(--color-panel-glow)] transition hover:bg-[var(--color-brand-deep)] sm:px-4"
                       onClick={(event) => {
                         event.stopPropagation();
                         openPostModal(post.issueNumber);

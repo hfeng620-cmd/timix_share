@@ -1,15 +1,30 @@
 import { Navbar } from "@/components/navbar";
 import { DonateButton } from "@/components/donate-button";
+import { MobileThemeToggle } from "@/components/mobile-theme-toggle";
 import { StationMonitorPanel } from "@/components/station-monitor-panel";
 import { StationsBoard } from "@/components/stations-board";
 
 export default function StationsPage() {
   return (
-    <div className="min-h-screen text-white">
+    <div className="stations-mobile-app min-h-screen bg-[#07080b] text-white lg:bg-transparent lg:text-white">
       <Navbar />
 
-      <section className="relative z-10 mx-auto max-w-[1680px] px-4 pt-28 sm:px-5 lg:px-8">
-        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <section className="relative z-10 mx-auto max-w-[1680px] px-2.5 pt-16 sm:px-5 lg:px-8 lg:pt-28">
+        <div className="mb-2 rounded-b-[18px] border border-white/10 bg-white/[0.04] px-3 py-2.5 shadow-[0_12px_30px_rgba(15,23,42,0.08)] backdrop-blur lg:hidden">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-[11px] font-semibold text-[var(--mobile-app-muted)] font-body">TiMix</p>
+              <h1 className="mt-0.5 truncate text-base font-black tracking-tight text-[var(--mobile-app-ink)]">榜单</h1>
+              <p className="mt-0.5 max-w-[10rem] text-[11px] leading-4 text-[var(--mobile-app-muted)] font-body">倍率、门槛、状态先扫完。</p>
+            </div>
+            <div className="flex shrink-0 items-center gap-2">
+              <MobileThemeToggle />
+              <DonateButton />
+            </div>
+          </div>
+        </div>
+
+        <div className="mb-6 hidden flex-col gap-4 sm:flex-row sm:items-start sm:justify-between lg:flex">
           <div>
             <div className="liquid-glass mb-3 inline-block rounded-full px-3.5 py-1 text-xs font-medium text-white font-body">
               中转站榜单
@@ -24,7 +39,7 @@ export default function StationsPage() {
           <DonateButton />
         </div>
 
-        <div className="grid gap-2 mb-6 sm:grid-cols-3">
+        <div className="mb-6 hidden gap-2 sm:grid-cols-3 lg:grid">
           {[
             { step: "先看", desc: "倍率 / 门槛" },
             { step: "再做", desc: "缩到 2-3 个" },
@@ -37,12 +52,14 @@ export default function StationsPage() {
           ))}
         </div>
 
-        <div className="mb-6">
-          <StationMonitorPanel />
-        </div>
+        <div className="flex flex-col gap-2.5 lg:gap-6">
+          <div className="order-2 lg:order-1">
+            <StationMonitorPanel />
+          </div>
 
-        <div className="rounded-3xl bg-black/30 backdrop-blur-xl border border-white/10 shadow-2xl p-4 sm:p-6">
-          <StationsBoard />
+          <div className="order-1 overflow-hidden rounded-[18px] border border-white/10 bg-white/[0.04] p-0 shadow-[0_10px_24px_rgba(15,23,42,0.06)] backdrop-blur lg:order-2 lg:rounded-3xl lg:border-white/10 lg:bg-black/30 lg:p-6 lg:shadow-2xl">
+            <StationsBoard />
+          </div>
         </div>
       </section>
     </div>

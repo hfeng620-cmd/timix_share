@@ -139,6 +139,8 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
     displayName,
     sendEmailCode,
     signInWithPassword,
+    sendPasswordReset,
+    passwordRecoveryMode,
     setPassword,
     setDisplayName,
     signOut,
@@ -257,7 +259,7 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
 
   // Pre-fill display name when setting password for the first time.
   useEffect(() => {
-    if (isConnected && needsPassword && !displayName) {
+    if (isConnected && (needsPassword || passwordRecoveryMode) && !displayName) {
       const pending = readPendingRegistration();
       const restored = pending?.displayName ?? "";
 
@@ -271,7 +273,7 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
         }
       }
     }
-  }, [isConnected, needsPassword, displayName, signedInEmail, setDisplayName]);
+  }, [isConnected, needsPassword, passwordRecoveryMode, displayName, signedInEmail, setDisplayName]);
 
   useEffect(() => {
     if (!open || isConnected || mode !== "register") return;
@@ -419,6 +421,31 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
   }
 
   // ---- 登录流程 ----
+  async function handleForgotPassword() {
+    if (!normalizedEmail) {
+      setError("请输入邮箱后再找回密码。");
+      return;
+    }
+    if (!isValidEmail(normalizedEmail)) {
+      setError("请输入有效的邮箱地址。");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+    setNotice("");
+
+    const result = await sendPasswordReset(normalizedEmail);
+    setLoading(false);
+
+    if (!result.ok) {
+      setError(result.error ?? "重置邮件发送失败，请稍后重试。");
+      return;
+    }
+
+    setNotice("重置密码邮件已发送，请打开邮箱里的链接回来设置新密码。");
+  }
+
   async function handlePasswordLogin() {
     setLoading(true);
     setError("");
@@ -436,7 +463,7 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
   }
 
   async function handleSetPassword() {
-    const displayNameError = getDisplayNameValidationError(displayNameInput);
+    const displayNameError = passwordRecoveryMode && !displayNameInput.trim() ? null : getDisplayNameValidationError(displayNameInput);
     if (displayNameError) {
       setError(displayNameError);
       return;
@@ -558,11 +585,11 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
           <div className="space-y-5">
             <div>
               <h2 className="text-lg font-bold text-[var(--color-ink)]" id="auth-modal-title">
-                {needsPassword ? "设置登录密码" : "已登录"}
+                {needsPassword || passwordRecoveryMode ? "设置登录密码" : "已登录"}
               </h2>
-              {needsPassword ? (
+              {needsPassword || passwordRecoveryMode ? (
                 <p className="mt-1.5 text-xs text-[var(--color-muted)]">
-                  设置密码完成注册
+                  {passwordRecoveryMode ? "请输入新密码，保存后即可重新登录。" : "设置密码完成注册"}
                 </p>
               ) : (
                 <div className="mt-1.5 space-y-1">
@@ -580,10 +607,10 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
               )}
             </div>
 
-            {needsPassword ? (
+            {needsPassword || passwordRecoveryMode ? (
               <div className="space-y-3">
                 <p className="text-sm text-[var(--color-muted)]">
-                  请设置密码和昵称。
+                  {passwordRecoveryMode ? "请设置一个新的登录密码。" : "请设置密码和昵称。"}
                 </p>
                 <label className="sr-only" htmlFor="auth-setup-name">昵称</label>
                 <input
@@ -816,6 +843,15 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
                     value={password}
                   />
                   <p className="text-xs text-[var(--color-muted)]">
+                    <button
+                      className="text-[var(--color-brand)] underline"
+                      disabled={loading}
+                      onClick={handleForgotPassword}
+                      type="button"
+                    >
+                      忘记密码？
+                    </button>
+                    <span className="mx-1.5 text-[var(--color-muted)]">·</span>
                     首次使用？{" "}
                     <button
                       className="text-[var(--color-brand)] underline"

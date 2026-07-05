@@ -127,12 +127,12 @@ function UserProfileContent() {
                   </span>
                 ) : null}
                 {role === "admin" ? (
-                  <span className="rounded px-2 py-0.5 text-xs font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                  <span className="rounded px-2 py-0.5 text-xs font-bold bg-white/[0.06] text-zinc-300 border border-white/10">
                     管理员
                   </span>
                 ) : null}
                 {profile.custom_title?.trim() ? (
-                  <span className="rounded-md px-2 py-0.5 text-xs font-bold bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                  <span className="rounded-md px-2 py-0.5 text-xs font-bold bg-white/[0.06] text-zinc-300 border border-white/10">
                     {profile.custom_title.trim()}
                   </span>
                 ) : null}

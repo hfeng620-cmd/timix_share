@@ -381,12 +381,12 @@ export function UserProfileCard({ userId, position, viewerUserId, onClose }: Use
                     </span>
                   ) : null}
                   {role === "admin" ? (
-                    <span className="rounded border border-blue-500/20 bg-blue-500/10 px-2 py-0.5 text-[10px] font-bold text-blue-400">
+                    <span className="rounded border border-white/10 bg-white/[0.06] px-2 py-0.5 text-[10px] font-bold text-zinc-300">
                       管理员
                     </span>
                   ) : null}
                   {customTitle ? (
-                    <span className="rounded-md border border-purple-500/20 bg-purple-500/10 px-2 py-0.5 text-[10px] font-bold text-purple-400">
+                    <span className="rounded-md border border-white/10 bg-white/[0.06] px-2 py-0.5 text-[10px] font-bold text-zinc-300">
                       {customTitle}
                     </span>
                   ) : null}

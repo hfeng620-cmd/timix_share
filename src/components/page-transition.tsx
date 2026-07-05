@@ -2,9 +2,9 @@
 
 import { AnimatePresence, motion } from "motion/react";
 import { usePathname } from "next/navigation";
-import { useRef, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 
-const TAB_ORDER = ["/", "/stations", "/community", "/models", "/profile", "/drops", "/guides", "/admin", "/user", "/legacy"];
+const TAB_ORDER = ["/", "/guides", "/stations", "/community", "/drops", "/profile", "/models", "/admin", "/user", "/legacy"];
 
 function getNavIndex(path: string): number {
   for (let i = 0; i < TAB_ORDER.length; i++) {
@@ -16,19 +16,20 @@ function getNavIndex(path: string): number {
 
 export function PageTransition({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const prevPath = useRef(pathname);
-  const direction = useRef<"forward" | "back">("forward");
+  const [prevPath, setPrevPath] = useState(pathname);
 
-  if (prevPath.current !== pathname) {
-    const fromIdx = getNavIndex(prevPath.current);
+  const direction = useMemo<"forward" | "back">(() => {
+    const fromIdx = getNavIndex(prevPath);
     const toIdx = getNavIndex(pathname);
-    direction.current =
-      fromIdx >= 0 && toIdx >= 0 && toIdx < fromIdx ? "back" : "forward";
-    prevPath.current = pathname;
-  }
+    return fromIdx >= 0 && toIdx >= 0 && toIdx < fromIdx ? "back" : "forward";
+  }, [pathname, prevPath]);
 
-  const xEnter = direction.current === "forward" ? "30%" : "-30%";
-  const xExit = direction.current === "forward" ? "-30%" : "30%";
+  useEffect(() => {
+    setPrevPath(pathname);
+  }, [pathname]);
+
+  const xEnter = direction === "forward" ? "30%" : "-30%";
+  const xExit = direction === "forward" ? "-30%" : "30%";
 
   return (
     <AnimatePresence mode="popLayout" initial={false}>

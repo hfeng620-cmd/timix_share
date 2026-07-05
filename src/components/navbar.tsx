@@ -15,12 +15,12 @@ import { useForumAuth } from "@/lib/forum-auth";
 import { getSupabaseClient, isSupabaseConfigured } from "@/lib/supabase";
 
 const links = [
-  { label: "首页", href: "/" },
+  { label: "分享", href: "/" },
   { label: "中转站榜单", href: "/stations" },
   { label: "论坛入口", href: "/community" },
   { label: "模型择优", href: "/models" },
   { label: "福利Drop", href: "/drops" },
-  { label: "热门有趣项目Share", href: "/guides" },
+  { label: "分享", href: "/guides" },
 ];
 
 type IncomingDirectMessageRow = {
@@ -194,14 +194,14 @@ export function Navbar() {
           className="group flex shrink-0 items-center transition-all duration-300"
         >
           <span
-            className="text-2xl tracking-wide font-extrabold bg-clip-text text-transparent bg-gradient-to-b from-white via-gray-100 to-gray-400"
-            style={{ filter: "drop-shadow(0 0 10px rgba(255,255,255,0.25))" }}
+            className="text-2xl tracking-wide font-extrabold text-[var(--mobile-app-ink)] lg:bg-gradient-to-b lg:from-white lg:via-gray-100 lg:to-gray-400 lg:bg-clip-text lg:text-transparent"
+            style={{ filter: "drop-shadow(0 0 10px color-mix(in srgb, var(--mobile-app-primary, white) 26%, transparent))" }}
           >
             Ti
           </span>
           <span
-            className="text-2xl tracking-wide font-light bg-clip-text text-transparent bg-gradient-to-b from-white via-gray-200 to-gray-500"
-            style={{ filter: "drop-shadow(0 0 8px rgba(255,255,255,0.15))" }}
+            className="text-2xl tracking-wide font-light text-[var(--mobile-app-muted)] lg:bg-gradient-to-b lg:from-white lg:via-gray-200 lg:to-gray-500 lg:bg-clip-text lg:text-transparent"
+            style={{ filter: "drop-shadow(0 0 8px color-mix(in srgb, var(--mobile-app-primary, white) 18%, transparent))" }}
           >
             Mix
           </span>
@@ -255,7 +255,7 @@ export function Navbar() {
           <PwaInstallButton />
           <button
             aria-label="我的私信"
-            className="relative hidden h-10 w-10 items-center justify-center rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] text-[var(--color-muted)] transition hover:border-emerald-500/40 hover:bg-emerald-500/10 hover:text-emerald-300 sm:flex"
+            className="relative flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-zinc-400 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition hover:bg-white/[0.08] hover:text-zinc-100 sm:h-10 sm:w-10"
             onClick={() => setIsInboxOpen(true)}
             title="我的私信"
             type="button"
