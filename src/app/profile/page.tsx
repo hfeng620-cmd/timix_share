@@ -715,9 +715,9 @@ export default function ProfilePage() {
   const { ref: archiveRef, isVisible: archiveVisible } = useRevealInView<HTMLDivElement>(0.12);
 
   return (
-    <div className="min-h-screen text-white">
+    <div className="min-h-[100dvh] text-white">
       <Navbar />
-        <div className="fixed bottom-20 right-3 z-30 lg:bottom-4"><PwaInstallButton /></div>
+      <div className="flex justify-end px-4 pt-2 lg:hidden"><PwaInstallButton /></div>
 
       <div className="mx-auto max-w-7xl px-4 pt-28 sm:px-6 lg:px-10">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,var(--color-brand-soft),transparent_34%),radial-gradient(circle_at_85%_20%,var(--color-panel-glow),transparent_22%),linear-gradient(180deg,var(--color-panel),var(--color-soft))]" />

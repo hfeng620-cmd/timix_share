@@ -205,8 +205,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
   min-height: 100%;
   overflow-x: hidden;
-  overscroll-behavior: none;
-  padding-top: var(--safe-top);
+  overscroll-behavior-y: none;
 }
 
 ::selection {
@@ -356,6 +355,18 @@ button[aria-label="Open Next.js Dev Tools"] { display: none !important; }
 /* Page content bottom padding for MobileDock */
 @media (max-width: 1023px) {
   main#main-content {
-    padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* Navbar safe-area handling */
+nav.fixed.top-0 {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* Mobile: notification bell safe position */
+@media (max-width: 1023px) {
+  nav.fixed.top-0 {
+    padding-top: max(env(safe-area-inset-top, 0px), 4px);
   }
 }

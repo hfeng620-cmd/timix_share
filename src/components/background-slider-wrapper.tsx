@@ -14,8 +14,10 @@ const GlassBackground = dynamic(
 
 export function BackgroundSliderWrapper() {
   const [isMobile, setIsMobile] = useState(false);
+  const [mounted, setMounted] = useState(false);
   useEffect(() => {
     setIsMobile(window.innerWidth < 768 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
+    setMounted(true);
   }, []);
   const pathname = usePathname();
   const [theme, setTheme] = useState<string | null>(null);
@@ -35,6 +37,8 @@ export function BackgroundSliderWrapper() {
 
     return () => observer.disconnect();
   }, []);
+
+  if (!mounted) return null;
 
   if (theme === "apple-light" && !isMobile) {
     return <GlassBackground />;
