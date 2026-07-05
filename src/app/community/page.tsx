@@ -48,7 +48,7 @@ export default function CommunityPage() {
               <MobileThemeToggle />
               <button
                 onClick={openMonitor}
-                className="inline-flex h-10 items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-2.5 text-[11px] font-semibold text-zinc-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition active:scale-95 active:bg-white/10"
+                className="touch-press inline-flex h-10 items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-2.5 text-[11px] font-semibold text-zinc-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] active:bg-white/10"
                 type="button"
               >
                 <Activity className="h-3.5 w-3.5" />
@@ -59,7 +59,7 @@ export default function CommunityPage() {
 
           <div className="mt-2 grid grid-cols-[minmax(0,1fr)_auto] gap-2">
             <button
-              className="inline-flex min-h-9 items-center justify-center gap-2 rounded-xl bg-zinc-100 px-4 text-xs font-semibold text-zinc-950 shadow-lg shadow-white/5 transition active:scale-[0.98] active:opacity-90"
+              className="touch-press inline-flex min-h-9 items-center justify-center gap-2 rounded-xl bg-zinc-100 px-4 text-xs font-semibold text-zinc-950 shadow-[0_10px_24px_rgba(255,255,255,0.055),inset_0_1px_0_rgba(255,255,255,0.58)] transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]"
               onClick={() => setMobileComposerOpen((open) => !open)}
               type="button"
             >
@@ -68,7 +68,7 @@ export default function CommunityPage() {
             </button>
             <a
               href={siteLinks.discussions}
-              className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] px-3 text-[11px] font-semibold text-zinc-400 transition active:scale-[0.98] active:bg-white/10"
+              className="touch-press inline-flex min-h-9 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] px-3 text-[11px] font-semibold text-zinc-400 transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] active:bg-white/10"
               rel="noopener noreferrer"
               target="_blank"
             >
@@ -80,7 +80,7 @@ export default function CommunityPage() {
 
         <nav className="mb-3 flex gap-2 overflow-x-auto pb-1 text-white md:hidden" aria-label="社区快捷入口">
           <button
-            className="inline-flex min-h-8 shrink-0 items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 text-[11px] font-semibold text-zinc-300 shadow-sm transition active:scale-95 active:bg-white/10"
+            className="touch-press inline-flex min-h-8 shrink-0 items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 text-[11px] font-semibold text-zinc-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] active:bg-white/10"
             onClick={() => setMobileComposerOpen((open) => !open)}
             type="button"
           >
@@ -108,7 +108,7 @@ export default function CommunityPage() {
             排行
           </button>
           <button
-            className="inline-flex min-h-8 shrink-0 items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 text-[11px] font-semibold text-zinc-300 shadow-sm transition active:scale-95 active:bg-white/10"
+            className="touch-press inline-flex min-h-8 shrink-0 items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 text-[11px] font-semibold text-zinc-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] active:bg-white/10"
             onClick={() => setQqModalOpen(true)}
             type="button"
           >
@@ -167,7 +167,7 @@ export default function CommunityPage() {
                     key={hub.id}
                     onClick={() => setQqModalOpen(true)}
                     type="button"
-                    className="group flex flex-col justify-between rounded-2xl border p-4 text-left transition hover:-translate-y-0.5 liquid-glass"
+                    className="touch-press group flex flex-col justify-between rounded-2xl border p-4 text-left transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] hover:-translate-y-0.5 liquid-glass"
                   >
                     <div>
                       <span className="inline-flex rounded-full bg-white/8 px-2.5 py-1 text-[11px] font-bold tracking-[0.16em] text-white/60">
@@ -189,7 +189,7 @@ export default function CommunityPage() {
                   key={hub.id}
                   href={(hub as any).href}
                   {...(hub.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-                  className={`group flex flex-col justify-between rounded-2xl border p-4 transition hover:-translate-y-0.5 ${
+                  className={`touch-press group flex flex-col justify-between rounded-2xl border p-4 transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] hover:-translate-y-0.5 ${
                     isPrimary ? "border-white/30 bg-white/10" : "liquid-glass"
                   }`}
                 >
@@ -215,7 +215,7 @@ export default function CommunityPage() {
           {(["hot", "rank"] as const).map((key) => (
             <button
               key={key}
-              className={`flex-1 rounded-full px-4 py-2.5 text-sm font-semibold transition font-body ${
+              className={`touch-press flex-1 rounded-full px-4 py-2.5 text-sm font-semibold transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] font-body ${
                 mobilePanel === key ? "liquid-glass-strong text-white" : "liquid-glass text-white/60"
               }`}
               onClick={() => setMobilePanel(mobilePanel === key ? null : key)}
@@ -230,7 +230,7 @@ export default function CommunityPage() {
           <div className="min-w-0 space-y-3 md:space-y-5">
             <div className="community-mobile-compose md:hidden">
               <button
-                className="community-compose-trigger flex w-full items-center justify-between rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition active:scale-[0.99] active:bg-white/10"
+                className="community-compose-trigger touch-press flex w-full items-center justify-between rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] active:bg-white/10"
                 onClick={() => setMobileComposerOpen((open) => !open)}
                 type="button"
               >

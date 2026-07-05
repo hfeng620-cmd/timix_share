@@ -49,7 +49,7 @@ export function MobileDock() {
                 key={item.href}
                 aria-current={active ? "page" : undefined}
                 aria-label={`${item.label}${active ? "，当前页面" : ""}`}
-                className="relative flex min-h-[58px] flex-col items-center justify-center py-2 transition active:scale-95 active:opacity-80"
+                className="touch-press relative flex min-h-[58px] flex-col items-center justify-center py-2 transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]"
                 href={item.href}
                 onClick={() => haptic("light")}
                 style={{ WebkitTapHighlightColor: "transparent" }}
