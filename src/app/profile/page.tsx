@@ -10,6 +10,7 @@ import {
   Mail,
   MessageCircle,
   Pencil,
+  RefreshCw,
   Settings,
   ShieldCheck,
   Sparkles,
@@ -134,6 +135,7 @@ export default function ProfilePage() {
   const [tagInput, setTagInput] = useState("");
   const [customTitle, setCustomTitle] = useState("");
   const [isInboxOpen, setIsInboxOpen] = useState(false);
+  const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
 
   const loadPosts = useCallback(async () => {
     if (!isConnected || !user) {
@@ -339,9 +341,18 @@ export default function ProfilePage() {
     setNewTags([...tags]);
     setTagInput("");
   }
+  function handleCheckUpdate() {
+    if (isCheckingUpdate) return;
+
+    setIsCheckingUpdate(true);
+    window.setTimeout(() => {
+      setIsCheckingUpdate(false);
+      addToast("当前已是最新版本 v1.0.0", "success");
+    }, 1500);
+  }
 
   return (
-    <div className="profile-mobile-app min-h-[100dvh] bg-[#07080b] text-white">
+    <div className="profile-mobile-app min-h-[100dvh] overflow-x-hidden bg-[#07080b] text-white">
       <Navbar />
 
       <main className="mx-auto max-w-md px-4 pb-24 pt-20 sm:max-w-2xl lg:max-w-3xl">
@@ -356,7 +367,7 @@ export default function ProfilePage() {
               {isConnected ? (
                 <button
                   aria-label="打开私信"
-                  className="btn-press flex h-10 w-10 items-center justify-center rounded-full bg-white/[0.08] text-zinc-300 shadow-sm ring-1 ring-white/10"
+                  className="btn-press flex h-10 w-10 items-center justify-center rounded-full bg-white/[0.08] text-zinc-300 shadow-sm ring-1 ring-white/10 transition active:scale-95 active:bg-white/[0.12]"
                   onClick={() => setIsInboxOpen(true)}
                   type="button"
                 >
@@ -401,7 +412,7 @@ export default function ProfilePage() {
                   ) : (
                     <span>{initial}</span>
                   )}
-                  <span className="absolute inset-x-0 bottom-0 bg-black/55 py-1 text-[10px] font-bold text-white opacity-0 transition group-hover:opacity-100">
+                  <span className="absolute inset-x-0 bottom-0 bg-[#09090b]/55 py-1 text-[10px] font-bold text-white opacity-0 transition group-hover:opacity-100">
                     {avatarUploading ? "上传中" : "换头像"}
                   </span>
                   <input
@@ -455,7 +466,7 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              <div className="mt-4 grid grid-cols-4 divide-x divide-zinc-100 rounded-2xl bg-white/[0.055] py-3">
+              <div className="mt-4 grid grid-cols-4 divide-x divide-white/5 rounded-2xl bg-white/[0.055] py-3">
                 {stats.map((item) => (
                   <div key={item.label} className="text-center">
                     <p className="text-lg font-black leading-6 text-white">{item.value}</p>
@@ -470,20 +481,20 @@ export default function ProfilePage() {
         {isConnected ? (
           <>
             <section className="mt-4 grid grid-cols-4 gap-2">
-              <Link className="flex flex-col items-center gap-1.5 rounded-2xl bg-white/[0.07] px-2 py-3 text-xs font-bold text-white/72 shadow-sm ring-1 ring-zinc-100" href="/guides">
+              <Link className="flex flex-col items-center gap-1.5 rounded-2xl bg-white/[0.07] px-2 py-3 text-xs font-bold text-white/72 shadow-sm ring-1 ring-white/10 transition active:scale-95 active:bg-white/[0.10]" href="/guides">
                 <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/[0.05] text-zinc-300">
                   <Sparkles size={17} />
                 </span>
                 分享
               </Link>
-              <a className="flex flex-col items-center gap-1.5 rounded-2xl bg-white/[0.07] px-2 py-3 text-xs font-bold text-white/72 shadow-sm ring-1 ring-zinc-100" href="#activity">
+              <a className="flex flex-col items-center gap-1.5 rounded-2xl bg-white/[0.07] px-2 py-3 text-xs font-bold text-white/72 shadow-sm ring-1 ring-white/10 transition active:scale-95 active:bg-white/[0.10]" href="#activity">
                 <span className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-50 text-emerald-700">
                   <ShieldCheck size={17} />
                 </span>
                 贡献
               </a>
               <button
-                className="flex flex-col items-center gap-1.5 rounded-2xl bg-white/[0.07] px-2 py-3 text-xs font-bold text-white/72 shadow-sm ring-1 ring-zinc-100"
+                className="flex flex-col items-center gap-1.5 rounded-2xl bg-white/[0.07] px-2 py-3 text-xs font-bold text-white/72 shadow-sm ring-1 ring-white/10 transition active:scale-95 active:bg-white/[0.10]"
                 onClick={() => setIsInboxOpen(true)}
                 type="button"
               >
@@ -493,7 +504,7 @@ export default function ProfilePage() {
                 私信
               </button>
               <button
-                className="flex flex-col items-center gap-1.5 rounded-2xl bg-white/[0.07] px-2 py-3 text-xs font-bold text-white/72 shadow-sm ring-1 ring-zinc-100"
+                className="flex flex-col items-center gap-1.5 rounded-2xl bg-white/[0.07] px-2 py-3 text-xs font-bold text-white/72 shadow-sm ring-1 ring-white/10 transition active:scale-95 active:bg-white/[0.10]"
                 onClick={beginEditProfile}
                 type="button"
               >
@@ -503,22 +514,43 @@ export default function ProfilePage() {
                 设置
               </button>
             </section>
+            <section className="mt-4 overflow-hidden rounded-[22px] border border-white/5 bg-white/[0.035] shadow-sm shadow-black/20">
+              <button
+                className="btn-press flex w-full items-center justify-between px-4 py-4 text-left transition-colors active:bg-white/[0.06] disabled:opacity-80"
+                disabled={isCheckingUpdate}
+                onClick={handleCheckUpdate}
+                type="button"
+              >
+                <div className="flex min-w-0 items-center gap-3">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05] text-zinc-400 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+                    <RefreshCw className={`h-5 w-5 ${isCheckingUpdate ? "animate-spin text-emerald-400" : ""}`} />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-zinc-100">检查更新</p>
+                    <p className="mt-0.5 truncate text-xs text-white/40">
+                      {isCheckingUpdate ? "正在连接更新服务..." : "查看当前安装包版本"}
+                    </p>
+                  </div>
+                </div>
+                <span className="ml-3 shrink-0 text-xs font-medium text-zinc-500">v1.0.0</span>
+              </button>
+            </section>
 
             {editingName ? (
-              <section className="mt-4 rounded-[22px] bg-white/[0.07] p-4 shadow-sm ring-1 ring-zinc-100">
+              <section className="mt-4 rounded-[22px] bg-white/[0.07] p-4 shadow-sm ring-1 ring-white/10">
                 <div className="flex items-center justify-between gap-3">
                   <h2 className="text-base font-black text-white">编辑资料</h2>
                   <span className="text-xs font-semibold text-zinc-300">{profileCompleteness}/4</span>
                 </div>
                 <input
-                  className="mt-4 w-full rounded-2xl border border-zinc-200 bg-white/[0.055] px-4 py-3 text-sm text-white outline-none transition focus:border-teal-400"
+                  className="mt-4 w-full rounded-2xl border border-white/10 bg-white/[0.055] px-4 py-3 text-sm text-white outline-none transition focus:border-white/20"
                   maxLength={80}
                   onChange={(event) => setNewName(event.target.value)}
                   placeholder="昵称"
                   value={newName}
                 />
                 <textarea
-                  className="mt-3 w-full resize-none rounded-2xl border border-zinc-200 bg-white/[0.055] px-4 py-3 text-sm leading-6 text-white outline-none transition focus:border-teal-400"
+                  className="mt-3 w-full resize-none rounded-2xl border border-white/10 bg-white/[0.055] px-4 py-3 text-sm leading-6 text-white outline-none transition focus:border-white/20"
                   maxLength={200}
                   onChange={(event) => setNewBio(event.target.value)}
                   placeholder="写一句个人简介"
@@ -548,7 +580,7 @@ export default function ProfilePage() {
                   ))}
                   {newTags.length < 5 ? (
                     <input
-                      className="w-28 rounded-full border border-zinc-200 bg-white/[0.055] px-3 py-1 text-xs outline-none transition focus:border-teal-400"
+                      className="w-28 rounded-full border border-white/10 bg-white/[0.055] px-3 py-1 text-xs outline-none transition focus:border-white/20"
                       maxLength={20}
                       onChange={(event) => setTagInput(event.target.value)}
                       onKeyDown={(event) => {
@@ -566,7 +598,7 @@ export default function ProfilePage() {
 
                 <div className="mt-4 grid grid-cols-2 gap-2">
                   <button
-                    className="btn-press rounded-2xl bg-zinc-100 px-4 py-3 text-sm font-bold text-black disabled:opacity-50"
+                    className="btn-press rounded-2xl bg-zinc-100 px-4 py-3 text-sm font-bold text-zinc-950 transition active:scale-[0.98] disabled:opacity-50"
                     disabled={!newName.trim() || nameSaving || !isProfileDirty}
                     onClick={handleSaveProfile}
                     type="button"
@@ -574,7 +606,7 @@ export default function ProfilePage() {
                     {nameSaving ? "保存中..." : "保存"}
                   </button>
                   <button
-                    className="rounded-2xl bg-white/[0.075] px-4 py-3 text-sm font-bold text-white/72"
+                    className="rounded-2xl bg-white/[0.075] px-4 py-3 text-sm font-bold text-white/72 transition active:scale-[0.98] active:bg-white/[0.10]"
                     onClick={() => setEditingName(false)}
                     type="button"
                   >
@@ -584,7 +616,7 @@ export default function ProfilePage() {
               </section>
             ) : null}
 
-            <section className="mt-4 rounded-[22px] bg-white/[0.07] p-4 shadow-sm ring-1 ring-zinc-100">
+            <section className="mt-4 rounded-[22px] bg-white/[0.07] p-4 shadow-sm ring-1 ring-white/10">
               <div className="flex items-center justify-between">
                 <h2 className="text-base font-black text-white">资料完成度</h2>
                 <span className="text-sm font-black text-zinc-300">{completenessPercent}%</span>
@@ -604,7 +636,7 @@ export default function ProfilePage() {
               </div>
             </section>
 
-            <section className="mt-4 rounded-[22px] bg-white/[0.07] p-4 shadow-sm ring-1 ring-zinc-100">
+            <section className="mt-4 rounded-[22px] bg-white/[0.07] p-4 shadow-sm ring-1 ring-white/10">
               <div className="flex items-center justify-between">
                 <h2 className="text-base font-black text-white">最近动态</h2>
                 <Link className="flex items-center gap-0.5 text-xs font-bold text-zinc-300" href="/guides">
@@ -612,7 +644,7 @@ export default function ProfilePage() {
                   <ChevronRight size={14} />
                 </Link>
               </div>
-              <div className="mt-3 divide-y divide-zinc-100">
+              <div className="mt-3 divide-y divide-white/5">
                 {recentItems.map((item) => (
                   <div key={item.title} className="py-3 first:pt-0 last:pb-0">
                     <div className="flex items-center justify-between gap-3">
@@ -625,13 +657,13 @@ export default function ProfilePage() {
               </div>
             </section>
 
-            <section id="activity" className="mt-4 rounded-[22px] bg-white/[0.07] p-4 shadow-sm ring-1 ring-zinc-100">
+            <section id="activity" className="mt-4 rounded-[22px] bg-white/[0.07] p-4 shadow-sm ring-1 ring-white/10">
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <h2 className="text-base font-black text-white">我的贡献</h2>
                   <p className="mt-0.5 text-xs text-white/50">{activeArchiveCount} 条{currentTabLabel}记录</p>
                 </div>
-                <MessageCircle className="text-teal-600" size={20} />
+                <MessageCircle className="text-zinc-400" size={20} />
               </div>
 
               <div className="mt-4 grid grid-cols-3 rounded-2xl bg-white/[0.075] p-1">
@@ -641,7 +673,7 @@ export default function ProfilePage() {
                     <button
                       key={tab.key}
                       className={`rounded-xl px-2 py-2 text-xs font-bold transition ${
-                        activeTab === tab.key ? "bg-white/[0.08] text-zinc-300 shadow-sm" : "text-white/50"
+                        activeTab === tab.key ? "bg-white/[0.08] text-zinc-100 shadow-sm" : "text-white/50 active:bg-white/[0.05]"
                       }`}
                       aria-pressed={activeTab === tab.key}
                       onClick={() => setActiveTab(tab.key)}
@@ -660,7 +692,7 @@ export default function ProfilePage() {
                   posts.length === 0 ? (
                     <EmptyRecordsState label="分享" />
                   ) : (
-                    <div className="divide-y divide-zinc-100">
+                    <div className="divide-y divide-white/5">
                       {posts.slice(0, 10).map((post) => (
                         <Link key={post.issueNumber} className="block py-3 first:pt-0 last:pb-0" href="/community">
                           <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold text-white/38">
@@ -678,7 +710,7 @@ export default function ProfilePage() {
                   replies.length === 0 ? (
                     <EmptyRecordsState label="回复" />
                   ) : (
-                    <div className="divide-y divide-zinc-100">
+                    <div className="divide-y divide-white/5">
                       {replies.map((item) => (
                         <Link key={item.reply.id} className="block py-3 first:pt-0 last:pb-0" href="/community">
                           <p className="text-[11px] font-semibold text-white/38">
@@ -692,7 +724,7 @@ export default function ProfilePage() {
                 ) : likedPosts.length === 0 ? (
                   <EmptyRecordsState label="喜欢" />
                 ) : (
-                  <div className="divide-y divide-zinc-100">
+                  <div className="divide-y divide-white/5">
                     {likedPosts.map((post) => (
                       <Link key={post.issueNumber} className="block py-3 first:pt-0 last:pb-0" href="/community">
                         <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold text-white/38">

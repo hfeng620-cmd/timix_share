@@ -34,7 +34,7 @@ export function ImageLightbox({ src, imageUrl, alt = "全屏大图", onClose }: 
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[99999] flex h-screen w-screen items-center justify-center overscroll-none bg-black/85 backdrop-blur-md"
+      className="fixed inset-0 z-[99999] flex h-screen w-screen items-center justify-center overscroll-none bg-[#09090b]/85 backdrop-blur-md"
       onClick={onClose}
       role="dialog"
       aria-modal="true"

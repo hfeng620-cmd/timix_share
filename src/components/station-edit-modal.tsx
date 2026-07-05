@@ -137,7 +137,7 @@ export function StationEditModal({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 p-4 backdrop-blur-md"
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#09090b]/80 p-4 backdrop-blur-md"
       onClick={onClose}
     >
       <div

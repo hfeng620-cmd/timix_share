@@ -41,7 +41,7 @@ export function AuthButton() {
       <div className="flex items-center gap-2">
         {needsPassword ? (
           <button
-            className="flex min-h-11 min-w-11 items-center justify-center rounded-full bg-white text-xs font-bold text-black transition hover:bg-white/80"
+            className="flex min-h-11 min-w-11 items-center justify-center rounded-full bg-white text-xs font-bold text-zinc-950 transition hover:bg-white/80"
             onClick={showAuthModal}
             title="设置密码和昵称"
             type="button"
@@ -91,7 +91,7 @@ export function AuthButton() {
   return (
     <button
       aria-label="登录"
-      className="flex min-h-11 min-w-11 items-center justify-center rounded-full bg-white text-sm font-bold text-black transition hover:bg-white/80"
+      className="flex min-h-11 min-w-11 items-center justify-center rounded-full bg-white text-sm font-bold text-zinc-950 transition hover:bg-white/80"
       onClick={showAuthModal}
       title="登录"
       type="button"

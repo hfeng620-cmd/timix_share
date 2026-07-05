@@ -1798,7 +1798,7 @@ export function StationsBoard() {
       {/* ---- Station Discussion Modal (Portal to body) ---- */}
       {discussionStation && typeof document !== 'undefined' && createPortal(
         <div
-          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4"
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#09090b]/50 p-4"
           style={{ backdropFilter: 'blur(4px)', position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
           onClick={(e) => { if (e.target === e.currentTarget) setDiscussionStation(null); }}
         >
@@ -1847,7 +1847,7 @@ export function StationsBoard() {
 
       {/* Quick action FAB — bottom-right */}
       {isConnected && (
-        <div className="fixed bottom-20 right-4 z-[60] lg:bottom-6">
+        <div className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom,0px))] right-4 z-[60] lg:bottom-6">
           {quickMenuOpen && (
             <div className="surface-in mb-3 flex flex-col gap-2 rounded-[16px] border border-[var(--color-line)] bg-[var(--color-panel)] p-3 shadow-[0_12px_40px_rgba(15,23,42,0.14)]">
               <button
@@ -1868,7 +1868,7 @@ export function StationsBoard() {
           )}
           <button
             aria-label="站点操作"
-            className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-brand)] text-xl font-bold text-[var(--color-on-brand)] shadow-[0_8px_28px_var(--color-panel-glow)] transition hover:bg-[var(--color-brand-deep)]"
+            className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-brand)] text-xl font-bold text-[var(--color-on-brand)] shadow-[0_8px_28px_var(--color-panel-glow)] transition active:scale-95 active:opacity-90 hover:bg-[var(--color-brand-deep)]"
             onClick={() => setQuickMenuOpen((v) => !v)}
             type="button"
           >

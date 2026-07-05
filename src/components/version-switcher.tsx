@@ -57,7 +57,7 @@ export function VersionSwitcherModal({ open, onClose }: Props) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/50 backdrop-blur-xl p-6" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+    <div className="fixed inset-0 z-[999] flex items-center justify-center bg-[#09090b]/50 backdrop-blur-xl p-6" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div ref={modalRef} className="w-full max-w-sm rounded-[28px] border border-white/15 bg-white/8 p-8 shadow-[0_28px_90px_rgba(0,0,0,0.4)] backdrop-blur-2xl" role="dialog" aria-modal="true" aria-label="选择 UI 版本">
         <div className="mb-6 text-center">
           <h2 className="text-lg font-heading italic text-white">切换界面版本</h2>

@@ -232,7 +232,7 @@ export function DropClaimModal({ campaign, onClaimed, open, onClose }: DropClaim
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center overscroll-none bg-black/85 backdrop-blur-xl"
+      className="fixed inset-0 z-[100] flex items-center justify-center overscroll-none bg-[#09090b]/85 backdrop-blur-xl"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -290,7 +290,7 @@ export function DropClaimModal({ campaign, onClaimed, open, onClose }: DropClaim
             </p>
 
             <button
-              className="mt-8 rounded-full bg-white px-8 py-3 text-sm font-bold text-black transition hover:bg-zinc-200"
+              className="mt-8 rounded-full bg-white px-8 py-3 text-sm font-bold text-zinc-950 transition hover:bg-zinc-200"
               onClick={onClose}
               type="button"
             >
@@ -315,7 +315,7 @@ export function DropClaimModal({ campaign, onClaimed, open, onClose }: DropClaim
                 领取前：请先前往目标平台注册账号
               </p>
               <a
-                className="mt-3 flex items-center gap-2 rounded-xl border border-white/10 bg-zinc-900 px-5 py-4 text-base font-bold text-cyan-300 transition hover:border-cyan-400/30 hover:bg-zinc-900/80"
+                className="mt-3 flex items-center gap-2 rounded-xl border border-white/10 bg-zinc-900 px-5 py-4 text-base font-bold text-emerald-300 transition hover:border-emerald-400/25 hover:bg-zinc-900/80"
                 href={campaign.sponsor_url}
                 rel="noopener noreferrer"
                 target="_blank"
@@ -414,7 +414,7 @@ export function DropClaimModal({ campaign, onClaimed, open, onClose }: DropClaim
                                   key={item.value}
                                   className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
                                     selectedAnswer === item.value
-                                      ? "border-cyan-300/60 bg-cyan-300/10 text-cyan-100 shadow-[0_0_20px_rgba(34,211,238,0.12)]"
+                                      ? "border-emerald-300/35 bg-emerald-300/10 text-emerald-100 shadow-[0_0_20px_rgba(16,185,129,0.12)]"
                                       : "border-white/10 bg-white/5 text-zinc-400 hover:border-white/20 hover:text-zinc-200"
                                   }`}
                                   disabled={submitting}
@@ -467,7 +467,7 @@ export function DropClaimModal({ campaign, onClaimed, open, onClose }: DropClaim
 
                   {/* Submit */}
                   <button
-                    className="flex w-full items-center justify-center gap-2 rounded-full bg-white py-3 text-sm font-bold text-black transition hover:bg-zinc-200 disabled:opacity-40"
+                    className="flex w-full items-center justify-center gap-2 rounded-full bg-white py-3 text-sm font-bold text-zinc-950 transition hover:bg-zinc-200 disabled:opacity-40"
                     disabled={submitting}
                     onClick={handleSubmit}
                     type="button"

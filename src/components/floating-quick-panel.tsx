@@ -141,7 +141,7 @@ export function FloatingQuickPanel() {
                 type="button"
               >
                 <span className="flex min-w-0 items-center gap-2.5">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full border border-emerald-300/20 bg-black/10 text-emerald-200">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full border border-emerald-300/20 bg-[#09090b]/10 text-emerald-200">
                     <Activity className="h-4 w-4" />
                   </span>
                   <span>
@@ -153,7 +153,7 @@ export function FloatingQuickPanel() {
                     </span>
                   </span>
                 </span>
-                <span className="rounded-full bg-black/10 px-2 py-1 font-mono text-[10px] font-bold text-emerald-200">
+                <span className="rounded-full bg-[#09090b]/10 px-2 py-1 font-mono text-[10px] font-bold text-emerald-200">
                   LIVE
                 </span>
               </button>

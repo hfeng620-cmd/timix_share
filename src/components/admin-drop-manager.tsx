@@ -275,7 +275,7 @@ export function AdminDropManager() {
                         />
                       </label>
                     ) : (
-                      <p className="rounded-2xl border border-cyan-300/10 bg-cyan-300/[0.04] px-4 py-3 text-xs leading-5 text-cyan-100/70">
+                      <p className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-xs leading-5 text-zinc-300">
                         自由填写题会在领取弹窗里显示为必填文本框，不需要配置选项。
                       </p>
                     )}
@@ -300,7 +300,7 @@ export function AdminDropManager() {
               value={bulkCodesText}
               onChange={(event) => setBulkCodesText(event.target.value)}
               rows={10}
-              className="w-full resize-y rounded-2xl border border-white/10 bg-black/40 px-4 py-3 font-mono text-sm text-emerald-50 outline-none transition placeholder:text-zinc-600 focus:border-emerald-300/60"
+              className="w-full resize-y rounded-2xl border border-white/10 bg-[#09090b]/40 px-4 py-3 font-mono text-sm text-emerald-50 outline-none transition placeholder:text-zinc-600 focus:border-emerald-300/60"
               placeholder={"XXXX-XXXX; YYYY-YYYY; ZZZZ-ZZZZ\n..."}
             />
           </label>

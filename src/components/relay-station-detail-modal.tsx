@@ -157,7 +157,7 @@ export function RelayStationDetailModal({ station, open, onClose }: RelayStation
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 sm:p-6"
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#09090b]/80 backdrop-blur-md p-4 sm:p-6"
       onClick={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}
@@ -221,7 +221,7 @@ export function RelayStationDetailModal({ station, open, onClose }: RelayStation
           </div>
 
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            <DashboardCard accent="text-cyan-300" hint={multiplierValue} label="价格 Price" value={priceValue} />
+            <DashboardCard accent="text-emerald-300" hint={multiplierValue} label="价格 Price" value={priceValue} />
             <DashboardCard label="Token Usage" value={tokenCostLabel(liveMetric, station)} />
             <DashboardCard label="Fidelity" value={fidelityLabel(liveMetric, station)} />
             <DashboardCard label="Model Support" value={liveMetric?.modelName || station.models || "待补"} />

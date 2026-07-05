@@ -90,7 +90,7 @@ export function PwaInstallButton() {
 
   const iosGuide = mounted && showIosGuide
     ? createPortal(
-        <div className="fixed inset-0 z-[300] flex items-end justify-center bg-black/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[300] flex items-end justify-center bg-[#09090b]/60 backdrop-blur-sm">
           <div
             className="w-full rounded-t-[20px] px-6 py-6"
             style={{
@@ -102,7 +102,7 @@ export function PwaInstallButton() {
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-base font-bold text-white">添加到主屏幕</h3>
               <button
-                className="rounded-full p-1 text-white/50 transition hover:text-white"
+                className="rounded-full p-1 text-white/50 transition active:scale-95 active:bg-white/10 hover:text-white"
                 onClick={() => setShowIosGuide(false)}
                 type="button"
               >
@@ -141,7 +141,7 @@ export function PwaInstallButton() {
     <>
       <button
         aria-label={isIOS() ? "添加到主屏幕" : "安装App"}
-        className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] text-[var(--color-muted)] transition hover:border-[var(--dt-primary)]/40 hover:bg-[var(--dt-primary)]/10 hover:text-[var(--dt-primary)]"
+        className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-zinc-400 transition active:scale-95 active:bg-white/10 hover:border-white/20 hover:bg-white/[0.08] hover:text-zinc-100"
         onClick={handleInstall}
         title={isIOS() ? "添加到主屏幕" : "安装App"}
         type="button"
@@ -208,7 +208,7 @@ export function PwaInstallCallout() {
   const platformIsIOS = isIOS();
   const guide = showGuide
     ? createPortal(
-        <div className="fixed inset-0 z-[300] flex items-end justify-center bg-black/65 backdrop-blur-md">
+        <div className="fixed inset-0 z-[300] flex items-end justify-center bg-[#09090b]/65 backdrop-blur-md">
           <div
             className="w-full rounded-t-[28px] border border-white/10 border-b-0 bg-zinc-950 px-5 py-5 shadow-[0_-24px_80px_rgba(0,0,0,0.45)]"
             style={{ paddingBottom: "max(env(safe-area-inset-bottom, 0px), 22px)" }}
@@ -225,7 +225,7 @@ export function PwaInstallCallout() {
               </div>
               <button
                 aria-label="关闭安装说明"
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/8 text-white/55"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/[0.08] text-white/55 transition active:scale-95 active:bg-white/10"
                 onClick={() => setShowGuide(false)}
                 type="button"
               >
@@ -246,7 +246,7 @@ export function PwaInstallCallout() {
                     ["3", "安装后从桌面图标进入，体验更接近原生 App。"],
                   ]).map(([step, text]) => (
                 <div key={step} className="flex gap-3 rounded-2xl border border-white/8 bg-white/[0.04] p-3">
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-xs font-black text-black">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-xs font-black text-zinc-950">
                     {step}
                   </span>
                   <p className="text-sm leading-6 text-white/72">{text}</p>
@@ -261,9 +261,9 @@ export function PwaInstallCallout() {
 
   return (
     <>
-      <div className="rounded-[22px] border border-[var(--mobile-app-line,rgba(34,211,238,0.2))] bg-[var(--mobile-app-panel,rgba(255,255,255,0.06))] p-4 shadow-[var(--mobile-app-shadow,0_18px_60px_rgba(34,211,238,0.08))] backdrop-blur-xl">
+      <div className="rounded-[22px] border border-[var(--mobile-app-line,rgba(255,255,255,0.10))] bg-[var(--mobile-app-panel,rgba(255,255,255,0.06))] p-4 shadow-[var(--mobile-app-shadow,0_18px_60px_rgba(0,0,0,0.28))] backdrop-blur-xl">
         <div className="flex items-start gap-3">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,var(--mobile-app-primary,#22d3ee),var(--mobile-app-accent,#d946ef))] text-[var(--mobile-app-button-ink,#050506)] shadow-[0_12px_30px_rgba(34,211,238,0.20)]">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,var(--mobile-app-primary,#f4f4f5),var(--mobile-app-accent,#d4d4d8))] text-[var(--mobile-app-button-ink,#09090b)] shadow-[0_12px_30px_rgba(255,255,255,0.08)]">
             <Smartphone className="h-5 w-5" />
           </div>
           <div className="min-w-0 flex-1">
@@ -274,7 +274,7 @@ export function PwaInstallCallout() {
           </div>
         </div>
         <button
-          className="mt-4 flex h-11 w-full items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(135deg,var(--mobile-app-primary,#22d3ee),var(--mobile-app-accent,#d946ef))] text-sm font-bold text-[var(--mobile-app-button-ink,#050506)] shadow-[0_14px_34px_rgba(34,211,238,0.18)] active:scale-[0.98]"
+          className="mt-4 flex h-11 w-full items-center justify-center gap-2 rounded-2xl bg-[linear-gradient(135deg,var(--mobile-app-primary,#f4f4f5),var(--mobile-app-accent,#d4d4d8))] text-sm font-bold text-[var(--mobile-app-button-ink,#09090b)] shadow-[0_14px_34px_rgba(255,255,255,0.08)] active:scale-[0.98] active:opacity-90"
           onClick={handleInstall}
           type="button"
         >

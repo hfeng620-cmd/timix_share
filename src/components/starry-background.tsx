@@ -137,7 +137,7 @@ export function StarryBackground({ variant = "midnight", className = "" }: Starr
       />
 
       {/* Bottom fade to black */}
-      <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-black to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-[#09090b] to-transparent" />
     </div>
   );
 }

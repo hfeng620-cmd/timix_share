@@ -34,7 +34,7 @@ export default function CommunityPage() {
   }, []);
 
   return (
-    <div className="community-mobile-app min-h-screen text-white">
+    <div className="community-mobile-app min-h-[100dvh] overflow-x-hidden text-white">
       <Navbar />
 
       <div className="mx-auto max-w-[1680px] px-3 pt-20 sm:px-5 md:pt-28 lg:px-8">
@@ -48,7 +48,7 @@ export default function CommunityPage() {
               <MobileThemeToggle />
               <button
                 onClick={openMonitor}
-                className="inline-flex h-10 items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-2.5 text-[11px] font-semibold text-zinc-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
+                className="inline-flex h-10 items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-2.5 text-[11px] font-semibold text-zinc-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition active:scale-95 active:bg-white/10"
                 type="button"
               >
                 <Activity className="h-3.5 w-3.5" />
@@ -59,7 +59,7 @@ export default function CommunityPage() {
 
           <div className="mt-2 grid grid-cols-[minmax(0,1fr)_auto] gap-2">
             <button
-              className="inline-flex min-h-9 items-center justify-center gap-2 rounded-xl bg-zinc-100 px-4 text-xs font-semibold text-zinc-950 shadow-lg shadow-white/5 active:scale-[0.98]"
+              className="inline-flex min-h-9 items-center justify-center gap-2 rounded-xl bg-zinc-100 px-4 text-xs font-semibold text-zinc-950 shadow-lg shadow-white/5 transition active:scale-[0.98] active:opacity-90"
               onClick={() => setMobileComposerOpen((open) => !open)}
               type="button"
             >
@@ -68,7 +68,7 @@ export default function CommunityPage() {
             </button>
             <a
               href={siteLinks.discussions}
-              className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] px-3 text-[11px] font-semibold text-zinc-400"
+              className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] px-3 text-[11px] font-semibold text-zinc-400 transition active:scale-[0.98] active:bg-white/10"
               rel="noopener noreferrer"
               target="_blank"
             >
@@ -80,7 +80,7 @@ export default function CommunityPage() {
 
         <nav className="mb-3 flex gap-2 overflow-x-auto pb-1 text-white md:hidden" aria-label="社区快捷入口">
           <button
-            className="inline-flex min-h-8 shrink-0 items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 text-[11px] font-semibold text-zinc-300 shadow-sm"
+            className="inline-flex min-h-8 shrink-0 items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 text-[11px] font-semibold text-zinc-300 shadow-sm transition active:scale-95 active:bg-white/10"
             onClick={() => setMobileComposerOpen((open) => !open)}
             type="button"
           >
@@ -88,7 +88,7 @@ export default function CommunityPage() {
             发帖
           </button>
           <button
-            className={`inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full px-3 text-[11px] font-bold shadow-sm ${
+            className={`inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full px-3 text-[11px] font-bold shadow-sm transition active:scale-95 active:opacity-85 ${
               mobilePanel === "hot" ? "bg-zinc-100 text-zinc-950" : "border border-white/10 bg-white/[0.04] text-zinc-300"
             }`}
             onClick={() => setMobilePanel(mobilePanel === "hot" ? null : "hot")}
@@ -98,7 +98,7 @@ export default function CommunityPage() {
             热门
           </button>
           <button
-            className={`inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full px-3 text-[11px] font-bold shadow-sm ${
+            className={`inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full px-3 text-[11px] font-bold shadow-sm transition active:scale-95 active:opacity-85 ${
               mobilePanel === "rank" ? "bg-zinc-100 text-zinc-950" : "border border-white/10 bg-white/[0.04] text-zinc-300"
             }`}
             onClick={() => setMobilePanel(mobilePanel === "rank" ? null : "rank")}
@@ -108,7 +108,7 @@ export default function CommunityPage() {
             排行
           </button>
           <button
-            className="inline-flex min-h-8 shrink-0 items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 text-[11px] font-semibold text-zinc-300 shadow-sm"
+            className="inline-flex min-h-8 shrink-0 items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 text-[11px] font-semibold text-zinc-300 shadow-sm transition active:scale-95 active:bg-white/10"
             onClick={() => setQqModalOpen(true)}
             type="button"
           >
@@ -230,7 +230,7 @@ export default function CommunityPage() {
           <div className="min-w-0 space-y-3 md:space-y-5">
             <div className="community-mobile-compose md:hidden">
               <button
-                className="community-compose-trigger flex w-full items-center justify-between rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
+                className="community-compose-trigger flex w-full items-center justify-between rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition active:scale-[0.99] active:bg-white/10"
                 onClick={() => setMobileComposerOpen((open) => !open)}
                 type="button"
               >
@@ -278,17 +278,17 @@ export default function CommunityPage() {
       {/* ── QQ 群二维码毛玻璃弹窗 ── */}
       {qqModalOpen && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-xl px-4"
+          className="fixed inset-0 z-[100] flex items-end justify-center bg-[#09090b]/60 px-0 backdrop-blur-xl md:items-center md:px-4"
           onClick={() => setQqModalOpen(false)}
         >
           <div
-            className="relative w-full max-w-md overflow-hidden rounded-3xl border border-white/15 bg-white/8 shadow-2xl backdrop-blur-xl"
+            className="relative w-full max-w-md overflow-hidden rounded-t-3xl border border-white/10 border-b-0 bg-zinc-950/95 shadow-2xl backdrop-blur-xl md:rounded-3xl md:border-b"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Close button */}
             <button
               onClick={() => setQqModalOpen(false)}
-              className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white/60 hover:bg-white/20 hover:text-white transition"
+              className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white/60 transition active:scale-95 active:bg-white/20 hover:bg-white/20 hover:text-white"
               type="button"
               aria-label="关闭"
             >
@@ -296,7 +296,7 @@ export default function CommunityPage() {
             </button>
 
             {/* Content */}
-            <div className="flex flex-col items-center px-8 py-10">
+            <div className="flex flex-col items-center px-8 py-10 pb-[max(env(safe-area-inset-bottom,0px),2.5rem)] md:pb-10">
               <p className="text-sm font-heading italic text-white mb-6">加入 QQ 群</p>
 
               {/* QR Code */}

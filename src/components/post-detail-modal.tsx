@@ -350,7 +350,7 @@ function NestedReplyModal({
     <div
       ref={overlayRef}
       tabIndex={-1}
-      className="fixed inset-0 z-[200] flex items-end justify-center bg-black/60 px-0 backdrop-blur-xl outline-none sm:items-center sm:px-4"
+      className="fixed inset-0 z-[200] flex items-end justify-center bg-[#09090b]/60 px-0 backdrop-blur-xl outline-none sm:items-center sm:px-4"
       onKeyDown={handleOverlayKeyDown}
       onClick={onClose}
     >
@@ -445,7 +445,7 @@ function NestedReplyModal({
         </div>
 
         {/* 底部输入框 */}
-        <div className="shrink-0 border-t border-white/10 bg-zinc-900/50 px-4 py-3 sm:px-6 sm:py-4">
+        <div className="shrink-0 border-t border-white/10 bg-zinc-900/50 px-4 pb-[max(env(safe-area-inset-bottom,0px),0.75rem)] pt-3 sm:px-6 sm:py-4">
           {replyTarget && (
             <p className="text-[11px] text-gray-500 font-body mb-2">
               回复 <span className="text-zinc-300">@{replyTarget.authorName}</span>
@@ -863,7 +863,7 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
       <div
         ref={overlayRef}
         tabIndex={-1}
-        className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60 px-0 backdrop-blur-xl outline-none sm:items-center sm:px-4"
+        className="fixed inset-0 z-[100] flex items-end justify-center bg-[#09090b]/60 px-0 backdrop-blur-xl outline-none sm:items-center sm:px-4"
         onKeyDown={handleMainKeyDown}
         onClick={onClose}
       >
@@ -871,7 +871,7 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
           <X className="h-6 w-6" />
         </button>
         <div
-          className="relative flex h-[92dvh] w-full max-w-6xl flex-col overflow-hidden rounded-t-2xl border border-white/10 bg-zinc-950/95 shadow-2xl sm:h-[85vh] sm:flex-row sm:rounded-2xl sm:bg-zinc-950/90"
+          className="relative flex h-[92dvh] w-full max-w-6xl flex-col overflow-hidden rounded-t-2xl border border-white/10 border-b-0 bg-zinc-950/95 shadow-2xl sm:h-[85vh] sm:flex-row sm:rounded-2xl sm:border-b sm:bg-zinc-950/90"
           onClick={(e) => e.stopPropagation()}
         >
           {/* ── Left: 分享内容 ── */}
@@ -1006,7 +1006,7 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
             </div>
 
             {/* Bottom action bar */}
-            <div className="shrink-0 flex items-center gap-4 border-t border-white/10 bg-zinc-950/50 px-4 py-3 sm:gap-5 sm:px-8 sm:py-4">
+            <div className="shrink-0 flex items-center gap-4 border-t border-white/10 bg-zinc-950/50 px-4 pb-[max(env(safe-area-inset-bottom,0px),0.75rem)] pt-3 sm:gap-5 sm:px-8 sm:py-4">
               <button onClick={handlePostLike} disabled={postLikePending} className={`cursor-pointer inline-flex items-center gap-1.5 text-xs transition font-body disabled:cursor-not-allowed disabled:opacity-60 sm:text-sm ${postIsLiked ? "text-rose-400" : "text-white/40 hover:text-rose-300"}`} type="button">
                 <Heart className={`h-4 w-4 transition ${postIsLiked ? "fill-current" : ""}`} />{postLikesCount}
               </button>

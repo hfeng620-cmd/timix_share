@@ -218,7 +218,7 @@ export function NotificationBell({
 
       {/* Full-screen overlay modal */}
       {open && createPortal(
-        <div className="fixed inset-0 z-[200] flex items-start justify-center bg-black/50 px-4 pt-[12vh] backdrop-blur-sm max-md:items-end max-md:px-0 max-md:pt-0">
+        <div className="fixed inset-0 z-[200] flex items-start justify-center bg-[#09090b]/50 px-4 pt-[12vh] backdrop-blur-sm max-md:items-end max-md:px-0 max-md:pt-0">
           <div
             className="surface-in w-full max-w-lg overflow-hidden rounded-[24px] border border-[var(--color-line)] bg-[var(--color-panel)] shadow-[0_24px_80px_rgba(15,23,42,0.18)] max-md:max-h-[85dvh] max-md:rounded-b-none max-md:rounded-t-[20px] max-md:border-b-0"
             onClick={(e) => e.stopPropagation()}

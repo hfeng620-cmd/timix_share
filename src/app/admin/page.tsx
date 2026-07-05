@@ -1184,7 +1184,7 @@ export default function AdminPage() {
   // ---- Permission gate ----
   if (!isConnected && adminChecked) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-black text-white">
+      <div className="flex min-h-screen items-center justify-center bg-[#09090b] text-white">
         <div className="rounded-[34px] border border-[var(--color-line)] bg-[var(--color-panel)] p-10 text-center shadow-[0_18px_60px_rgba(13,25,48,0.07)]">
           <p className="text-2xl font-black">需要管理员权限</p>
           <p className="mt-3 text-sm text-[var(--color-muted)]">
@@ -1204,7 +1204,7 @@ export default function AdminPage() {
 
   if (!adminOk && adminChecked) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-black text-white">
+      <div className="flex min-h-screen items-center justify-center bg-[#09090b] text-white">
         <div className="rounded-[34px] border border-[var(--color-line)] bg-[var(--color-panel)] p-10 text-center shadow-[0_18px_60px_rgba(13,25,48,0.07)] max-w-lg">
           <p className="text-2xl font-black">需要管理员权限</p>
           <p className="mt-3 text-sm text-[var(--color-muted)]">
@@ -1226,7 +1226,7 @@ export default function AdminPage() {
 
   if (adminLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-black">
+      <div className="flex min-h-screen items-center justify-center bg-[#09090b]">
         <p className="text-sm text-white/55">验证管理员权限中...</p>
       </div>
     );
@@ -2466,10 +2466,10 @@ export default function AdminPage() {
                       <div className="flex items-center gap-2">
                         <p className="font-semibold text-white text-sm">{user.display_name}</p>
                         {user.isAdmin && (
-                          <span className="shrink-0 rounded border border-blue-500/20 bg-blue-500/10 px-2 py-0.5 text-[10px] font-bold text-blue-400">管理员</span>
+                          <span className="shrink-0 rounded border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[10px] font-bold text-zinc-300">管理员</span>
                         )}
                         {user.custom_title ? (
-                          <span className="shrink-0 rounded-md border border-purple-500/20 bg-purple-500/10 px-2 py-0.5 text-[10px] font-bold text-purple-400">
+                          <span className="shrink-0 rounded-md border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[10px] font-bold text-zinc-300">
                             {user.custom_title}
                           </span>
                         ) : null}
@@ -2503,7 +2503,7 @@ export default function AdminPage() {
                       </button>
                       <button
                         aria-label={`设置 ${user.display_name} 的自定义头衔`}
-                        className="flex shrink-0 items-center justify-center rounded-lg bg-zinc-900/50 p-2 text-zinc-500 shadow-sm transition-all hover:bg-purple-500/10 hover:text-purple-400"
+                        className="flex shrink-0 items-center justify-center rounded-lg bg-zinc-900/50 p-2 text-zinc-500 shadow-sm transition-all hover:bg-white/[0.04] hover:text-zinc-300"
                         onClick={(event) => {
                           event.stopPropagation();
                           openTitleEditor(user);
@@ -2543,7 +2543,7 @@ export default function AdminPage() {
       )}
 
       {editingTitleUser && (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-[#09090b]/60 px-4 backdrop-blur-sm">
           <form
             aria-labelledby="custom-title-modal-title"
             aria-modal="true"
@@ -2566,7 +2566,7 @@ export default function AdminPage() {
               </label>
               <input
                 autoFocus
-                className="mt-3 w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-semibold text-white outline-none transition placeholder:text-white/25 focus:border-purple-500/50 focus:bg-purple-500/10"
+                className="mt-3 w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-semibold text-white outline-none transition placeholder:text-white/25 focus:border-white/20 focus:bg-white/[0.04]"
                 id="custom-title-input"
                 maxLength={40}
                 onChange={(event) => setTitleDraft(event.target.value)}
@@ -2574,7 +2574,7 @@ export default function AdminPage() {
                 value={titleDraft}
               />
               <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-                <span className="rounded-md border border-purple-500/20 bg-purple-500/10 px-2 py-0.5 text-xs font-bold text-purple-400">
+                <span className="rounded-md border border-white/10 bg-white/[0.04] px-2 py-0.5 text-xs font-bold text-zinc-300">
                   {titleDraft.trim() || "紫色头衔预览"}
                 </span>
                 <span className="text-xs text-white/35">{titleDraft.trim().length}/40</span>
@@ -2593,7 +2593,7 @@ export default function AdminPage() {
                 取消
               </button>
               <button
-                className="rounded-xl bg-purple-500/20 px-4 py-2 text-sm font-bold text-purple-200 ring-1 ring-purple-500/30 transition hover:bg-purple-500/30 disabled:opacity-50"
+                className="rounded-xl bg-zinc-100 px-4 py-2 text-sm font-bold text-zinc-950 ring-1 ring-white/10 transition hover:bg-white disabled:opacity-50"
                 disabled={titleSaving}
                 type="submit"
               >
@@ -2606,7 +2606,7 @@ export default function AdminPage() {
 
       {/* ── Announcement confirmation dialog ── */}
       {announceConfirmOpen && (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/50 px-4 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-[#09090b]/50 px-4 backdrop-blur-sm">
           <div
             aria-labelledby="announcement-confirm-title"
             aria-modal="true"

@@ -6,7 +6,7 @@ import { StationsBoard } from "@/components/stations-board";
 
 export default function StationsPage() {
   return (
-    <div className="stations-mobile-app min-h-screen bg-[#07080b] text-white lg:bg-transparent lg:text-white">
+    <div className="stations-mobile-app min-h-[100dvh] overflow-x-hidden bg-[var(--mobile-app-bg,#09090b)] text-white lg:bg-transparent lg:text-white">
       <Navbar />
 
       <section className="relative z-10 mx-auto max-w-[1680px] px-2.5 pt-16 sm:px-5 lg:px-8 lg:pt-28">
@@ -57,7 +57,7 @@ export default function StationsPage() {
             <StationMonitorPanel />
           </div>
 
-          <div className="order-1 overflow-hidden rounded-[18px] border border-white/10 bg-white/[0.04] p-0 shadow-[0_10px_24px_rgba(15,23,42,0.06)] backdrop-blur lg:order-2 lg:rounded-3xl lg:border-white/10 lg:bg-black/30 lg:p-6 lg:shadow-2xl">
+          <div className="order-1 overflow-hidden rounded-[18px] border border-white/10 bg-white/[0.04] p-0 shadow-[0_10px_24px_rgba(15,23,42,0.06)] backdrop-blur lg:order-2 lg:rounded-3xl lg:border-white/10 lg:bg-[#09090b]/30 lg:p-6 lg:shadow-2xl">
             <StationsBoard />
           </div>
         </div>

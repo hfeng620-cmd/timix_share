@@ -158,14 +158,14 @@ function PostCard({ post, onClick, onEdit, onDelete, onToggleHot }: { post: Post
           <p className="mt-0.5 line-clamp-1 text-[11px] leading-4 text-white/50 font-body sm:mt-1 sm:line-clamp-2 sm:text-[12px] sm:leading-5">{post.summary}</p>
         </div>
         {canEdit && (onEdit || onDelete) && (
-          <div className="relative shrink-0 opacity-0 group-hover:opacity-100 transition" onClick={(e) => e.stopPropagation()}>
-            <button className="rounded-lg p-1.5 text-white/30 hover:text-white hover:bg-white/10 transition" title="更多操作" type="button"
+          <div className="relative shrink-0 opacity-100 transition sm:opacity-0 sm:group-hover:opacity-100" onClick={(e) => e.stopPropagation()}>
+            <button className="rounded-lg p-1.5 text-white/50 transition active:scale-95 active:bg-white/10 hover:bg-white/10 hover:text-white" title="更多操作" type="button"
               onClick={(e) => { e.stopPropagation(); const menu = (e.currentTarget as HTMLElement).nextElementSibling as HTMLElement; if (menu) menu.classList.toggle('hidden'); }}>
               <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
             </button>
-            <div className="hidden absolute right-0 top-full mt-1 w-28 rounded-xl border border-white/10 bg-black/90 backdrop-blur py-1 shadow-xl z-30">
+            <div className="hidden absolute right-0 top-full mt-1 w-28 rounded-xl border border-white/10 bg-[#09090b]/90 backdrop-blur py-1 shadow-xl z-30">
               {onEdit && (
-                <button className="flex w-full items-center gap-2 px-3 py-2 text-xs text-white/60 hover:bg-white/10 hover:text-white transition font-body" type="button"
+                <button className="flex w-full items-center gap-2 px-3 py-2 text-xs text-white/60 transition active:bg-white/10 hover:bg-white/10 hover:text-white font-body" type="button"
                   onClick={(e) => { e.stopPropagation(); onEdit(); }}>
                   <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                   编辑
@@ -377,7 +377,7 @@ export default function GuidesPage() {
   }
 
   return (
-    <div className="timix-mobile-shell min-h-[100dvh] bg-[#09090b] text-white">
+    <div className="timix-mobile-shell min-h-[100dvh] overflow-x-hidden bg-[var(--mobile-app-bg,#09090b)] text-white">
       <header className="sticky top-0 z-40 border-b border-white/5 bg-[#09090b]/80 px-3 pt-[calc(env(safe-area-inset-top,0px)+10px)] pb-2.5 text-zinc-100 shadow-[0_14px_38px_rgba(0,0,0,0.34)] backdrop-blur-xl sm:px-4 sm:pt-[calc(env(safe-area-inset-top,0px)+14px)] sm:pb-4">
         <div className="mx-auto max-w-5xl">
           <div className="flex items-center justify-between gap-3">
@@ -486,13 +486,13 @@ export default function GuidesPage() {
                     <div className="flex items-center -space-x-2 overflow-x-auto scrollbar-none">
                       {contributors.slice(0, 8).map((c) => (
                         c.avatarUrl ? (
-                          <img key={c.userId} src={c.avatarUrl} className="w-7 h-7 rounded-full ring-2 ring-black object-cover shrink-0" title={c.displayName} alt={c.displayName} />
+                          <img key={c.userId} src={c.avatarUrl} className="w-7 h-7 rounded-full ring-2 ring-white/10 object-cover shrink-0" title={c.displayName} alt={c.displayName} />
                         ) : (
-                          <span key={c.userId} className="flex w-7 h-7 shrink-0 items-center justify-center rounded-full bg-white/10 ring-2 ring-black text-[10px] text-white/50" title={c.displayName}>{c.displayName.charAt(0)}</span>
+                          <span key={c.userId} className="flex w-7 h-7 shrink-0 items-center justify-center rounded-full bg-white/10 ring-2 ring-white/10 text-[10px] text-white/50" title={c.displayName}>{c.displayName.charAt(0)}</span>
                         )
                       ))}
                       {contributors.length > 8 && (
-                        <span className="flex w-7 h-7 shrink-0 items-center justify-center rounded-full bg-white/15 ring-2 ring-black text-[10px] text-white/60 font-body">+{contributors.length - 8}</span>
+                        <span className="flex w-7 h-7 shrink-0 items-center justify-center rounded-full bg-white/15 ring-2 ring-white/10 text-[10px] text-white/60 font-body">+{contributors.length - 8}</span>
                       )}
                     </div>
                   </div>
@@ -545,12 +545,12 @@ export default function GuidesPage() {
                     {/* Three-dot menu — only on real DB folders */}
                     {hasRealData && dbId && (
                       <div className="absolute right-2 top-2 opacity-0 transition group-hover:opacity-100 sm:right-3 sm:top-3" onClick={(e) => e.stopPropagation()}>
-                        <button className="rounded-lg p-1.5 text-white/30 hover:text-white hover:bg-white/10 transition" type="button"
+                        <button className="rounded-lg p-1.5 text-white/50 transition active:scale-95 active:bg-white/10 hover:bg-white/10 hover:text-white" type="button"
                           onClick={(e) => { e.stopPropagation(); const menu = (e.currentTarget as HTMLElement).nextElementSibling as HTMLElement; if (menu) menu.classList.toggle('hidden'); }}>
                           <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
                         </button>
-                        <div className="hidden absolute right-0 top-full mt-1 w-28 rounded-xl border border-white/10 bg-black/90 backdrop-blur py-1 shadow-xl z-30">
-                          <button className="flex w-full items-center gap-2 px-3 py-2 text-xs text-white/60 hover:bg-white/10 hover:text-white transition font-body" type="button"
+                        <div className="hidden absolute right-0 top-full mt-1 w-28 rounded-xl border border-white/10 bg-[#09090b]/90 backdrop-blur py-1 shadow-xl z-30">
+                          <button className="flex w-full items-center gap-2 px-3 py-2 text-xs text-white/60 transition active:bg-white/10 hover:bg-white/10 hover:text-white font-body" type="button"
                             onClick={(e) => { e.stopPropagation(); openEditFolder(); }}>
                             <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                             编辑
@@ -581,7 +581,7 @@ export default function GuidesPage() {
                           key={`${folder.name}-${i}`}
                           onClick={() => navigateToChild(i)}
                           type="button"
-                          className="liquid-glass rounded-xl p-4 text-left hover:bg-white/10 transition group"
+                          className="liquid-glass rounded-xl p-4 text-left transition active:scale-[0.98] active:bg-white/10 hover:bg-white/10 group"
                         >
                           <div className="flex items-center gap-2.5">
                             <Folder className="h-5 w-5 text-white/40 group-hover:text-white/70 transition" />
@@ -636,7 +636,7 @@ export default function GuidesPage() {
               <div className="liquid-glass rounded-2xl p-5 text-center">
                 <p className="text-sm text-white/40 font-body mb-4">有好的项目想分享？</p>
                 <button
-                  className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-5 py-2.5 text-sm font-medium text-white hover:bg-white/20 transition font-body"
+                  className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-5 py-2.5 text-sm font-medium text-white transition active:scale-[0.98] active:bg-white/20 hover:bg-white/20 font-body"
                   type="button"
                   onClick={() => { setCreateMode("post"); setCreateOpen(true); }}
                 >

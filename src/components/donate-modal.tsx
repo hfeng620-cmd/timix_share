@@ -71,7 +71,7 @@ export function DonateModal({ onClose }: DonateModalProps) {
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/80 p-4 backdrop-blur-md sm:p-6"
+      className="fixed inset-0 z-[99999] flex items-center justify-center bg-[#09090b]/80 p-4 backdrop-blur-md sm:p-6"
       onClick={onClose}
     >
       <div

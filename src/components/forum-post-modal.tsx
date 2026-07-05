@@ -291,7 +291,7 @@ export function ForumPostModal({
     <div
       ref={overlayRef}
       aria-modal="true"
-      className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center px-4 py-5"
+      className="fixed inset-0 z-[100] bg-[#09090b]/80 backdrop-blur-md flex items-center justify-center px-4 py-5"
       onClick={onClose}
       role="dialog"
       tabIndex={-1}
@@ -302,7 +302,7 @@ export function ForumPostModal({
       >
         <button
           aria-label="关闭帖子详情"
-          className="absolute right-5 top-5 z-10 inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-black/30 text-zinc-400 transition hover:text-white"
+          className="absolute right-5 top-5 z-10 inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-[#09090b]/30 text-zinc-400 transition hover:text-white"
           onClick={onClose}
           type="button"
         >

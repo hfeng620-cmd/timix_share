@@ -26,7 +26,7 @@ export function MobileDock() {
 
   return (
     <>
-      <nav aria-label="站内主导航" className="fixed inset-x-0 bottom-0 z-40 lg:hidden">
+      <nav aria-label="站内主导航" className="fixed inset-x-0 bottom-0 z-40 overflow-x-hidden lg:hidden">
         {/* Top hairline border */}
         <div
           className="relative mx-auto grid grid-cols-5"
@@ -49,7 +49,7 @@ export function MobileDock() {
                 key={item.href}
                 aria-current={active ? "page" : undefined}
                 aria-label={`${item.label}${active ? "，当前页面" : ""}`}
-                className="relative flex min-h-[58px] flex-col items-center justify-center py-2"
+                className="relative flex min-h-[58px] flex-col items-center justify-center py-2 transition active:scale-95 active:opacity-80"
                 href={item.href}
                 onClick={() => haptic("light")}
                 style={{ WebkitTapHighlightColor: "transparent" }}

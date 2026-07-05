@@ -277,13 +277,13 @@ export function DirectMessageModal({
     <div
       ref={overlayRef}
       aria-modal="true"
-      className="fixed inset-0 z-[240] flex items-center justify-center overflow-y-auto bg-black/75 px-4 py-6 backdrop-blur-md"
+      className="fixed inset-0 z-[240] flex items-end justify-center overflow-y-auto bg-[#09090b]/75 px-0 pt-6 backdrop-blur-md sm:items-center sm:px-4 sm:py-6"
       onClick={onClose}
       role="dialog"
       tabIndex={-1}
     >
       <div
-        className="relative flex h-[min(760px,88vh)] w-full max-w-2xl flex-col overflow-hidden rounded-[30px] border border-white/12 bg-zinc-950/75 text-zinc-100 shadow-[0_34px_120px_rgba(0,0,0,0.55)] backdrop-blur-2xl"
+        className="relative flex h-[min(760px,92dvh)] w-full max-w-2xl flex-col overflow-hidden rounded-t-[28px] border border-white/10 border-b-0 bg-zinc-950/90 text-zinc-100 shadow-[0_34px_120px_rgba(0,0,0,0.55)] backdrop-blur-2xl sm:h-[min(760px,88vh)] sm:rounded-[30px] sm:border-b"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_0%,rgba(56,189,248,0.22),transparent_34%),radial-gradient(circle_at_88%_12%,rgba(245,158,11,0.16),transparent_32%),linear-gradient(135deg,rgba(255,255,255,0.10),transparent_38%)]" />
@@ -318,7 +318,7 @@ export function DirectMessageModal({
 
           <button
             aria-label="关闭私信"
-            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/5 text-zinc-400 transition hover:border-white/20 hover:bg-white/10 hover:text-white"
+            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/5 text-zinc-400 transition active:scale-95 active:bg-white/10 hover:border-white/20 hover:bg-white/10 hover:text-white"
             onClick={onClose}
             type="button"
           >
@@ -350,7 +350,7 @@ export function DirectMessageModal({
                 私信会通过 Supabase 当前账号写入 direct_messages 表，并只展示你和对方之间的双向消息。
               </p>
               <button
-                className="mt-5 rounded-full bg-white px-5 py-2.5 text-sm font-bold text-zinc-950 transition hover:bg-zinc-200"
+                className="mt-5 rounded-full bg-white px-5 py-2.5 text-sm font-bold text-zinc-950 transition active:scale-[0.98] active:opacity-90 hover:bg-zinc-200"
                 onClick={showAuthModal}
                 type="button"
               >
@@ -411,7 +411,7 @@ export function DirectMessageModal({
           )}
         </div>
 
-        <footer className="relative border-t border-white/10 bg-black/20 px-4 py-4 sm:px-6">
+        <footer className="relative border-t border-white/10 bg-[#09090b]/20 px-4 pb-[max(env(safe-area-inset-bottom,0px),1rem)] pt-4 sm:px-6 sm:py-4">
           {error ? (
             <p className="mb-3 rounded-2xl border border-rose-300/20 bg-rose-400/10 px-3 py-2 text-xs leading-5 text-rose-100">
               {error}
@@ -438,7 +438,7 @@ export function DirectMessageModal({
             <div className="absolute bottom-3 right-14">
               <EmojiPickerButton
                 align="right"
-                buttonClassName="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] text-zinc-400 transition hover:border-white/20 hover:bg-white/[0.1] hover:text-white disabled:cursor-not-allowed disabled:opacity-45"
+                buttonClassName="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] text-zinc-400 transition active:scale-95 active:bg-white/[0.1] hover:border-white/20 hover:bg-white/[0.1] hover:text-white disabled:cursor-not-allowed disabled:opacity-45"
                 disabled={!canSend || sending}
                 iconClassName="h-4 w-4"
                 onClose={() => setShowEmojiPicker(false)}
@@ -449,7 +449,7 @@ export function DirectMessageModal({
             </div>
             <button
               aria-label="发送私信"
-              className="absolute bottom-3 right-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-zinc-950 shadow-lg shadow-black/20 transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-45"
+              className="absolute bottom-3 right-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-zinc-950 shadow-lg shadow-black/20 transition active:scale-95 active:opacity-90 hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-45"
               disabled={!canSend || sending || !draft.trim()}
               onClick={() => {
                 void handleSend();

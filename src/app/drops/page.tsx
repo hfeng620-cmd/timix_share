@@ -66,7 +66,7 @@ export default function DropsPage() {
   }, []);
 
   return (
-    <div className="min-h-screen text-white">
+    <div className="min-h-screen overflow-x-hidden text-white">
       <Navbar />
 
       <section className="relative z-10 mx-auto max-w-[1680px] px-4 pt-28 sm:px-5 lg:px-8">
@@ -132,7 +132,7 @@ export default function DropsPage() {
                 >
                   {/* Sponsor badge */}
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-cyan-300">
+                    <span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-emerald-300">
                       {campaign.sponsor_name}
                     </span>
                     {isSoldOut && (
@@ -169,7 +169,7 @@ export default function DropsPage() {
                     </div>
                     <div className="h-1.5 w-full overflow-hidden rounded-full bg-zinc-800">
                       <div
-                        className="h-full rounded-full bg-gradient-to-r from-blue-500 to-cyan-400 transition-all duration-700"
+                        className="h-full rounded-full bg-emerald-300/80 transition-all duration-700"
                         style={{ width: `${Math.min(progressPct, 100)}%` }}
                       />
                     </div>
@@ -180,7 +180,7 @@ export default function DropsPage() {
                     className={`mt-5 flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-bold transition font-body ${
                       isDisabled
                         ? "cursor-not-allowed border border-white/5 bg-white/[0.02] text-zinc-600"
-                        : "bg-cyan-300 text-black shadow-[0_0_24px_rgba(34,211,238,0.18)] hover:bg-cyan-200"
+                        : "bg-zinc-100 text-zinc-950 shadow-[0_12px_28px_rgba(255,255,255,0.08)] active:scale-[0.98] active:opacity-90 hover:bg-white"
                     }`}
                     disabled={isDisabled}
                     onClick={() => {

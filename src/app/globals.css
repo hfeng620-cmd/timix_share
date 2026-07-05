@@ -268,7 +268,7 @@ input, textarea, button { font: inherit; }
     position: absolute;
     top: 0; left: 0; right: 0;
     height: 200px;
-    background: linear-gradient(to bottom, black, transparent);
+    background: linear-gradient(to bottom, #09090b, transparent);
     pointer-events: none;
     z-index: 1;
   }
@@ -277,7 +277,7 @@ input, textarea, button { font: inherit; }
     position: absolute;
     bottom: 0; left: 0; right: 0;
     height: 200px;
-    background: linear-gradient(to top, black, transparent);
+    background: linear-gradient(to top, #09090b, transparent);
     pointer-events: none;
     z-index: 1;
   }

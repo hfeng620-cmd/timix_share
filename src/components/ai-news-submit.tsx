@@ -204,7 +204,7 @@ export function AiNewsSubmit({ open, onClose }: AiNewsSubmitProps) {
   return (
     <dialog
       ref={dialogRef}
-      className="fixed inset-0 z-50 m-0 h-full w-full max-w-none border-0 bg-transparent p-0 backdrop:bg-black/40"
+      className="fixed inset-0 z-50 m-0 h-full w-full max-w-none border-0 bg-transparent p-0 backdrop:bg-[#09090b]/40"
       onClick={handleBackdropClick}
     >
       <div className="flex min-h-full items-center justify-center p-6">

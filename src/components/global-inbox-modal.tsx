@@ -241,7 +241,7 @@ export function GlobalInboxModal({ onClose }: GlobalInboxModalProps) {
     <>
       <div
         aria-modal="true"
-        className="fixed inset-0 z-[220] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+        className="fixed inset-0 z-[220] flex items-center justify-center bg-[#09090b]/60 p-4 backdrop-blur-sm"
         onClick={onClose}
         role="dialog"
       >

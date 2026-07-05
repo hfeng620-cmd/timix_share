@@ -84,10 +84,10 @@ export function EditPanelModal({ open, mode, targetId, initialName, initialDesc,
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[110] flex items-end justify-center bg-black/50 px-0 backdrop-blur-xl sm:items-center sm:px-4" onClick={onClose}>
-      <div className="relative w-full max-h-[88dvh] overflow-hidden rounded-t-2xl border border-white/10 bg-zinc-950/95 shadow-2xl sm:max-w-5xl sm:rounded-3xl sm:border-white/15 sm:bg-black/80" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-[110] flex items-end justify-center bg-[#09090b]/50 px-0 backdrop-blur-xl sm:items-center sm:px-4" onClick={onClose}>
+      <div className="relative w-full max-h-[88dvh] overflow-hidden rounded-t-2xl border border-white/10 bg-zinc-950/95 pb-[env(safe-area-inset-bottom,0px)] shadow-2xl sm:max-w-5xl sm:rounded-3xl sm:border-white/15 sm:bg-[#09090b]/80 sm:pb-0" onClick={(e) => e.stopPropagation()}>
         <div className="mx-auto mt-2 h-1 w-10 rounded-full bg-white/20 sm:hidden" />
-        <button onClick={onClose} className="absolute right-3 top-3 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white/50 transition hover:bg-white/20 hover:text-white sm:right-4 sm:top-4" type="button"><X className="h-4 w-4" /></button>
+        <button onClick={onClose} className="absolute right-3 top-3 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white/50 transition active:scale-95 active:bg-white/20 hover:bg-white/20 hover:text-white sm:right-4 sm:top-4" type="button"><X className="h-4 w-4" /></button>
 
         <div className="grid max-h-[88dvh] grid-cols-1 lg:max-h-[85vh] lg:grid-cols-[7fr_3fr]">
           {/* Left: Form */}
@@ -155,7 +155,7 @@ export function EditPanelModal({ open, mode, targetId, initialName, initialDesc,
 
             <div className="mt-5 flex items-center gap-2 sm:mt-6 sm:gap-3">
               <button onClick={handleSave} disabled={saving}
-                className="rounded-full bg-white/15 px-4 py-2 text-xs font-medium text-white transition hover:bg-white/25 disabled:opacity-50 font-body sm:px-5 sm:py-2.5 sm:text-sm">
+                className="rounded-full bg-white/15 px-4 py-2 text-xs font-medium text-white transition active:scale-[0.98] active:bg-white/25 hover:bg-white/25 disabled:opacity-50 font-body sm:px-5 sm:py-2.5 sm:text-sm">
                 {saving ? "保存中..." : "保存修改"}
               </button>
               <button onClick={onClose} className="rounded-full px-4 py-2 text-xs text-white/40 transition hover:text-white font-body sm:py-2.5 sm:text-sm">取消</button>
@@ -176,7 +176,7 @@ export function EditPanelModal({ open, mode, targetId, initialName, initialDesc,
               <div className="relative pl-6 border-l border-white/10">
                 {editLogs.map((log) => (
                   <div key={log.id} className="relative pb-6 last:pb-0">
-                    <div className="absolute -left-[9px] top-1 h-[18px] w-[18px] rounded-full border-2 border-white/20 bg-black" />
+                    <div className="absolute -left-[9px] top-1 h-[18px] w-[18px] rounded-full border-2 border-white/20 bg-[#09090b]" />
                     <div className="space-y-1.5">
                       <span className="text-[11px] text-white/30 font-body">{relativeTime(log.createdAt)}</span>
                       <div className="flex items-center gap-2">
