@@ -17,7 +17,7 @@ import { MarkdownContent } from "@/components/markdown-content";
 import { uploadPostImage } from "@/lib/post-image-upload";
 import {
   loadEditLogs, type EditLogEntry,
-  toggleCommentLike, togglePostLike, type Liker,
+  togglePostLike, type Liker,
   loadSharedComments, createSharedComment, deleteSharedComment,
   type SharedComment,
 } from "@/lib/share-storage";

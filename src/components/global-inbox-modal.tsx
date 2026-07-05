@@ -246,7 +246,7 @@ export function GlobalInboxModal({ onClose }: GlobalInboxModalProps) {
         role="dialog"
       >
         <div
-          className="relative flex h-auto max-h-[calc(100dvh_-_var(--safe-top)_-_var(--safe-bottom)_-_16px)] w-full max-w-md flex-col overflow-hidden rounded-t-2xl border border-white/10 border-b-0 bg-zinc-950 shadow-2xl sm:h-[min(600px,calc(100dvh-32px))] sm:rounded-2xl sm:border-b"
+          className="pb-safe relative flex h-auto max-h-[calc(100dvh_-_var(--safe-top)_-_var(--safe-bottom)_-_16px)] w-full max-w-md flex-col overflow-hidden rounded-t-2xl border border-white/10 border-b-0 bg-zinc-950 shadow-2xl sm:h-[min(600px,calc(100dvh-32px))] sm:rounded-2xl sm:border-b sm:pb-0"
           onClick={(event) => event.stopPropagation()}
         >
           <div className="flex shrink-0 items-center justify-between border-b border-white/10 bg-zinc-900/70 p-4">
@@ -259,7 +259,7 @@ export function GlobalInboxModal({ onClose }: GlobalInboxModalProps) {
             </div>
             <button
               aria-label="关闭私信收件箱"
-              className="touch-press rounded-full p-1.5 text-zinc-400 transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] hover:bg-white/10 hover:text-white"
+              className="touch-press flex h-11 w-11 items-center justify-center rounded-full text-zinc-400 transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] active:bg-white/10 hover:bg-white/10 hover:text-white"
               onClick={onClose}
               type="button"
             >

@@ -1,7 +1,7 @@
 "use client";
 
 import { lockBodyScroll } from "@/lib/body-scroll-lock";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { motion } from "motion/react";
 import { X, Shield, Star, User } from "lucide-react";
 import type { CoCreator } from "@/components/co-creators-wall";

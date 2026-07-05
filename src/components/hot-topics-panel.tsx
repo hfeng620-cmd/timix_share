@@ -46,7 +46,6 @@ export default function HotTopicsPanel({ onTopicClick }: HotTopicsPanelProps) {
   }, []);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadTopics();
     const interval = setInterval(() => { loadTopics(); }, 60_000);
     return () => clearInterval(interval);

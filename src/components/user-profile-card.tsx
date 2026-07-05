@@ -270,6 +270,8 @@ export function UserProfileCard({ userId, position, viewerUserId, onClose }: Use
           : "建议继续补充";
   const joinDate = formatProfileJoinDate(profile?.created_at ?? null);
   const archiveId = createArchiveId(userId);
+  const customTitle = profile?.custom_title?.trim() ?? "";
+  const isOwnProfile = viewerUserId === userId;
 
   return (
     <div

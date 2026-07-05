@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { AnnouncementDetailModal } from "@/components/announcement-detail-modal";
 import { useForumAuth } from "@/lib/forum-auth";
 import { lockBodyScroll } from "@/lib/body-scroll-lock";
+import { showNativeNotification } from "@/lib/native-notifications";
 import {
   deleteNotification,
   getTypeLabel,
@@ -76,11 +77,7 @@ function getTypeBgClass(type: NotificationItem["type"]) {
   }
 }
 
-export function NotificationBell({
-  dropdownAbove: _dropdownAbove,
-}: {
-  dropdownAbove?: boolean;
-}) {
+export function NotificationBell() {
   const { isConnected, user } = useForumAuth();
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [open, setOpen] = useState(false);
@@ -130,6 +127,12 @@ export function NotificationBell({
     const timer = setTimeout(() => {
       unsubRef.current = subscribeNotifications(user.id, (newNotification) => {
         setNotifications((prev) => [newNotification, ...prev.slice(0, 29)]);
+        void showNativeNotification({
+          title: getTypeLabel(newNotification.type),
+          body: newNotification.message,
+          tag: newNotification.id,
+          url: newNotification.postId ? `/community#${newNotification.postId}` : "/community",
+        });
       });
     }, 500);
 
@@ -225,7 +228,7 @@ export function NotificationBell({
       {open && createPortal(
         <div aria-modal="true" role="dialog" className="fixed inset-0 z-[200] flex items-start justify-center overscroll-contain bg-[#09090b]/50 px-4 pt-[12dvh] backdrop-blur-sm max-md:items-end max-md:px-0 max-md:pt-0">
           <div
-            className="surface-in w-full max-w-lg overflow-hidden rounded-[24px] border border-[var(--color-line)] bg-[var(--color-panel)] shadow-[0_24px_80px_rgba(15,23,42,0.18)] max-md:max-h-[min(85dvh,calc(100dvh_-_var(--safe-top)_-_12px))] max-md:rounded-b-none max-md:rounded-t-[20px] max-md:border-b-0"
+            className="surface-in pb-safe w-full max-w-lg overflow-hidden rounded-[24px] border border-[var(--color-line)] bg-[var(--color-panel)] shadow-[0_24px_80px_rgba(15,23,42,0.18)] max-md:max-h-[min(85dvh,calc(100dvh_-_var(--safe-top)_-_12px))] max-md:rounded-b-none max-md:rounded-t-[20px] max-md:border-b-0"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Mobile drag handle */}
@@ -253,7 +256,7 @@ export function NotificationBell({
                 )}
                 <button
                   aria-label="关闭通知"
-                  className="flex h-8 w-8 items-center justify-center rounded-full border border-[var(--color-line)] text-sm text-[var(--color-muted)] transition hover:bg-[var(--color-soft)] hover:text-[var(--color-ink)]"
+                  className="touch-press flex h-11 w-11 items-center justify-center rounded-full border border-[var(--color-line)] text-sm text-[var(--color-muted)] transition active:bg-white/10 hover:bg-[var(--color-soft)] hover:text-[var(--color-ink)]"
                   onClick={() => setOpen(false)}
                   type="button"
                 >
@@ -290,7 +293,7 @@ export function NotificationBell({
                       }`}
                     >
                       <button
-                        className="flex flex-1 items-start gap-4 text-left"
+                        className="touch-press flex min-h-11 flex-1 items-start gap-4 text-left transition active:opacity-80"
                         onClick={() => handleNotificationClick(item)}
                         type="button"
                       >
@@ -313,7 +316,7 @@ export function NotificationBell({
                       </button>
                       {/* Delete button */}
                       <button
-                        className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] text-[var(--color-muted)] transition hover:bg-[var(--color-soft)] hover:text-red-400"
+                        className="touch-press mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[12px] text-[var(--color-muted)] transition active:bg-white/10 hover:bg-[var(--color-soft)] hover:text-red-400"
                         onClick={(e) => { e.stopPropagation(); handleDelete(item.id); }}
                         title="删除通知"
                         type="button"

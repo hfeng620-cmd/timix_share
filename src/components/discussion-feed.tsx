@@ -931,10 +931,6 @@ export function DiscussionFeed({
     });
   }
 
-  function handleProfileKeyDown(userId: string | undefined, event: React.KeyboardEvent<HTMLElement>) {
-    if (event.key !== "Enter" && event.key !== " ") return;
-    handleAvatarClick(userId, event as unknown as React.MouseEvent);
-  }
 
   const selectedPost = selectedPostId
     ? posts.find((post) => post.issueNumber === selectedPostId) ?? null
@@ -1630,7 +1626,6 @@ export function DiscussionFeed({
           adminUserIds={adminUserIds}
           comments={selectedPostComments}
           commentsLoading={selectedPostComments === undefined}
-          currentUserId={user?.id}
           isConnected={isConnected}
           likedReplies={likedReplies}
           onClose={() => setSelectedPostId(null)}

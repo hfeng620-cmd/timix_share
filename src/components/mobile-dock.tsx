@@ -3,8 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback } from "react";
-import { motion, AnimatePresence } from "motion/react";
-import { Gift, Share2, BarChart3, MessageSquareText, User } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { BarChart3, Gift, MessageSquareText, Share2, User } from "lucide-react";
+
+import { haptic } from "@/lib/haptic";
+import { useMobileNotificationStatus } from "@/lib/use-mobile-notification-status";
 
 const navItems = [
   { label: "分享", href: "/", icon: Share2 },
@@ -14,10 +17,9 @@ const navItems = [
   { label: "我的", href: "/profile", icon: User },
 ] as const;
 
-import { haptic } from "@/lib/haptic";
-
 export function MobileDock() {
   const pathname = usePathname();
+  const { totalUnread } = useMobileNotificationStatus();
 
   const isActive = useCallback(
     (href: string) => (href === "/" ? pathname === "/" || pathname.startsWith("/guides") : pathname.startsWith(href)),
@@ -25,43 +27,43 @@ export function MobileDock() {
   );
 
   return (
-    <>
-      <nav aria-label="站内主导航" className="fixed inset-x-0 bottom-0 z-40 overflow-x-hidden lg:hidden">
-        {/* Top hairline border */}
-        <div
-          className="relative mx-auto grid grid-cols-5"
-          style={{
-            background: "var(--mobile-dock-bg, rgba(18,18,22,0.88))",
-            backdropFilter: "blur(32px) saturate(180%)",
-            WebkitBackdropFilter: "blur(32px) saturate(180%)",
-            borderTop: "0.5px solid var(--mobile-app-line, rgba(255,255,255,0.08))",
-            display: "grid",
-            gridTemplateColumns: "repeat(5, minmax(0, 1fr))",
-            paddingBottom: "max(env(safe-area-inset-bottom, 0px), 8px)",
-          }}
-        >
-          {navItems.map((item) => {
-            const active = isActive(item.href);
-            const Icon = item.icon;
+    <nav aria-label="站内主导航" className="fixed inset-x-0 bottom-0 z-40 overflow-x-hidden lg:hidden">
+      <div
+        className="relative mx-auto grid grid-cols-5"
+        style={{
+          background: "var(--mobile-dock-bg, rgba(18,18,22,0.88))",
+          backdropFilter: "blur(32px) saturate(180%)",
+          WebkitBackdropFilter: "blur(32px) saturate(180%)",
+          borderTop: "0.5px solid var(--mobile-app-line, rgba(255,255,255,0.08))",
+          display: "grid",
+          gridTemplateColumns: "repeat(5, minmax(0, 1fr))",
+          paddingBottom: "max(env(safe-area-inset-bottom, 0px), 8px)",
+        }}
+      >
+        {navItems.map((item) => {
+          const active = isActive(item.href);
+          const Icon = item.icon;
+          const badgeCount = item.href === "/profile" ? totalUnread : 0;
 
-            return (
-              <Link
-                key={item.href}
-                aria-current={active ? "page" : undefined}
-                aria-label={`${item.label}${active ? "，当前页面" : ""}`}
-                className="touch-press relative flex min-h-[58px] flex-col items-center justify-center py-2 transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]"
-                href={item.href}
-                onClick={() => haptic("light")}
-                style={{ WebkitTapHighlightColor: "transparent" }}
+          return (
+            <Link
+              key={item.href}
+              aria-current={active ? "page" : undefined}
+              aria-label={`${item.label}${active ? "，当前页面" : ""}${badgeCount > 0 ? `，${badgeCount} 条未读` : ""}`}
+              className="touch-press relative flex min-h-[58px] flex-col items-center justify-center py-2 transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]"
+              href={item.href}
+              onClick={() => haptic("light")}
+              style={{ WebkitTapHighlightColor: "transparent" }}
+            >
+              <motion.div
+                className="relative flex flex-col items-center gap-0.5"
+                animate={{
+                  scale: active ? 1.05 : 1,
+                  y: active ? -1 : 0,
+                }}
+                transition={{ type: "spring", stiffness: 400, damping: 22 }}
               >
-                <motion.div
-                  className="relative flex flex-col items-center gap-0.5"
-                  animate={{
-                    scale: active ? 1.05 : 1,
-                    y: active ? -1 : 0,
-                  }}
-                  transition={{ type: "spring", stiffness: 400, damping: 22 }}
-                >
+                <span className="relative">
                   <Icon
                     className="h-[22px] w-[22px]"
                     strokeWidth={active ? 2.2 : 1.5}
@@ -71,35 +73,39 @@ export function MobileDock() {
                       transition: "color 0.2s, filter 0.2s",
                     }}
                   />
-                  <span
-                    className="text-[10px] font-medium leading-none"
-                    style={{
-                      color: active ? "var(--mobile-app-primary, var(--dt-primary))" : "var(--mobile-nav-muted, rgba(255,255,255,0.4))",
-                      transition: "color 0.2s",
-                    }}
-                  >
-                    {item.label}
-                  </span>
-                </motion.div>
+                  {badgeCount > 0 ? (
+                    <span className="absolute -right-2 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-emerald-400 px-1 text-[9px] font-black leading-none text-zinc-950 ring-2 ring-[#09090b]">
+                      {badgeCount > 99 ? "99+" : badgeCount}
+                    </span>
+                  ) : null}
+                </span>
+                <span
+                  className="text-[10px] font-medium leading-none"
+                  style={{
+                    color: active ? "var(--mobile-app-primary, var(--dt-primary))" : "var(--mobile-nav-muted, rgba(255,255,255,0.4))",
+                    transition: "color 0.2s",
+                  }}
+                >
+                  {item.label}
+                </span>
+              </motion.div>
 
-                {/* Active bottom dot */}
-                <AnimatePresence>
-                  {active && (
-                    <motion.div
-                      className="absolute bottom-1 h-[3px] w-[3px] rounded-full"
-                      style={{ background: "var(--mobile-app-primary, var(--dt-primary))" }}
-                      initial={{ scale: 0, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      exit={{ scale: 0, opacity: 0 }}
-                      transition={{ type: "spring", stiffness: 500, damping: 25 }}
-                    />
-                  )}
-                </AnimatePresence>
-              </Link>
-            );
-          })}
-        </div>
-      </nav>
-    </>
+              <AnimatePresence>
+                {active && (
+                  <motion.div
+                    className="absolute bottom-1 h-[3px] w-[3px] rounded-full"
+                    style={{ background: "var(--mobile-app-primary, var(--dt-primary))" }}
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0, opacity: 0 }}
+                    transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                  />
+                )}
+              </AnimatePresence>
+            </Link>
+          );
+        })}
+      </div>
+    </nav>
   );
 }

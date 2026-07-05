@@ -525,7 +525,7 @@ export default function GuidesPage() {
                   const dbId = (folder as any).dbId;
                   return (
                   <div
-                    key={`${folder.name}-${i}`}
+                    key={dbId ?? folder.name}
                     className="group relative cursor-pointer border-b border-white/5 px-2.5 py-2.5 text-left transition-all duration-200 active:bg-white/[0.06] last:border-b-0 sm:rounded-[22px] sm:border sm:border-white/5 sm:bg-white/[0.03] sm:p-4 sm:shadow-[0_14px_36px_rgba(0,0,0,0.24),inset_0_1px_0_rgba(255,255,255,0.05)]"
                     onClick={() => navigateToChild(i)}
                   >
@@ -578,7 +578,7 @@ export default function GuidesPage() {
                     <div className="grid gap-3 sm:grid-cols-2">
                       {subFolders.map((folder, i) => (
                         <button
-                          key={`${folder.name}-${i}`}
+                          key={(folder as any).dbId ?? folder.name}
                           onClick={() => navigateToChild(i)}
                           type="button"
                           className="liquid-glass rounded-xl p-4 text-left transition active:scale-[0.98] active:bg-white/10 hover:bg-white/10 group"

@@ -65,7 +65,6 @@ export function CommunityPostPanel({ onPostCreated }: CommunityPostPanelProps) {
       .slice(0, 6);
   }, [station, allTags]);
 
-  /* eslint-disable react-hooks/refs */
   // Detect @mention pattern in textarea (reads textarea ref for cursor position)
   const mentionState = useMemo(() => {
     if (!body) return { active: false, query: "", startIdx: -1 };
@@ -82,7 +81,6 @@ export function CommunityPostPanel({ onPostCreated }: CommunityPostPanelProps) {
       startIdx: cursor - atMatch[1].length - 1,
     };
   }, [body]);
-  /* eslint-enable react-hooks/refs */
 
   // Filtered mention suggestions
   const mentionSuggestions = useMemo(() => {

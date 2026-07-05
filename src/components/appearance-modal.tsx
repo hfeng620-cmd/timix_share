@@ -54,11 +54,8 @@ type Props = { open: boolean; onClose: () => void };
 
 export function AppearanceModal({ open, onClose }: Props) {
   const [active, setActive] = useState<ThemeId>("cyber");
-  const [mounted, setMounted] = useState(false);
-
   /* 挂载时从 localStorage 恢复主题 */
   useEffect(() => {
-    setMounted(true);
     const stored = localStorage.getItem("timix-theme-v2") as ThemeId | null;
     if (stored && THEMES.some((t) => t.id === stored)) {
       setActive(stored);

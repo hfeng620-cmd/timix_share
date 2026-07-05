@@ -125,7 +125,7 @@ export default function UserRankPanel() {
         <div className="mt-3">
           {users.map((user) => (
             <div
-              key={user.rank}
+              key={`${user.display_name}-${user.reputation}-${user.post_count}`}
               className="flex items-center gap-3 border-b border-[var(--color-line)] py-2.5 last:border-b-0"
               style={{ minHeight: 40 }}
             >

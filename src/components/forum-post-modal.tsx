@@ -27,7 +27,6 @@ type ForumPostModalProps = {
   post: DiscussionPost;
   comments?: DiscussionReply[];
   commentsLoading: boolean;
-  currentUserId?: string;
   adminUserIds: Set<string>;
   ownerUserIds: Set<string>;
   isConnected: boolean;
@@ -104,7 +103,6 @@ export function ForumPostModal({
   post,
   comments,
   commentsLoading,
-  currentUserId,
   adminUserIds,
   ownerUserIds,
   isConnected,

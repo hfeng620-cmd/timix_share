@@ -13,6 +13,7 @@ import { PwaInstallButton } from "@/components/pwa-install-prompt";
 import { OnlineIndicator } from "@/components/online-indicator";
 import { useForumAuth } from "@/lib/forum-auth";
 import { getSupabaseClient, isSupabaseConfigured } from "@/lib/supabase";
+import { showNativeNotification } from "@/lib/native-notifications";
 
 const links = [
   { label: "分享", href: "/" },
@@ -96,10 +97,19 @@ export function Navbar() {
             avatarUrl: String((senderProfile as Record<string, unknown> | null)?.avatar_url ?? ""),
           };
 
+          const message = getMessageContent(newMessage);
+
           setIncomingPopup({
             id: newMessage.id ?? `${newMessage.sender_id}-${Date.now()}`,
-            message: getMessageContent(newMessage),
+            message,
             sender,
+          });
+
+          void showNativeNotification({
+            title: `${sender.displayName} 发来一条私信`,
+            body: message,
+            tag: newMessage.id ?? `dm-${newMessage.sender_id}`,
+            url: "/profile",
           });
 
           if (popupTimerRef.current) {

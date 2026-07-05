@@ -1149,3 +1149,39 @@ a:focus-visible,
     touch-action: pan-y !important;
   }
 }
+
+/* Mobile native touch ergonomics pass: keep desktop hover, make app shells feel tappable. */
+@media (max-width: 767px) {
+  .timix-mobile-shell :where(a, button, [role="button"]),
+  .profile-mobile-app :where(a, button, [role="button"]),
+  .community-mobile-app :where(a, button, [role="button"]),
+  .stations-mobile-app :where(a, button, [role="button"]) {
+    min-height: 44px;
+    min-width: 44px;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    transition: all 300ms var(--ease-premium);
+  }
+
+  .timix-mobile-shell :where(a, button, [role="button"]):active,
+  .profile-mobile-app :where(a, button, [role="button"]):active,
+  .community-mobile-app :where(a, button, [role="button"]):active,
+  .stations-mobile-app :where(a, button, [role="button"]):active {
+    transform: scale(0.98) translateZ(0);
+    opacity: 0.82;
+  }
+
+  .timix-mobile-shell :where(.share-post-row, .share-folder-list > div, .mobile-station-row),
+  .profile-mobile-app :where(section, nav[aria-label="个人主页内容切换"]),
+  .community-mobile-app :where(article, .community-compose-trigger),
+  .stations-mobile-app :where(.mobile-station-row, .mobile-station-filter, .mobile-station-table) {
+    transition: transform 300ms var(--ease-premium), opacity 300ms var(--ease-premium), background-color 300ms var(--ease-premium), border-color 300ms var(--ease-premium), box-shadow 300ms var(--ease-premium);
+  }
+
+  .timix-mobile-shell :where(.share-post-row, .share-folder-list > div, .mobile-station-row):active,
+  .profile-mobile-app :where(section):active,
+  .community-mobile-app :where(article, .community-compose-trigger):active,
+  .stations-mobile-app :where(.mobile-station-row):active {
+    transform: scale(0.992) translateZ(0);
+  }
+}

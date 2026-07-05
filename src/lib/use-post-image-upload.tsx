@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef, useState, useCallback, type RefObject } from "react";
-import { uploadPostImage, insertImageAtCursor } from "@/lib/post-image-upload";
+import { useRef, useState, useCallback } from "react";
+import { uploadPostImage } from "@/lib/post-image-upload";
 
 /**
  * 帖子图片上传 Hook
@@ -33,8 +33,6 @@ export function usePostImageUpload(
       const withPlaceholder = body.slice(0, start) + placeholder + body.slice(start);
       setBody(withPlaceholder);
 
-      // 计算占位符结束位置
-      const placeholderEnd = start + placeholder.length;
 
       setUploading(true);
       try {
