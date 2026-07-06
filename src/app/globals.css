@@ -1371,9 +1371,8 @@ html[data-scroll-locked] body {
   .community-mobile-app,
   .stations-mobile-app,
   .profile-mobile-app {
-    display: flex !important;
+    display: block !important;
     flex: 1 1 auto !important;
-    flex-direction: column !important;
     height: 100% !important;
     min-height: 0 !important;
     max-height: 100% !important;
@@ -1386,13 +1385,19 @@ html[data-scroll-locked] body {
     padding-bottom: calc(6rem + env(safe-area-inset-bottom, 0px)) !important;
   }
 
+  html[data-scroll-locked] body {
+    touch-action: pan-y !important;
+  }
+
   html[data-scroll-locked] .mobile-tab-scroll,
   html[data-scroll-locked] .timix-mobile-shell,
   html[data-scroll-locked] .community-mobile-app,
   html[data-scroll-locked] .stations-mobile-app,
   html[data-scroll-locked] .profile-mobile-app {
-    overflow: hidden !important;
-    touch-action: none !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y !important;
   }
 }
 

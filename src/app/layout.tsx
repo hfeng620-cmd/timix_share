@@ -6,6 +6,7 @@ import { ErrorBoundary } from "@/components/error-boundary";
 import { MobileDock } from "@/components/mobile-dock";
 import { MobileAppSplash } from "@/components/mobile-app-splash";
 import { RegisterCounter } from "@/components/register-counter";
+import { ScrollLockJanitor } from "@/components/scroll-lock-janitor";
 import { FloatingQuickPanel } from "@/components/floating-quick-panel";
 import { ToastContainer } from "@/components/toast-container";
 import { VpsFallbackBanner } from "@/components/vps-fallback-banner";
@@ -88,6 +89,7 @@ export default function RootLayout({
             </ToastProvider>
             <FloatingQuickPanel />
             <MobileDock />
+            <ScrollLockJanitor />
           </SystemMonitorProvider>
         </ForumAuthProvider>
         <AnnouncementModal />
