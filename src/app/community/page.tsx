@@ -83,15 +83,7 @@ export default function CommunityPage() {
           </div>
         </header>
 
-        <nav className="mb-3 flex gap-2 overflow-x-auto pb-1 text-white md:hidden" aria-label="社区快捷入口">
-          <button
-            className="touch-press inline-flex min-h-8 shrink-0 items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 text-[11px] font-semibold text-zinc-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] active:bg-white/10"
-            onClick={() => setMobileComposerOpen((open) => !open)}
-            type="button"
-          >
-            <MessageSquarePlus className="h-3.5 w-3.5 text-zinc-400" />
-            发帖
-          </button>
+        <nav className="mb-2 flex gap-2 overflow-x-auto pb-1 text-white md:hidden" aria-label="社区快捷入口">
           <button
             className={`inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full px-3 text-[11px] font-bold shadow-sm transition active:scale-95 active:opacity-85 ${
               mobilePanel === "hot" ? "bg-zinc-100 text-zinc-950" : "border border-white/10 bg-white/[0.04] text-zinc-300"
@@ -233,29 +225,14 @@ export default function CommunityPage() {
 
         <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px] 2xl:grid-cols-[minmax(0,1fr)_360px]">
           <div className="min-w-0 space-y-3 md:space-y-5">
-            <div className="community-mobile-compose md:hidden">
-              <button
-                className="community-compose-trigger touch-press flex w-full items-center justify-between rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] active:bg-white/10"
-                onClick={() => setMobileComposerOpen((open) => !open)}
-                type="button"
-              >
-                <span>
-                  <span className="block text-sm font-semibold text-zinc-100">写一条新讨论</span>
-                  <span className="mt-0.5 block text-xs text-zinc-500">短反馈、价格变化、试用记录</span>
-                </span>
-                <span className="rounded-full bg-zinc-100 px-3 py-1.5 text-[11px] font-semibold text-zinc-950">
-                  {mobileComposerOpen ? "收起" : "发帖"}
-                </span>
-              </button>
-              {mobileComposerOpen ? (
-                <div id="community-composer" className="community-composer-shell mt-2 scroll-mt-24">
-                  <CommunityPostPanel onPostCreated={() => {
-                    setFeedRefreshKey((v) => v + 1);
-                    setMobileComposerOpen(false);
-                  }} />
-                </div>
-              ) : null}
-            </div>
+            {mobileComposerOpen ? (
+              <div id="community-composer" className="community-composer-shell mt-1 scroll-mt-24 md:hidden">
+                <CommunityPostPanel onPostCreated={() => {
+                  setFeedRefreshKey((v) => v + 1);
+                  setMobileComposerOpen(false);
+                }} />
+              </div>
+            ) : null}
             <div id="community-composer-desktop" className="community-composer-shell hidden scroll-mt-24 md:block">
               <CommunityPostPanel onPostCreated={() => setFeedRefreshKey((v) => v + 1)} />
             </div>

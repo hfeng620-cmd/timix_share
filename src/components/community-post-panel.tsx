@@ -200,11 +200,11 @@ export function CommunityPostPanel({ onPostCreated }: CommunityPostPanelProps) {
     >
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--color-line)] pb-2.5">
         <div>
-          <h2 className="mb-1 text-lg font-black tracking-tight">发帖子</h2>
-          <p className="text-xs text-[var(--color-muted)]">价格、稳定性、模型口径都可以先发这里。</p>
+          <h2 className="mb-1 text-lg font-black tracking-tight">发帖</h2>
+          <p className="text-xs text-[var(--color-muted)]">短反馈、价格变化、试用记录。</p>
         </div>
         <a
-          className="rounded-full border border-[var(--color-line)] px-3 py-2 text-xs font-bold text-[var(--color-muted)] transition hover:border-[var(--color-brand)] hover:text-[var(--color-brand-deep)]"
+          className="hidden rounded-full border border-[var(--color-line)] px-3 py-2 text-xs font-bold text-[var(--color-muted)] transition hover:border-[var(--color-brand)] hover:text-[var(--color-brand-deep)] sm:inline-flex"
           href="https://github.com/hfeng620-cmd/timin_api_test_and_forum/discussions"
           rel="noopener noreferrer"
           target="_blank"
@@ -221,7 +221,7 @@ export function CommunityPostPanel({ onPostCreated }: CommunityPostPanelProps) {
             type="button"
           >
             {isConnected
-              ? "写站点反馈、试用活动、价格变化或避坑记录..."
+              ? "写一句反馈..."
               : "登录后发帖..."}
           </button>
           <div className="flex flex-col items-stretch gap-2.5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
@@ -230,9 +230,9 @@ export function CommunityPostPanel({ onPostCreated }: CommunityPostPanelProps) {
               onClick={handlePlaceholderClick}
               type="button"
             >
-              发布帖子
+              发布
             </button>
-            <span className="text-xs text-[var(--color-muted)]">{status}</span>
+            <span className="hidden text-xs text-[var(--color-muted)] sm:inline">{status}</span>
           </div>
         </div>
       ) : (
@@ -261,13 +261,13 @@ export function CommunityPostPanel({ onPostCreated }: CommunityPostPanelProps) {
           </div>
 
           <div className="mt-3 flex flex-wrap items-center gap-2">
-            <span className="text-xs font-semibold text-[var(--color-muted)]">分类</span>
+            <span className="hidden text-xs font-semibold text-[var(--color-muted)] sm:inline">分类</span>
             {CATEGORIES.map((cat) => {
               const active = selectedCategory.key === cat.key;
               return (
                 <button
                   key={cat.key}
-                  className={`rounded-full px-3 py-1.5 text-xs font-semibold transition border ${
+                  className={`rounded-full px-2.5 py-1 text-[11px] font-semibold transition border sm:px-3 sm:py-1.5 sm:text-xs ${
                     active
                       ? "border-current text-[var(--color-on-brand)] shadow-sm"
                       : "border-[var(--color-line)] bg-[var(--color-panel)] text-[var(--color-muted)] hover:border-[var(--color-brand)] hover:text-[var(--color-ink)]"
@@ -289,7 +289,7 @@ export function CommunityPostPanel({ onPostCreated }: CommunityPostPanelProps) {
           <div className="relative mt-3">
             <textarea
               ref={textareaRef}
-              className="min-h-36 w-full resize-none rounded-[12px] border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 text-sm leading-7 outline-none transition focus:border-[var(--color-brand)]"
+              className="min-h-28 w-full resize-none rounded-[12px] border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 text-sm leading-7 outline-none transition focus:border-[var(--color-brand)]"
               onChange={(event) => {
                 setBody(event.target.value);
                 setMentionIndex(0);
@@ -320,7 +320,7 @@ export function CommunityPostPanel({ onPostCreated }: CommunityPostPanelProps) {
                   }
                 }
               }}
-              placeholder="写价格变化、试用活动、模型口径或避坑记录。输入 @ 可以提及其他用户。"
+              placeholder="写反馈、价格变化或试用记录。"
               value={body}
             />
 
@@ -375,29 +375,29 @@ export function CommunityPostPanel({ onPostCreated }: CommunityPostPanelProps) {
             >
               {uploadingImage ? "上传中..." : "📷 插图"}
             </button>
-            <span className="text-[11px] text-[var(--color-muted)]">支持粘贴图片 (Ctrl+V)</span>
+            <span className="hidden text-[11px] text-[var(--color-muted)] sm:inline">支持粘贴图片</span>
           </div>
 
-          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="mt-3 grid grid-cols-2 gap-2 sm:flex sm:items-center sm:justify-between">
             <button
-              className="w-full rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-3 text-sm font-semibold text-[var(--color-muted)] transition hover:bg-[var(--color-soft)] hover:text-[var(--color-ink)] sm:w-auto"
+              className="w-full rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-2.5 text-xs font-semibold text-[var(--color-muted)] transition hover:bg-[var(--color-soft)] hover:text-[var(--color-ink)] sm:w-auto sm:text-sm"
               onClick={() => setOpen(false)}
               type="button"
             >
-              先收起
+              收起
             </button>
 
             <button
-              className="w-full cursor-pointer rounded-full bg-[var(--color-brand)] px-5 py-3 text-sm font-bold text-[var(--color-on-brand)] transition hover:bg-[var(--color-brand-deep)] disabled:opacity-60 btn-press sm:w-auto"
+              className="btn-press w-full cursor-pointer rounded-full bg-[var(--color-brand)] px-5 py-2.5 text-xs font-bold text-[var(--color-on-brand)] transition hover:bg-[var(--color-brand-deep)] disabled:opacity-60 sm:w-auto sm:text-sm"
               disabled={submitting}
               onClick={handleSubmit}
               type="button"
             >
-              {submitting ? "发布中..." : "发布帖子"}
+              {submitting ? "发布中..." : "发布"}
             </button>
           </div>
 
-          <p className="mt-3 text-xs leading-6 text-[var(--color-muted)]">{status}</p>
+          <p className="mt-2 hidden text-xs leading-6 text-[var(--color-muted)] sm:block">{status}</p>
         </div>
       )}
 

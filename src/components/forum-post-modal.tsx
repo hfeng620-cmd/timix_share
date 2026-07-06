@@ -289,25 +289,25 @@ export function ForumPostModal({
     <div
       ref={overlayRef}
       aria-modal="true"
-      className="fixed inset-0 z-[100] bg-[#09090b]/80 backdrop-blur-md flex items-center justify-center px-4 py-5"
+      className="fixed inset-0 z-[100] flex items-end justify-center bg-[#09090b]/80 px-0 py-0 backdrop-blur-md md:items-center md:px-4 md:py-5"
       onClick={onClose}
       role="dialog"
       tabIndex={-1}
     >
       <div
-        className="relative w-[90vw] max-w-6xl h-[85vh] bg-zinc-950 border border-white/10 rounded-2xl shadow-2xl flex overflow-hidden"
+        className="pb-safe relative flex h-[92dvh] w-full flex-col overflow-hidden rounded-t-2xl border border-b-0 border-white/10 bg-zinc-950 shadow-2xl md:h-[85vh] md:w-[90vw] md:max-w-6xl md:flex-row md:rounded-2xl md:border-b"
         onClick={(event) => event.stopPropagation()}
       >
         <button
           aria-label="关闭帖子详情"
-          className="absolute right-5 top-5 z-10 inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-[#09090b]/30 text-zinc-400 transition hover:text-white"
+          className="absolute right-3 top-3 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-[#09090b]/55 text-zinc-400 transition hover:text-white active:scale-95 md:right-5 md:top-5 md:h-10 md:w-10"
           onClick={onClose}
           type="button"
         >
           <X className="h-5 w-5" />
         </button>
 
-        <div className="forum-post-modal-scrollbar flex-1 overflow-y-auto p-8 lg:p-12">
+        <div className="forum-post-modal-scrollbar flex-1 overflow-y-auto p-4 pr-12 md:p-8 lg:p-12">
           <div className="flex flex-wrap items-center gap-2">
             {post.tags.map((tag) => (
               <span
@@ -329,7 +329,7 @@ export function ForumPostModal({
             ) : null}
           </div>
 
-          <h2 className="mt-5 text-3xl font-medium text-zinc-100 tracking-tight leading-snug">
+          <h2 className="mt-3 text-xl font-semibold leading-snug tracking-tight text-zinc-100 md:mt-5 md:text-3xl md:font-medium">
             {post.station || "论坛讨论帖"}
           </h2>
 
@@ -397,7 +397,7 @@ export function ForumPostModal({
             </div>
           </div>
 
-          <div className="mt-8 whitespace-pre-wrap break-words text-[15px] leading-8 text-zinc-200">
+          <div className="mt-4 whitespace-pre-wrap break-words text-sm leading-7 text-zinc-200 md:mt-8 md:text-[15px] md:leading-8">
             <MarkdownContent
               text={post.body}
               imageClassName="my-3 max-h-[420px] w-auto max-w-full cursor-zoom-in rounded-xl border border-white/10 object-cover transition-opacity hover:opacity-90"
@@ -405,7 +405,7 @@ export function ForumPostModal({
             />
           </div>
 
-          <div className="mt-10 flex flex-wrap items-center gap-3 border-t border-white/10 pt-5">
+          <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-white/10 pt-3 md:mt-10 md:gap-3 md:pt-5">
             <button
               className={`inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm transition ${
                 postLiked ? "bg-rose-500/10 text-rose-300" : "bg-white/5 text-zinc-400 hover:text-zinc-100"
@@ -433,22 +433,22 @@ export function ForumPostModal({
           </div>
         </div>
 
-        <aside className="w-[380px] flex flex-col border-l border-white/10 bg-zinc-900/20">
-          <div className="py-4 border-b border-white/10 text-center text-sm text-zinc-300 font-medium">💬 评论</div>
+        <aside className="flex h-[45dvh] w-full shrink-0 flex-col border-t border-white/10 bg-zinc-900/20 md:h-auto md:w-[380px] md:border-l md:border-t-0">
+          <div className="border-b border-white/10 py-2.5 text-center text-xs font-medium text-zinc-300 md:py-4 md:text-sm">评论</div>
 
-          <div className="forum-post-modal-scrollbar flex-1 overflow-y-auto p-4">
+          <div className="forum-post-modal-scrollbar flex-1 overflow-y-auto p-3 md:p-4">
             {commentsLoading ? (
               <div className="flex items-center justify-center py-16 text-zinc-500">
                 <Loader2 className="h-5 w-5 animate-spin" />
               </div>
             ) : renderedComments.length === 0 ? (
-              <p className="py-14 text-center text-sm text-zinc-500">暂无评论, 来抢个沙发吧 ✨</p>
+              <p className="py-14 text-center text-sm text-zinc-500">暂无评论</p>
             ) : (
               <div className="space-y-4">
                 {renderedComments.map((reply) => {
                   const liked = likedReplies.has(reply.id);
                   return (
-                    <div key={reply.id} className="rounded-2xl border border-white/6 bg-white/[0.03] p-3.5">
+                    <div key={reply.id} className="rounded-xl border border-white/6 bg-white/[0.03] p-3 md:rounded-2xl md:p-3.5">
                       <div className="flex gap-3">
                         {reply.authorId ? (
                           <Link
@@ -503,7 +503,7 @@ export function ForumPostModal({
                             <span>{formatRelativeTime(reply.postedAt)}</span>
                           </div>
 
-                          <div className="mt-2 whitespace-pre-wrap break-words text-sm leading-7 text-zinc-300">
+                          <div className="mt-1.5 whitespace-pre-wrap break-words text-xs leading-6 text-zinc-300 md:mt-2 md:text-sm md:leading-7">
                             <MarkdownContent
                               text={reply.body}
                               imageClassName="mt-2 max-h-52 w-auto cursor-zoom-in rounded-lg border border-white/10 object-cover transition-opacity hover:opacity-90"
@@ -539,7 +539,7 @@ export function ForumPostModal({
             )}
           </div>
 
-          <div className="shrink-0 border-t border-white/10 bg-zinc-950/90 p-4">
+          <div className="shrink-0 border-t border-white/10 bg-zinc-950/90 p-3 pb-[max(env(safe-area-inset-bottom,0px),0.75rem)] md:p-4">
             {replyTarget ? (
               <div className="mb-2 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2">
                 <p className="text-[11px] font-medium text-zinc-400">
@@ -579,7 +579,7 @@ export function ForumPostModal({
                 ) : null}
                 <textarea
                   ref={composerRef}
-                  className="min-h-[88px] w-full resize-none rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 pr-32 text-sm leading-6 text-zinc-100 outline-none transition placeholder:text-zinc-500 focus:border-white/25"
+                  className="min-h-14 w-full resize-none rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2.5 pr-28 text-sm leading-6 text-zinc-100 outline-none transition placeholder:text-zinc-500 focus:border-white/25 md:min-h-[88px] md:rounded-2xl md:px-4 md:py-3 md:pr-32"
                   onChange={(event) => {
                     setComposerValue(event.target.value);
                     setComposerCursor(event.currentTarget.selectionStart ?? event.target.value.length);
@@ -608,8 +608,8 @@ export function ForumPostModal({
                   }}
                   onPaste={handlePaste}
                   onSelect={(event) => setComposerCursor(event.currentTarget.selectionStart ?? composerValue.length)}
-                  placeholder={replyTarget ? `回复 @${replyTarget}...` : "说点什么... (Enter 发送, Shift+Enter 换行)"}
-                  rows={3}
+                  placeholder={replyTarget ? `回复 @${replyTarget}...` : "说点什么..."}
+                  rows={2}
                   value={composerValue}
                 />
                 <input

@@ -57,7 +57,7 @@ export default function StationsPage() {
             <StationMonitorPanel />
           </div>
 
-          <div className="order-1 overflow-hidden rounded-[18px] border border-white/10 bg-white/[0.04] p-0 shadow-[0_10px_24px_rgba(15,23,42,0.06)] backdrop-blur lg:order-2 lg:rounded-3xl lg:border-white/10 lg:bg-[#09090b]/30 lg:p-6 lg:shadow-2xl">
+          <div className="order-1 overflow-visible rounded-[18px] border border-white/10 bg-white/[0.04] p-0 shadow-[0_10px_24px_rgba(15,23,42,0.06)] backdrop-blur lg:order-2 lg:overflow-hidden lg:rounded-3xl lg:border-white/10 lg:bg-[#09090b]/30 lg:p-6 lg:shadow-2xl">
             <StationsBoard />
           </div>
         </div>

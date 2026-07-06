@@ -174,12 +174,12 @@ function ActionButton({
   );
 
   if (!onClick) {
-    return <div className="inline-flex items-center gap-2 text-[15px] text-[var(--color-muted)]">{content}</div>;
+    return <div className="inline-flex items-center gap-1.5 text-[13px] text-[var(--color-muted)] sm:gap-2 sm:text-[15px]">{content}</div>;
   }
 
   return (
     <button
-      className="inline-flex min-h-[40px] min-w-[40px] items-center gap-2 rounded-full px-2 text-[15px] text-[var(--color-muted)] transition hover:bg-[var(--color-soft)] hover:text-[var(--color-ink)] sm:min-h-[44px] sm:min-w-[44px]"
+      className="inline-flex min-h-9 min-w-9 items-center justify-center gap-1.5 rounded-full px-2 text-[13px] text-[var(--color-muted)] transition hover:bg-[var(--color-soft)] hover:text-[var(--color-ink)] active:scale-[0.98] active:opacity-80 sm:min-h-[44px] sm:min-w-[44px] sm:gap-2 sm:text-[15px]"
       onClick={onClick}
       type="button"
     >
@@ -245,7 +245,7 @@ function ClampedPostBody({
           onClick={onShowFull}
           type="button"
         >
-          显示全部
+          全文
         </button>
       ) : null}
     </div>
@@ -1399,19 +1399,19 @@ export function DiscussionFeed({
                     ) : null}
                     {isAdmin ? (
                       <button
-                        className="inline-flex items-center gap-0.5 rounded-full border border-[var(--color-line)] bg-[var(--color-soft)] px-2 py-0.5 text-[11px] font-semibold text-[var(--color-brand-deep)] transition hover:bg-[var(--color-brand-soft)] disabled:opacity-50"
+                        className="mobile-admin-chip inline-flex items-center gap-0.5 rounded-full border border-[var(--color-line)] bg-[var(--color-soft)] px-2 py-0.5 text-[11px] font-semibold text-[var(--color-brand-deep)] transition hover:bg-[var(--color-brand-soft)] disabled:opacity-50"
                         disabled={pinSaving}
                         onClick={() => handlePinPost(post.issueNumber, !post.is_pinned)}
                         title={post.is_pinned ? "取消置顶" : "置顶"}
                         type="button"
                       >
-                        {post.is_pinned ? "📌 取消置顶" : "📌 置顶"}
+                        {post.is_pinned ? "📌 取消" : "📌 置顶"}
                       </button>
                     ) : null}
                     {isConnected && user?.id === post.authorId && editingPostId !== post.issueNumber ? (
                       <>
                         <button
-                          className="inline-flex items-center gap-1 rounded-full border border-[var(--color-line)] bg-[var(--color-soft)] px-2 py-0.5 text-[11px] font-semibold text-[var(--color-brand-deep)] transition hover:bg-[var(--color-brand-soft)]"
+                          className="mobile-admin-chip inline-flex items-center gap-1 rounded-full border border-[var(--color-line)] bg-[var(--color-soft)] px-2 py-0.5 text-[11px] font-semibold text-[var(--color-brand-deep)] transition hover:bg-[var(--color-brand-soft)]"
                           onClick={() => handleStartEdit(post)}
                           title="编辑"
                           type="button"
@@ -1422,7 +1422,7 @@ export function DiscussionFeed({
                           编辑
                         </button>
                         <button
-                          className="inline-flex items-center gap-1 rounded-full border border-[var(--color-line)] bg-[var(--color-soft)] px-2 py-0.5 text-[11px] font-semibold text-[var(--color-brand-deep)] transition hover:bg-[var(--color-brand-soft)]"
+                          className="mobile-admin-chip inline-flex items-center gap-1 rounded-full border border-[var(--color-line)] bg-[var(--color-soft)] px-2 py-0.5 text-[11px] font-semibold text-[var(--color-brand-deep)] transition hover:bg-[var(--color-brand-soft)]"
                           onClick={() => handleDeletePost(post.issueNumber)}
                           title="删除"
                           type="button"
@@ -1540,7 +1540,7 @@ export function DiscussionFeed({
                     />
                     {/* Bookmark button */}
                     <button
-                      className="inline-flex min-h-[40px] min-w-[40px] items-center justify-center gap-2 rounded-full px-2 text-[15px] text-[var(--color-muted)] transition hover:bg-[var(--color-soft)] hover:text-[var(--color-ink)] sm:min-h-[44px] sm:min-w-[44px] sm:justify-start"
+                      className="inline-flex min-h-9 min-w-9 items-center justify-center gap-1.5 rounded-full px-2 text-[13px] text-[var(--color-muted)] transition hover:bg-[var(--color-soft)] hover:text-[var(--color-ink)] active:scale-[0.98] active:opacity-80 sm:min-h-[44px] sm:min-w-[44px] sm:justify-start sm:gap-2 sm:text-[15px]"
                       onClick={(event) => {
                         event.stopPropagation();
                         handleToggleBookmark(post.issueNumber);
@@ -1549,7 +1549,7 @@ export function DiscussionFeed({
                       title={isBookmarked ? "取消收藏" : "收藏"}
                     >
                       <ActionIcon kind={isBookmarked ? "bookmarkFilled" : "bookmark"} />
-                      <span className="text-xs font-semibold">{isBookmarked ? "已收藏" : "收藏"}</span>
+                      <span className="hidden text-xs font-semibold sm:inline">{isBookmarked ? "已收藏" : "收藏"}</span>
                     </button>
                     {/* Sync to main discussion button (only in station view) */}
                     {showSyncButton && resolvedStationFilter && (

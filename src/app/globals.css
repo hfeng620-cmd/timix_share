@@ -1185,3 +1185,203 @@ a:focus-visible,
     transform: scale(0.992) translateZ(0);
   }
 }
+/* Mobile app refinement: restore natural scrolling and raise feed density. */
+@media (max-width: 767px) {
+  html:not([data-scroll-locked]),
+  html:not([data-scroll-locked]) body {
+    height: auto !important;
+    min-height: 100% !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior-y: auto !important;
+    touch-action: pan-y !important;
+  }
+
+  html:not([data-scroll-locked]) body {
+    position: static !important;
+    top: auto !important;
+    width: auto !important;
+  }
+
+  main#main-content {
+    min-height: auto !important;
+    overflow: visible !important;
+  }
+
+  .community-mobile-app .community-mobile-header {
+    margin-bottom: 6px !important;
+    padding-bottom: 8px !important;
+  }
+
+  .community-mobile-app > div {
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+  }
+
+  .community-mobile-app .community-mobile-compose,
+  .community-mobile-app nav[aria-label="社区快捷入口"] {
+    margin-bottom: 8px !important;
+  }
+
+  .community-mobile-app .community-compose-trigger {
+    border-radius: 14px !important;
+    padding: 10px 12px !important;
+  }
+
+  .community-mobile-app .community-compose-trigger span:first-child span:first-child {
+    font-size: 13px !important;
+  }
+
+  .community-mobile-app .community-compose-trigger span:first-child span:last-child {
+    display: none !important;
+  }
+
+  .community-mobile-app .community-composer-shell > div > div:first-child {
+    padding-bottom: 6px !important;
+  }
+
+  .community-mobile-app .community-composer-shell > div > div:first-child p,
+  .community-mobile-app .community-composer-shell > div > div:first-child a,
+  .community-mobile-app .community-composer-shell div:has(> span.text-xs.font-semibold) {
+    display: none !important;
+  }
+
+  .community-mobile-app .community-composer-shell textarea {
+    min-height: 92px !important;
+    padding: 10px 12px !important;
+  }
+
+  .community-mobile-app .community-feed-shell article {
+    border-radius: 14px !important;
+    margin-bottom: 7px !important;
+    padding: 9px 10px !important;
+  }
+
+  .community-mobile-app .community-feed-shell article .mobile-admin-chip {
+    min-height: 26px !important;
+    min-width: 0 !important;
+    padding: 2px 7px !important;
+    gap: 2px !important;
+    font-size: 10px !important;
+    line-height: 1 !important;
+  }
+
+  .community-mobile-app .community-feed-shell article .mobile-admin-chip svg {
+    height: 12px !important;
+    width: 12px !important;
+  }
+
+  .community-mobile-app .community-feed-shell article [title="编辑"],
+  .community-mobile-app .community-feed-shell article [title="删除"],
+  .community-mobile-app .community-feed-shell article [title="置顶"],
+  .community-mobile-app .community-feed-shell article [title="取消置顶"] {
+    min-height: 26px !important;
+    min-width: 0 !important;
+    padding: 2px 7px !important;
+  }
+
+  .community-mobile-app .community-feed-shell article .mt-3.flex.flex-wrap,
+  .community-mobile-app .community-feed-shell article .mt-4.flex.flex-wrap {
+    display: none !important;
+  }
+
+  .community-mobile-app .community-feed-shell article .line-clamp-3 {
+    -webkit-line-clamp: 2 !important;
+    line-height: 1.42 !important;
+    max-height: 34px !important;
+  }
+
+  .community-mobile-app .community-feed-shell article .mt-5.grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 2px !important;
+    margin-top: 4px !important;
+    padding-top: 4px !important;
+  }
+
+  .community-mobile-app .community-feed-shell article .mt-5.grid > button:first-child {
+    display: none !important;
+  }
+
+  .community-mobile-app .community-feed-shell article .mt-5.grid :where(button, a) {
+    min-height: 34px !important;
+    min-width: 0 !important;
+    padding: 4px 6px !important;
+    font-size: 11px !important;
+  }
+}
+
+/* Final mobile app guardrails: all themes keep natural page scrolling and dense TiMix feeds. */
+@media (max-width: 767px) {
+  html:not([data-scroll-locked]) body,
+  html:not([data-scroll-locked]) main#main-content,
+  html:not([data-scroll-locked]) .timix-mobile-shell,
+  html:not([data-scroll-locked]) .profile-mobile-app,
+  html:not([data-scroll-locked]) .community-mobile-app,
+  html:not([data-scroll-locked]) .stations-mobile-app {
+    height: auto !important;
+    min-height: 100dvh !important;
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
+    touch-action: pan-y !important;
+  }
+
+  html:not([data-scroll-locked]),
+  html:not([data-scroll-locked]) body {
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .community-mobile-app .community-feed-shell article {
+    border-radius: 14px !important;
+    margin-bottom: 7px !important;
+    padding: 8px 9px !important;
+  }
+
+  .community-mobile-app .community-feed-shell article .mobile-admin-chip {
+    min-height: 24px !important;
+    min-width: 0 !important;
+    padding: 1px 6px !important;
+    font-size: 10px !important;
+  }
+
+  .community-mobile-app .community-feed-shell article .mt-5.grid {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    overflow-x: auto !important;
+    border-top: 0 !important;
+    padding-top: 2px !important;
+    scrollbar-width: none;
+  }
+
+  .community-mobile-app .community-feed-shell article .mt-5.grid::-webkit-scrollbar {
+    display: none;
+  }
+
+  .community-mobile-app .community-feed-shell article .mt-5.grid > button:first-child,
+  .community-mobile-app .community-feed-shell article .mt-5.grid > button:last-child {
+    display: none !important;
+  }
+
+  .community-mobile-app .community-feed-shell article .mt-5.grid :where(button, a) {
+    flex: 0 0 auto !important;
+    min-height: 34px !important;
+    min-width: 34px !important;
+    padding: 4px 7px !important;
+  }
+
+  .forum-post-modal-scrollbar {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+html[data-scroll-locked],
+html[data-scroll-locked] body {
+  overflow: hidden !important;
+  overscroll-behavior: none !important;
+}
+
+html[data-scroll-locked] body {
+  touch-action: none !important;
+}

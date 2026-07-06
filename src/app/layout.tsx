@@ -5,6 +5,7 @@ import { BackgroundSliderWrapper } from "@/components/background-slider-wrapper"
 import { ErrorBoundary } from "@/components/error-boundary";
 import { PageTransition } from "@/components/page-transition";
 import { MobileDock } from "@/components/mobile-dock";
+import { MobileAppSplash } from "@/components/mobile-app-splash";
 import { RegisterCounter } from "@/components/register-counter";
 import { FloatingQuickPanel } from "@/components/floating-quick-panel";
 import { ToastContainer } from "@/components/toast-container";
@@ -93,6 +94,7 @@ export default function RootLayout({
         <AnnouncementModal />
         <RegisterCounter />
         <VpsFallbackBanner />
+        <MobileAppSplash />
         <script
           dangerouslySetInnerHTML={{
             __html: `
