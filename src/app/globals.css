@@ -1410,3 +1410,8 @@ html[data-scroll-locked] body {
     touch-action: none !important;
   }
 }
+.post-detail-modal-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  transform: translateZ(0);
+}

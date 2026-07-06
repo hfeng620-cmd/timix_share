@@ -394,7 +394,7 @@ function NestedReplyModal({
                   <Heart className={`h-3.5 w-3.5 inline mr-1 ${rootComment.likedBy.has(currentUserId ?? "") ? "fill-current" : ""}`} />
                   {rootComment.likedBy.size > 0 ? rootComment.likedBy.size : ""}
                 </button>
-                <button onClick={() => focusReplyTo(rootComment.authorName)} className="text-xs text-gray-500 hover:text-gray-300 transition font-body" type="button">
+                <button onClick={() => focusReplyTo(rootComment.authorName)} className="text-xs text-zinc-500 hover:text-zinc-800 sm:text-gray-500 sm:hover:text-gray-300 transition font-body" type="button">
                   <MessageCircle className="h-3.5 w-3.5 inline mr-1" />回复
                 </button>
               </div>
@@ -412,17 +412,17 @@ function NestedReplyModal({
                 {reply.authorAvatar ? (
                   <img src={reply.authorAvatar} className="h-7 w-7 rounded-full object-cover shrink-0 mt-0.5" alt="" />
                 ) : (
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/10 text-[10px] text-white/50 mt-0.5">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-[10px] text-zinc-500 sm:bg-white/10 sm:text-white/50 mt-0.5">
                     {reply.authorName.charAt(0)}
                   </span>
                 )}
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-xs font-medium text-white/70 font-body sm:text-sm">{reply.authorName}</span>
+                    <span className="text-xs font-medium text-zinc-700 font-body sm:text-sm sm:text-white/70">{reply.authorName}</span>
                     <RoleTitleBadges role={reply.authorRole} customTitle={reply.authorCustomTitle} />
                     <span className="text-[11px] text-gray-500 font-body">{formatRelativeTime(reply.createdAt)}</span>
                   </div>
-                  <div className="mt-1 whitespace-pre-wrap break-words text-xs leading-relaxed text-white/45 font-body sm:text-sm">
+                  <div className="mt-1 whitespace-pre-wrap break-words text-xs leading-relaxed text-zinc-700 font-body sm:text-sm sm:text-white/45">
                     <MarkdownContent
                       text={reply.content}
                       imageClassName="max-h-48 w-auto cursor-zoom-in rounded-md border border-white/10 object-cover mt-2 transition-opacity hover:opacity-90"
@@ -434,7 +434,7 @@ function NestedReplyModal({
                       <Heart className={`h-3 w-3 inline mr-1 ${reply.likedBy.has(currentUserId ?? "") ? "fill-current" : ""}`} />
                       {reply.likedBy.size > 0 ? reply.likedBy.size : ""}
                     </button>
-                    <button onClick={() => focusReplyTo(reply.authorName)} className="text-xs text-gray-500 hover:text-gray-300 transition font-body" type="button">
+                    <button onClick={() => focusReplyTo(reply.authorName)} className="text-xs text-zinc-500 hover:text-zinc-800 sm:text-gray-500 sm:hover:text-gray-300 transition font-body" type="button">
                       <MessageCircle className="h-3 w-3 inline mr-1" />回复
                     </button>
                   </div>
@@ -863,38 +863,38 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
       <div
         ref={overlayRef}
         tabIndex={-1}
-        className="fixed inset-0 z-[100] flex items-end justify-center bg-[#09090b]/60 px-0 backdrop-blur-xl outline-none sm:items-center sm:px-4"
+        className="fixed inset-0 z-[100] flex items-end justify-center bg-zinc-950/35 px-0 outline-none sm:items-center sm:bg-[#09090b]/60 sm:px-4 sm:backdrop-blur-xl"
         onKeyDown={handleMainKeyDown}
         onClick={onClose}
       >
-        <button onClick={onClose} className="absolute right-4 top-[calc(8dvh+0.75rem)] z-[999] rounded-full bg-white/10 p-2 text-white/50 transition-colors hover:text-white sm:right-6 sm:top-6 sm:bg-transparent" type="button">
+        <button onClick={onClose} className="absolute right-4 top-[calc(8dvh+0.75rem)] z-[999] rounded-full bg-white/90 p-2 text-zinc-500 shadow-lg ring-1 ring-zinc-200 transition-colors hover:text-zinc-900 sm:right-6 sm:top-6 sm:bg-transparent sm:text-white/50 sm:shadow-none sm:ring-0 sm:hover:text-white" type="button">
           <X className="h-6 w-6" />
         </button>
         <div
-          className="relative flex h-auto max-h-[calc(100dvh_-_var(--safe-top))] w-full max-w-6xl flex-col overflow-hidden rounded-t-2xl border border-white/10 border-b-0 bg-zinc-950/95 shadow-2xl sm:h-[85dvh] sm:flex-row sm:rounded-2xl sm:border-b sm:bg-zinc-950/90"
+          className="relative flex h-[92dvh] max-h-[calc(100dvh_-_var(--safe-top))] w-full max-w-6xl flex-col overflow-hidden rounded-t-2xl border border-zinc-200 border-b-0 bg-white text-zinc-900 shadow-2xl sm:h-[85dvh] sm:flex-row sm:rounded-2xl sm:border-white/10 sm:border-b sm:bg-zinc-950/90 sm:text-zinc-100"
           onClick={(e) => e.stopPropagation()}
         >
           {/* ── Left: 分享内容 ── */}
-          <div className="mx-auto mt-2 h-1 w-10 shrink-0 rounded-full bg-white/20 sm:hidden" />
-          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto sm:border-r sm:border-white/10">
-            <div className="flex-1 p-4 sm:p-8">
+          <div className="mx-auto mt-2 h-1 w-10 shrink-0 rounded-full bg-zinc-300 sm:hidden" />
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden sm:border-r sm:border-white/10">
+            <div className="post-detail-modal-scroll flex-1 overflow-y-auto overscroll-contain p-4 sm:p-8">
               <div className="mb-4 flex flex-wrap items-start justify-between gap-3 sm:mb-6">
-                <span className="inline-block rounded-full bg-white/10 px-2.5 py-1 text-[11px] text-white/50 font-body sm:px-3 sm:text-xs">{post.tag}</span>
+                <span className="inline-block rounded-full bg-zinc-100 px-2.5 py-1 text-[11px] text-zinc-600 font-body sm:bg-white/10 sm:px-3 sm:text-xs sm:text-white/50">{post.tag}</span>
                 <div className="flex items-center gap-2">
                   {canEdit && onEdit && (
-                    <button onClick={onEdit} className="rounded-lg p-1.5 text-white/30 hover:text-white hover:bg-white/10 transition" title="编辑" type="button">
+                    <button onClick={onEdit} className="rounded-lg p-1.5 text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-900 sm:text-white/30 sm:hover:bg-white/10 sm:hover:text-white" title="编辑" type="button">
                       <Pencil className="h-4 w-4" />
                     </button>
                   )}
                   {editLogs.length > 0 && (
-                    <span className="rounded-full bg-white/5 px-2.5 py-1 text-[10px] text-white/40 font-body">{editLogs.length} 次修改</span>
+                    <span className="rounded-full bg-zinc-100 px-2.5 py-1 text-[10px] text-zinc-500 font-body sm:bg-white/5 sm:text-white/40">{editLogs.length} 次修改</span>
                   )}
                 </div>
               </div>
 
-              <h2 className="text-xl font-heading italic leading-tight text-white sm:text-3xl md:text-4xl">{post.title}</h2>
+              <h2 className="text-xl font-heading italic leading-tight text-zinc-950 sm:text-3xl sm:text-white md:text-4xl">{post.title}</h2>
 
-              <div className="mt-3 flex items-center gap-2 text-xs text-white/40 font-body sm:mt-4 sm:gap-3 sm:text-sm">
+              <div className="mt-3 flex items-center gap-2 text-xs text-zinc-500 font-body sm:mt-4 sm:gap-3 sm:text-sm sm:text-white/40">
                 {(post.authorName || post.authorAvatar) ? (
                   <>
                     {post.authorId ? (
@@ -911,7 +911,7 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
                             alt={post.authorName ?? "作者头像"}
                           />
                         ) : post.authorName ? (
-                          <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-white/10 text-[10px] text-white/50">
+                          <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-zinc-100 text-[10px] text-zinc-500 sm:bg-white/10 sm:text-white/50">
                             {post.authorName.charAt(0)}
                           </span>
                         ) : null}
@@ -923,20 +923,20 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
                         alt={post.authorName ?? "作者头像"}
                       />
                     ) : post.authorName ? (
-                      <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-white/10 text-[10px] text-white/50">
+                      <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-zinc-100 text-[10px] text-zinc-500 sm:bg-white/10 sm:text-white/50">
                         {post.authorName.charAt(0)}
                       </span>
                     ) : null}
                     {post.authorName ? post.authorId ? (
                       <Link
-                        className="text-white/60 transition hover:text-white"
+                        className="text-zinc-700 transition hover:text-zinc-950 sm:text-white/60 sm:hover:text-white"
                         href={getUserProfileHref(post.authorId)}
                         onClick={(event) => event.stopPropagation()}
                       >
                         {post.authorName}
                       </Link>
                     ) : (
-                      <span className="text-white/60">{post.authorName}</span>
+                      <span className="text-zinc-700 sm:text-white/60">{post.authorName}</span>
                     ) : null}
                     {post.createdAt ? <span>·</span> : null}
                   </>
@@ -944,7 +944,7 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
                 {post.createdAt ? <span>{formatRelativeTime(post.createdAt)}</span> : null}
               </div>
 
-              <p className="mt-3 text-[13px] leading-relaxed text-white/50 font-body sm:mt-5 sm:text-sm">{post.summary}</p>
+              <p className="mt-3 text-[13px] leading-relaxed text-zinc-600 font-body sm:mt-5 sm:text-sm sm:text-white/50">{post.summary}</p>
 
               <div className="my-4 sm:my-6">
                 {linkSegments.length > 0 ? (
@@ -956,14 +956,14 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
                       return (
                         <div
                           key={`${segment}-${index}`}
-                          className="flex items-center justify-between rounded-xl border border-emerald-500/20 bg-zinc-900/60 p-3 transition-colors hover:bg-zinc-900/80 sm:p-4"
+                          className="flex items-center justify-between rounded-xl border border-emerald-200 bg-white/80 p-3 shadow-sm transition-colors hover:bg-white sm:border-emerald-500/20 sm:bg-zinc-900/60 sm:p-4 sm:hover:bg-zinc-900/80"
                         >
                           <div className="flex min-w-0 flex-col overflow-hidden pr-4">
                             <span className="mb-1 text-xs font-semibold uppercase tracking-wider text-emerald-500">
                               分享链接 {linkSegments.length > 1 ? index + 1 : ""}
                             </span>
                             <a
-                              className="truncate text-[13px] text-white transition-colors hover:text-emerald-400 sm:text-sm"
+                              className="truncate text-[13px] text-zinc-800 transition-colors hover:text-emerald-700 sm:text-sm sm:text-white sm:hover:text-emerald-400"
                               href={actualUrl}
                               onClick={(event) => event.stopPropagation()}
                               rel="noopener noreferrer"
@@ -989,14 +989,14 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
                     })}
                   </div>
                 ) : (
-                  <div className="flex items-center gap-2 rounded-xl border border-white/5 bg-zinc-900/30 p-3 text-[13px] text-zinc-500 sm:gap-3 sm:p-4 sm:text-sm">
+                  <div className="flex items-center gap-2 rounded-xl border border-zinc-200 bg-zinc-50 p-3 text-[13px] text-zinc-500 sm:gap-3 sm:border-white/5 sm:bg-zinc-900/30 sm:p-4 sm:text-sm">
                     <LinkIcon className="h-4 w-4 opacity-50" />
                     <span>该分享未提供直达链接或链接已失效</span>
                   </div>
                 )}
               </div>
 
-              <div className="mt-5 whitespace-pre-wrap break-words text-[13px] leading-relaxed text-gray-300 font-body sm:mt-6 sm:text-sm">
+              <div className="mt-5 whitespace-pre-wrap break-words text-[13px] leading-relaxed text-zinc-800 font-body sm:mt-6 sm:text-sm sm:text-gray-300">
                 {post.body ? (
                   <MarkdownContent text={post.body} onImageClick={setLightboxImage} />
                 ) : (
@@ -1006,40 +1006,40 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
             </div>
 
             {/* Bottom action bar */}
-            <div className="shrink-0 flex items-center gap-4 border-t border-white/10 bg-zinc-950/50 px-4 pb-[max(env(safe-area-inset-bottom,0px),0.75rem)] pt-3 sm:gap-5 sm:px-8 sm:py-4">
-              <button onClick={handlePostLike} disabled={postLikePending} className={`cursor-pointer inline-flex items-center gap-1.5 text-xs transition font-body disabled:cursor-not-allowed disabled:opacity-60 sm:text-sm ${postIsLiked ? "text-rose-400" : "text-white/40 hover:text-rose-300"}`} type="button">
+            <div className="shrink-0 flex items-center gap-4 border-t border-zinc-200 bg-white/90 px-4 pb-[max(env(safe-area-inset-bottom,0px),0.75rem)] pt-3 text-zinc-600 backdrop-blur-xl sm:gap-5 sm:border-white/10 sm:bg-zinc-950/50 sm:px-8 sm:py-4 sm:text-white/40">
+              <button onClick={handlePostLike} disabled={postLikePending} className={`cursor-pointer inline-flex items-center gap-1.5 text-xs transition font-body disabled:cursor-not-allowed disabled:opacity-60 sm:text-sm ${postIsLiked ? "text-rose-500 sm:text-rose-400" : "text-zinc-500 hover:text-rose-500 sm:text-white/40 sm:hover:text-rose-300"}`} type="button">
                 <Heart className={`h-4 w-4 transition ${postIsLiked ? "fill-current" : ""}`} />{postLikesCount}
               </button>
               <LikeIndicator likers={postLikers} />
-              <button onClick={() => setRightTab("comments")} className="cursor-pointer inline-flex items-center gap-1.5 text-xs text-white/40 transition hover:text-zinc-300 font-body sm:text-sm" type="button">
+              <button onClick={() => setRightTab("comments")} className="cursor-pointer inline-flex items-center gap-1.5 text-xs text-zinc-500 transition hover:text-zinc-900 font-body sm:text-sm sm:text-white/40 sm:hover:text-zinc-300" type="button">
                 <MessageCircle className="h-4 w-4" />{commentsLoading ? "..." : comments.length}
               </button>
-              <button onClick={() => setSaved(!saved)} className={`ml-auto cursor-pointer inline-flex items-center gap-1.5 text-xs transition font-body sm:text-sm ${saved ? "text-amber-400" : "text-white/40 hover:text-amber-300"}`} type="button">
+              <button onClick={() => setSaved(!saved)} className={`ml-auto cursor-pointer inline-flex items-center gap-1.5 text-xs transition font-body sm:text-sm ${saved ? "text-amber-500 sm:text-amber-400" : "text-zinc-500 hover:text-amber-600 sm:text-white/40 sm:hover:text-amber-300"}`} type="button">
                 <Bookmark className={`h-4 w-4 transition ${saved ? "fill-current" : ""}`} />{saved ? "已收藏" : "收藏"}
               </button>
             </div>
           </div>
 
           {/* ── Right: comments/logs ── */}
-          <div className="flex h-[42dvh] max-h-[42dvh] w-full shrink-0 flex-col border-t border-white/10 bg-zinc-900/30 sm:h-auto sm:max-h-none sm:w-[380px] sm:border-t-0">
+          <div className="flex h-[42dvh] max-h-[42dvh] min-h-0 w-full shrink-0 flex-col border-t border-zinc-200 bg-white sm:h-auto sm:max-h-none sm:w-[380px] sm:border-t-0 sm:border-white/10 sm:bg-zinc-900/30">
             {/* Tab header */}
-            <div className="shrink-0 flex border-b border-white/10">
-              <button onClick={() => setRightTab("comments")} className={`relative flex-1 cursor-pointer py-2.5 text-xs transition font-body sm:py-3 sm:text-sm ${rightTab === "comments" ? "text-white" : "text-gray-500 hover:text-gray-400"}`} type="button">
+            <div className="shrink-0 flex items-center gap-6 border-b border-zinc-100 bg-white px-4 py-3 sm:border-white/5 sm:bg-zinc-950/60">
+              <button onClick={() => setRightTab("comments")} className={`relative cursor-pointer pb-2 text-sm font-bold transition-colors font-body ${rightTab === "comments" ? "text-zinc-900 sm:text-white" : "text-zinc-400 hover:text-zinc-600 sm:text-zinc-500 sm:hover:text-zinc-300"}`} type="button">
                 评论
-                {rightTab === "comments" && <span className="absolute bottom-0 left-1/4 right-1/4 h-0.5 bg-white/60 rounded-full" />}
+                {rightTab === "comments" && <span className="absolute bottom-0 left-1/2 h-1 w-4 -translate-x-1/2 rounded-full bg-emerald-500" />}
               </button>
-              <button onClick={() => setRightTab("logs")} className={`relative flex-1 cursor-pointer py-2.5 text-xs transition font-body sm:py-3 sm:text-sm ${rightTab === "logs" ? "text-white" : "text-gray-500 hover:text-gray-400"}`} type="button">
+              <button onClick={() => setRightTab("logs")} className={`relative cursor-pointer pb-2 text-sm font-bold transition-colors font-body ${rightTab === "logs" ? "text-zinc-900 sm:text-white" : "text-zinc-400 hover:text-zinc-600 sm:text-zinc-500 sm:hover:text-zinc-300"}`} type="button">
                 日志
-                {rightTab === "logs" && <span className="absolute bottom-0 left-1/4 right-1/4 h-0.5 bg-white/60 rounded-full" />}
+                {rightTab === "logs" && <span className="absolute bottom-0 left-1/2 h-1 w-4 -translate-x-1/2 rounded-full bg-emerald-500" />}
               </button>
             </div>
 
             {/* Tab: Comments */}
             {rightTab === "comments" && (
               <>
-                <div className="flex-1 space-y-3 overflow-y-auto p-3 sm:space-y-4 sm:p-4">
+                <div className="post-detail-modal-scroll flex-1 space-y-3 overflow-y-auto overscroll-contain p-3 sm:space-y-4 sm:p-4">
                   {commentsLoading ? (
-                    <div className="flex items-center justify-center py-12"><Loader2 className="h-5 w-5 text-white/30 animate-spin" /></div>
+                    <div className="flex items-center justify-center py-12"><Loader2 className="h-5 w-5 text-zinc-400 animate-spin sm:text-white/30" /></div>
                   ) : rootComments.length === 0 ? (
                     <p className="text-sm text-gray-500 font-body text-center py-12">暂无评论</p>
                   ) : (
@@ -1060,7 +1060,7 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
                                   <img src={root.authorAvatar} className="h-7 w-7 rounded-full object-cover shrink-0 mt-0.5" alt="" />
                                 </Link>
                               ) : (
-                                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/10 text-[10px] text-white/50 mt-0.5">
+                                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-[10px] text-zinc-500 sm:bg-white/10 sm:text-white/50 mt-0.5">
                                   {root.authorName.charAt(0)}
                                 </span>
                               )}
@@ -1068,19 +1068,19 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
                               <div className="flex flex-wrap items-center gap-2">
                                 {root.authorId ? (
                                   <Link
-                                    className="text-xs font-medium text-white/70 transition hover:text-white font-body sm:text-sm"
+                                    className="text-xs font-medium text-zinc-700 transition hover:text-zinc-950 font-body sm:text-sm sm:text-white/70 sm:hover:text-white"
                                     href={getUserProfileHref(root.authorId)}
                                     onClick={(event) => event.stopPropagation()}
                                   >
                                     {root.authorName}
                                   </Link>
                                 ) : (
-                                  <span className="text-xs font-medium text-white/70 font-body sm:text-sm">{root.authorName}</span>
+                                  <span className="text-xs font-medium text-zinc-700 font-body sm:text-sm sm:text-white/70">{root.authorName}</span>
                                 )}
                                 <RoleTitleBadges role={root.authorRole} customTitle={root.authorCustomTitle} />
                                 <span className="text-[11px] text-gray-500 font-body">{formatRelativeTime(root.createdAt)}</span>
                               </div>
-                              <div className="mt-1 whitespace-pre-wrap break-words text-xs leading-relaxed text-white/45 font-body sm:text-sm">
+                              <div className="mt-1 whitespace-pre-wrap break-words text-xs leading-relaxed text-zinc-700 font-body sm:text-sm sm:text-white/45">
                                 <MarkdownContent
                                   text={root.content}
                                   imageClassName="max-h-48 w-auto cursor-zoom-in rounded-md border border-white/10 object-cover mt-2 transition-opacity hover:opacity-90"
@@ -1088,11 +1088,11 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
                                 />
                               </div>
                               <div className="mt-1.5 flex items-center gap-4">
-                                <button onClick={() => handleToggleCommentLike(root.id)} className={`cursor-pointer text-xs transition font-body ${isRootLiked ? "text-rose-400" : "text-gray-500 hover:text-gray-300"}`} type="button">
+                                <button onClick={() => handleToggleCommentLike(root.id)} className={`cursor-pointer text-xs transition font-body ${isRootLiked ? "text-rose-500 sm:text-rose-400" : "text-zinc-500 hover:text-zinc-800 sm:text-gray-500 sm:hover:text-gray-300"}`} type="button">
                                   <Heart className={`h-3.5 w-3.5 inline mr-1 ${isRootLiked ? "fill-current" : ""}`} />
                                   {root.likedBy.size > 0 ? root.likedBy.size : ""}
                                 </button>
-                                <button onClick={() => setNestedRootId(root.id)} className="cursor-pointer text-xs text-gray-500 hover:text-gray-300 transition font-body" type="button">
+                                <button onClick={() => setNestedRootId(root.id)} className="cursor-pointer text-xs text-zinc-500 hover:text-zinc-800 sm:text-gray-500 sm:hover:text-gray-300 transition font-body" type="button">
                                   <MessageCircle className="h-3.5 w-3.5 inline mr-1" />回复
                                 </button>
                                 {/* Delete: only own comments */}
@@ -1121,7 +1121,7 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
                                         <img src={reply.authorAvatar} className="h-6 w-6 rounded-full object-cover shrink-0 mt-0.5" alt="" />
                                       </Link>
                                     ) : (
-                                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/10 text-[9px] text-white/50 mt-0.5">
+                                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-[9px] text-zinc-500 sm:bg-white/10 sm:text-white/50 mt-0.5">
                                         {reply.authorName.charAt(0)}
                                       </span>
                                     )}
@@ -1129,26 +1129,26 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
                                       <div className="flex flex-wrap items-center gap-1.5">
                                         {reply.authorId ? (
                                           <Link
-                                            className="text-xs font-medium text-white/60 font-body transition hover:text-white"
+                                            className="text-xs font-medium text-zinc-600 font-body transition hover:text-zinc-900 sm:text-white/60 sm:hover:text-white"
                                             href={getUserProfileHref(reply.authorId)}
                                             onClick={(event) => event.stopPropagation()}
                                           >
                                             {reply.authorName}
                                           </Link>
                                         ) : (
-                                          <span className="text-xs font-medium text-white/60 font-body">{reply.authorName}</span>
+                                          <span className="text-xs font-medium text-zinc-600 font-body sm:text-white/60">{reply.authorName}</span>
                                         )}
                                         <RoleTitleBadges role={reply.authorRole} customTitle={reply.authorCustomTitle} />
                                         <span className="text-[10px] text-gray-500 font-body">{formatRelativeTime(reply.createdAt)}</span>
                                       </div>
-                                      <div className="mt-0.5 whitespace-pre-wrap break-words text-xs leading-relaxed text-white/35 font-body">
+                                      <div className="mt-0.5 whitespace-pre-wrap break-words text-xs leading-relaxed text-zinc-600 font-body sm:text-white/35">
                                         <MarkdownContent
                                           text={reply.content}
                                           imageClassName="max-h-48 w-auto cursor-zoom-in rounded-md border border-white/10 object-cover mt-2 transition-opacity hover:opacity-90"
                                           onImageClick={setLightboxImage}
                                         />
                                       </div>
-                                      <button onClick={() => handleToggleCommentLike(reply.id)} className={`cursor-pointer text-[10px] transition font-body mt-0.5 ${isReplyLiked ? "text-rose-400" : "text-gray-600 hover:text-gray-400"}`} type="button">
+                                      <button onClick={() => handleToggleCommentLike(reply.id)} className={`cursor-pointer text-[10px] transition font-body mt-0.5 ${isReplyLiked ? "text-rose-500 sm:text-rose-400" : "text-zinc-500 hover:text-zinc-800 sm:text-gray-600 sm:hover:text-gray-400"}`} type="button">
                                         <Heart className={`h-3 w-3 inline mr-0.5 ${isReplyLiked ? "fill-current" : ""}`} />
                                         {reply.likedBy.size > 0 ? reply.likedBy.size : ""}
                                       </button>
@@ -1163,7 +1163,7 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
                           {replies.length > 2 ? (
                             <button
                               onClick={() => setNestedRootId(root.id)}
-                              className="ml-10 mt-2 text-xs text-zinc-300 hover:text-zinc-300 transition font-body inline-flex items-center gap-1 cursor-pointer"
+                              className="ml-10 mt-2 text-xs text-emerald-600 hover:text-emerald-700 sm:text-zinc-300 sm:hover:text-zinc-300 transition font-body inline-flex items-center gap-1 cursor-pointer"
                               type="button"
                             >
                               查看全部 {replies.length} 条回复 <ChevronDown className="h-3 w-3" />
@@ -1171,7 +1171,7 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
                           ) : replies.length > 0 && replies.length <= 2 ? (
                             <button
                               onClick={() => setNestedRootId(root.id)}
-                              className="ml-10 mt-1 text-xs text-gray-500 hover:text-gray-300 transition font-body cursor-pointer"
+                              className="ml-10 mt-1 text-xs text-zinc-500 hover:text-zinc-800 sm:text-gray-500 sm:hover:text-gray-300 transition font-body cursor-pointer"
                               type="button"
                             >
                               查看全部 {replies.length} 条回复
@@ -1184,12 +1184,12 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
                 </div>
 
                 {/* 底部评论输入框 */}
-                <div className="shrink-0 border-t border-white/10 bg-zinc-900/50 p-3 sm:p-4">
+                <div className="shrink-0 border-t border-zinc-200 bg-white/90 p-3 backdrop-blur-xl sm:border-white/10 sm:bg-zinc-950/90 sm:p-4">
                   <div className="relative">
                     <SlashEmojiSuggestions activeSlash={activeCommentSlashEmoji} onPick={(item) => applyCommentSlashEmoji(item, true)} />
                     <textarea
                       ref={commentTextareaRef}
-                      className="w-full min-h-[40px] resize-none rounded-xl border border-white/10 bg-white/5 py-2.5 pl-9 pr-20 text-[13px] text-white placeholder:text-white/25 outline-none transition focus:border-white/30 font-body sm:min-h-[44px] sm:py-3 sm:pl-10 sm:pr-24 sm:text-sm"
+                      className="w-full min-h-[40px] resize-none rounded-xl border border-zinc-200 bg-zinc-50 py-2.5 pl-9 pr-20 text-[13px] text-zinc-900 placeholder:text-zinc-400 outline-none transition focus:border-emerald-400 font-body sm:min-h-[44px] sm:border-white/10 sm:bg-white/5 sm:py-3 sm:pl-10 sm:pr-24 sm:text-sm sm:text-white sm:placeholder:text-white/25 sm:focus:border-white/30"
                       placeholder="说点什么..."
                       onKeyDown={(e) => {
                         if (e.nativeEvent.isComposing) return;
@@ -1237,7 +1237,7 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
                       }}
                     />
                     <button
-                      className="absolute bottom-2 left-2 cursor-pointer rounded-full p-1.5 text-zinc-500 transition hover:text-white disabled:opacity-40"
+                      className="absolute bottom-2 left-2 cursor-pointer rounded-full p-1.5 text-zinc-500 transition hover:text-zinc-900 disabled:opacity-40 sm:hover:text-white"
                       type="button"
                       onClick={() => commentFileInputRef.current?.click()}
                       disabled={commentUploading}
@@ -1248,7 +1248,7 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
                     <div className="absolute right-2 bottom-2 flex items-center gap-1">
                       <EmojiPickerButton
                         align="right"
-                        buttonClassName="cursor-pointer rounded-full p-1.5 text-zinc-500 transition hover:text-white disabled:opacity-40"
+                        buttonClassName="cursor-pointer rounded-full p-1.5 text-zinc-500 transition hover:text-zinc-900 disabled:opacity-40 sm:hover:text-white"
                         iconClassName="h-3.5 w-3.5"
                         onClose={() => setShowCommentEmojiPicker(false)}
                         onEmojiSelect={insertCommentEmojiAtCursor}
@@ -1256,7 +1256,7 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
                         open={showCommentEmojiPicker}
                       />
                       <button
-                        className="cursor-pointer rounded-full bg-white/15 p-1.5 text-white/50 hover:bg-white/25 hover:text-white transition disabled:opacity-30"
+                        className="cursor-pointer rounded-full bg-zinc-900 p-1.5 text-white transition hover:bg-zinc-800 disabled:opacity-30 sm:bg-white/15 sm:text-white/50 sm:hover:bg-white/25 sm:hover:text-white"
                         type="button"
                         onClick={handleSendComment}
                         disabled={!commentText.trim()}
@@ -1271,23 +1271,23 @@ export function PostDetailModal({ post, onClose, onEdit }: Props) {
 
             {/* Tab: Logs */}
             {rightTab === "logs" && (
-              <div className="flex-1 overflow-y-auto p-3 sm:p-4">
+              <div className="post-detail-modal-scroll flex-1 overflow-y-auto overscroll-contain p-3 sm:p-4">
                 {logsLoading ? (
-                  <div className="flex items-center justify-center py-12"><Loader2 className="h-5 w-5 text-white/30 animate-spin" /></div>
+                  <div className="flex items-center justify-center py-12"><Loader2 className="h-5 w-5 text-zinc-400 animate-spin sm:text-white/30" /></div>
                 ) : editLogs.length === 0 ? (
                   <p className="text-sm text-gray-500 font-body">暂无修改记录</p>
                 ) : (
-                  <div className="relative pl-5 border-l border-white/10 space-y-4">
+                  <div className="relative space-y-4 border-l border-zinc-200 pl-5 sm:border-white/10">
                     {editLogs.map((log) => (
                       <div key={log.id} className="relative">
-                        <div className="absolute -left-[23px] top-1 h-2.5 w-2.5 rounded-full border border-white/20 bg-zinc-950" />
+                        <div className="absolute -left-[23px] top-1 h-2.5 w-2.5 rounded-full border border-zinc-300 bg-white sm:border-white/20 sm:bg-zinc-950" />
                         <span className="text-[10px] text-gray-500 font-body">{formatRelativeTime(log.createdAt)}</span>
                         <div className="flex items-center gap-2 mt-1">
-                          {log.editorAvatar ? <img src={log.editorAvatar} className="w-4 h-4 rounded-full" alt="" /> : <span className="flex w-4 h-4 items-center justify-center rounded-full bg-white/10 text-[8px] text-white/50">{log.editorName.charAt(0)}</span>}
-                          <span className="text-xs text-white/50 font-body">{log.editorName}</span>
+                          {log.editorAvatar ? <img src={log.editorAvatar} className="w-4 h-4 rounded-full" alt="" /> : <span className="flex w-4 h-4 items-center justify-center rounded-full bg-zinc-100 text-[8px] text-zinc-500 sm:bg-white/10 sm:text-white/50">{log.editorName.charAt(0)}</span>}
+                          <span className="text-xs text-zinc-600 font-body sm:text-white/50">{log.editorName}</span>
                         </div>
-                        <p className="mt-0.5 text-xs text-white/35 font-body">{log.actionSummary}</p>
-                        {log.totalContributions > 0 && <span className="inline-block mt-1 rounded-full bg-white/5 px-2 py-0.5 text-[10px] text-white/30 font-body">累计 {log.totalContributions} 次</span>}
+                        <p className="mt-0.5 text-xs text-zinc-600 font-body sm:text-white/35">{log.actionSummary}</p>
+                        {log.totalContributions > 0 && <span className="inline-block mt-1 rounded-full bg-zinc-100 px-2 py-0.5 text-[10px] text-zinc-500 font-body sm:bg-white/5 sm:text-white/30">累计 {log.totalContributions} 次</span>}
                       </div>
                     ))}
                   </div>

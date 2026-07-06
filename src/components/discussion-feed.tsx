@@ -288,6 +288,7 @@ export function DiscussionFeed({
   const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
   const [bookmarksOnly, setBookmarksOnly] = useState(false);
   const [pinSaving, setPinSaving] = useState(false);
+  const [openPostMenuId, setOpenPostMenuId] = useState<string | null>(null);
   const [activeProfileCard, setActiveProfileCard] = useState<ActiveProfileCard | null>(null);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
   const profileCardSequenceRef = useRef(0);
@@ -1317,12 +1318,15 @@ export function DiscussionFeed({
 
         {visiblePosts.map((post, index) => {
           const isBookmarked = bookmarkedIds.has(post.issueNumber);
+          const canEditPost = isConnected && user?.id === post.authorId && editingPostId !== post.issueNumber;
+          const canManagePost = isAdmin || canEditPost;
+          const isPostMenuOpen = openPostMenuId === post.issueNumber;
 
           return (
             <article
               id={post.issueNumber}
               key={post.issueNumber}
-              className={`surface-in card-lift rounded-[24px] border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-4 transition duration-200 hover:border-[var(--color-brand)] hover:bg-[linear-gradient(180deg,var(--color-panel),var(--color-soft))] sm:px-5 ${
+              className={`surface-in card-lift relative rounded-[24px] border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-4 transition duration-200 hover:border-[var(--color-brand)] hover:bg-[linear-gradient(180deg,var(--color-panel),var(--color-soft))] sm:px-5 ${
                 post.is_pinned ? "bg-[linear-gradient(180deg,var(--color-brand-soft),var(--color-panel))] shadow-[0_16px_44px_var(--color-panel-glow)]" : ""
               } ${resolvedStationFilter ? "xl:col-span-2" : ""}`}
               style={createFeedItemStyle(index)}
@@ -1333,6 +1337,70 @@ export function DiscussionFeed({
                 onClick={() => openPostModal(post.issueNumber)}
                 type="button"
               />
+              {canManagePost ? (
+                <div className="absolute right-3 top-3 z-[3]">
+                  <button
+                    aria-expanded={isPostMenuOpen}
+                    aria-label="更多操作"
+                    className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] text-[var(--color-muted)] shadow-sm transition hover:bg-[var(--color-soft)] hover:text-[var(--color-ink)] active:scale-[0.98] active:opacity-80"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setOpenPostMenuId(isPostMenuOpen ? null : post.issueNumber);
+                    }}
+                    type="button"
+                  >
+                    <svg aria-hidden="true" className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                      <circle cx="5" cy="12" r="1.7" />
+                      <circle cx="12" cy="12" r="1.7" />
+                      <circle cx="19" cy="12" r="1.7" />
+                    </svg>
+                  </button>
+                  {isPostMenuOpen ? (
+                    <div
+                      className="absolute right-0 mt-2 w-36 overflow-hidden rounded-2xl border border-[var(--color-line)] bg-[var(--color-panel)] p-1.5 text-sm shadow-[0_18px_50px_rgba(0,0,0,0.18)] backdrop-blur-xl"
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      {isAdmin ? (
+                        <button
+                          className="flex min-h-[40px] w-full items-center rounded-xl px-3 text-left text-xs font-semibold text-[var(--color-ink)] transition hover:bg-[var(--color-soft)] active:scale-[0.98] active:bg-[var(--color-soft)] disabled:opacity-50"
+                          disabled={pinSaving}
+                          onClick={() => {
+                            setOpenPostMenuId(null);
+                            void handlePinPost(post.issueNumber, !post.is_pinned);
+                          }}
+                          type="button"
+                        >
+                          {post.is_pinned ? "取消置顶" : "置顶"}
+                        </button>
+                      ) : null}
+                      {canEditPost ? (
+                        <>
+                          <button
+                            className="flex min-h-[40px] w-full items-center rounded-xl px-3 text-left text-xs font-semibold text-[var(--color-ink)] transition hover:bg-[var(--color-soft)] active:scale-[0.98] active:bg-[var(--color-soft)]"
+                            onClick={() => {
+                              setOpenPostMenuId(null);
+                              handleStartEdit(post);
+                            }}
+                            type="button"
+                          >
+                            编辑
+                          </button>
+                          <button
+                            className="flex min-h-[40px] w-full items-center rounded-xl px-3 text-left text-xs font-semibold text-red-500 transition hover:bg-red-500/10 active:scale-[0.98] active:bg-red-500/10"
+                            onClick={() => {
+                              setOpenPostMenuId(null);
+                              handleDeletePost(post.issueNumber);
+                            }}
+                            type="button"
+                          >
+                            删除
+                          </button>
+                        </>
+                      ) : null}
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
               <div className="relative z-[1] flex items-start gap-3 sm:gap-4">
                 {post.authorId ? (
                   <Link
@@ -1396,43 +1464,6 @@ export function DiscussionFeed({
                       <span className="rounded-full bg-[var(--color-brand)] px-2 py-0.5 text-[10px] font-bold text-[var(--color-on-brand)] ring-1 ring-[var(--color-brand)]/30">
                         📌 置顶
                       </span>
-                    ) : null}
-                    {isAdmin ? (
-                      <button
-                        className="mobile-admin-chip inline-flex items-center gap-0.5 rounded-full border border-[var(--color-line)] bg-[var(--color-soft)] px-2 py-0.5 text-[11px] font-semibold text-[var(--color-brand-deep)] transition hover:bg-[var(--color-brand-soft)] disabled:opacity-50"
-                        disabled={pinSaving}
-                        onClick={() => handlePinPost(post.issueNumber, !post.is_pinned)}
-                        title={post.is_pinned ? "取消置顶" : "置顶"}
-                        type="button"
-                      >
-                        {post.is_pinned ? "📌 取消" : "📌 置顶"}
-                      </button>
-                    ) : null}
-                    {isConnected && user?.id === post.authorId && editingPostId !== post.issueNumber ? (
-                      <>
-                        <button
-                          className="mobile-admin-chip inline-flex items-center gap-1 rounded-full border border-[var(--color-line)] bg-[var(--color-soft)] px-2 py-0.5 text-[11px] font-semibold text-[var(--color-brand-deep)] transition hover:bg-[var(--color-brand-soft)]"
-                          onClick={() => handleStartEdit(post)}
-                          title="编辑"
-                          type="button"
-                        >
-                          <svg aria-hidden="true" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
-                            <path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-                          </svg>
-                          编辑
-                        </button>
-                        <button
-                          className="mobile-admin-chip inline-flex items-center gap-1 rounded-full border border-[var(--color-line)] bg-[var(--color-soft)] px-2 py-0.5 text-[11px] font-semibold text-[var(--color-brand-deep)] transition hover:bg-[var(--color-brand-soft)]"
-                          onClick={() => handleDeletePost(post.issueNumber)}
-                          title="删除"
-                          type="button"
-                        >
-                          <svg aria-hidden="true" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24">
-                            <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14Z" />
-                          </svg>
-                          删除
-                        </button>
-                      </>
                     ) : null}
                     <span className="text-sm text-[var(--color-muted)]">{post.handle}</span>
                     <span className="text-sm text-[var(--color-muted)]">·</span>
