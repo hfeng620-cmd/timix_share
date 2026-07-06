@@ -354,7 +354,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="mobile-tab-scroll profile-mobile-app min-h-[100dvh] overflow-x-hidden bg-[#09090b] text-white">
+    <div className="mobile-tab-scroll profile-mobile-app flex-1 h-full overflow-y-auto overscroll-y-contain pb-24 bg-[#09090b] text-white">
       <Navbar />
 
       <main className="mx-auto max-w-md px-4 pb-24 pt-20 sm:max-w-2xl lg:max-w-3xl">

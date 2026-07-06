@@ -377,7 +377,7 @@ export default function GuidesPage() {
   }
 
   return (
-    <div className="timix-mobile-shell min-h-[100dvh] overflow-x-hidden bg-[var(--mobile-app-bg,#09090b)] text-white">
+    <div className="mobile-tab-scroll timix-mobile-shell flex-1 h-full overflow-y-auto overscroll-y-contain pb-24 bg-[var(--mobile-app-bg,#09090b)] text-white">
       <header className="sticky top-0 z-40 border-b border-white/5 bg-[#09090b]/80 px-3 pt-[calc(env(safe-area-inset-top,0px)+10px)] pb-2.5 text-zinc-100 shadow-[0_14px_38px_rgba(0,0,0,0.34)] backdrop-blur-xl sm:px-4 sm:pt-[calc(env(safe-area-inset-top,0px)+14px)] sm:pb-4">
         <div className="mx-auto max-w-5xl">
           <div className="flex items-center justify-between gap-3">

@@ -6,7 +6,7 @@ import { StationsBoard } from "@/components/stations-board";
 
 export default function StationsPage() {
   return (
-    <div className="mobile-tab-scroll stations-mobile-app min-h-[100dvh] overflow-x-hidden bg-[var(--mobile-app-bg,#09090b)] text-white lg:bg-transparent lg:text-white">
+    <div className="mobile-tab-scroll stations-mobile-app flex-1 h-full overflow-y-auto overscroll-y-contain pb-24 bg-[var(--mobile-app-bg,#09090b)] text-white lg:bg-transparent lg:text-white">
       <Navbar />
 
       <section className="relative z-10 mx-auto max-w-[1680px] px-2.5 pt-16 sm:px-5 lg:px-8 lg:pt-28">
