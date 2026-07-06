@@ -39,6 +39,7 @@ export function PageTransition({ children }: { children: ReactNode }) {
         animate={{ opacity: 1, x: "0%" }}
         exit={{ opacity: 0, x: xExit }}
         transition={{ type: "spring", stiffness: 350, damping: 30, mass: 0.8 }}
+        className="mobile-page-transition"
         style={{ willChange: "transform, opacity" }}
       >
         {children}

@@ -1415,3 +1415,46 @@ html[data-scroll-locked] body {
   overscroll-behavior: contain;
   transform: translateZ(0);
 }
+/* APK/WebView scroll fix: keep every bottom-tab page on natural document scrolling. */
+@media (max-width: 1023px) {
+  html:not([data-scroll-locked]),
+  html:not([data-scroll-locked]) body {
+    height: auto !important;
+    min-height: 100% !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y !important;
+  }
+
+  html:not([data-scroll-locked]) body {
+    position: static !important;
+    top: auto !important;
+    width: auto !important;
+  }
+
+  html:not([data-scroll-locked]) main#main-content,
+  html:not([data-scroll-locked]) .mobile-page-transition,
+  html:not([data-scroll-locked]) .mobile-tab-scroll,
+  html:not([data-scroll-locked]) .timix-mobile-shell,
+  html:not([data-scroll-locked]) .community-mobile-app,
+  html:not([data-scroll-locked]) .stations-mobile-app,
+  html:not([data-scroll-locked]) .profile-mobile-app {
+    height: auto !important;
+    max-height: none !important;
+    min-height: 100dvh !important;
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
+    overscroll-behavior-y: auto !important;
+    touch-action: pan-y !important;
+  }
+
+  html:not([data-scroll-locked]) .mobile-tab-scroll,
+  html:not([data-scroll-locked]) .timix-mobile-shell,
+  html:not([data-scroll-locked]) .community-mobile-app,
+  html:not([data-scroll-locked]) .stations-mobile-app,
+  html:not([data-scroll-locked]) .profile-mobile-app {
+    padding-bottom: calc(var(--mobile-dock-height, 66px) + env(safe-area-inset-bottom, 0px) + 12px) !important;
+  }
+}
