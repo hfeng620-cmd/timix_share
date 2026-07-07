@@ -81,6 +81,7 @@ export const resourceLinks = [
 ];
 
 export const stationLinkMap: Record<string, string> = {
+  启元AI: "https://ai.qystart.top",
   虎虎: "https://huhuai.xyz/register?aff=BCPA5AKW3KHX",
   Aether: "https://to-aether.com/dashboard",
   杂货铺: "https://api.dstopology.com/keys",
@@ -97,7 +98,7 @@ export const stationLinkMap: Record<string, string> = {
   秋天中转站: "https://qiutian.live",
 };
 
-export const prioritizedStationNames = ["虎虎", "Aether", "杂货铺", "秋天中转站"];
+export const prioritizedStationNames = ["启元AI", "虎虎", "Aether", "杂货铺", "秋天中转站"];
 
 export type HomeFeaturedStation = {
   name: string;
@@ -109,6 +110,14 @@ export type HomeFeaturedStation = {
 };
 
 export const homeFeaturedStations: HomeFeaturedStation[] = [
+  {
+    name: "启元AI",
+    badge: "低倍率",
+    summary: "0.055x，充值 1:1 美元计价，约 110 元可用约 10 亿 tokens。",
+    price: "1:1 美元计价",
+    multiplier: "0.055x",
+    reason: "当前成本口径很低，适合放到前排重点观察。",
+  },
   {
     name: "虎虎",
     badge: "先试用",
@@ -307,6 +316,24 @@ export const modelGuideNotes = [
 ];
 
 export const stationComparisonRows = [
+  {
+    name: "启元AI",
+    badge: "低倍率",
+    group: "ai.qystart.top",
+    entry: "官网入口",
+    packageType: "1:1 美元计价",
+    status: "低倍率，待继续补稳定性样本",
+    models: "主流模型待群补",
+    price: "充值 1:1 刀，约 110 元可用约 10 亿 tokens",
+    multiplier: "0.055x",
+    uptime: "待补高峰样本",
+    latency: "缺统一样本",
+    source: "站主补充",
+    verdict: "低成本优先观察",
+    note: "倍率 0.055；充值 1:1 美元计价，人民币自己充值约 110 元，约可用 10 亿 tokens 左右。",
+    advantage: "倍率和 tokens 成本口径都很低，适合放到前排重点比较。",
+    risk: "仍需继续补高峰稳定性、模型覆盖和长期使用反馈。",
+  },
   {
     name: "虎虎",
     badge: "双口径",

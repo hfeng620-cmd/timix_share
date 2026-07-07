@@ -107,6 +107,7 @@ grant select, insert on public.station_edits to authenticated;
 -- Keep in sync with src/lib/site-data.ts stationComparisonRows.
 insert into public.stations (name, badge, group_name, entry, package_type, status, models, price, multiplier, uptime, latency, source, verdict, note, advantage, risk, url, sort_order)
 values
+  ('启元AI', '低倍率', 'ai.qystart.top', '官网入口', '1:1 美元计价', '低倍率，待继续补稳定性样本', '主流模型待群补', '充值 1:1 刀，约 110 元可用约 10 亿 tokens', '0.055x', '待补高峰样本', '缺统一样本', '站主补充', '低成本优先观察', '倍率 0.055；充值 1:1 美元计价，人民币自己充值约 110 元，约可用 10 亿 tokens 左右。', '倍率和 tokens 成本口径都很低，适合放到前排重点比较。', '仍需继续补高峰稳定性、模型覆盖和长期使用反馈。', 'https://ai.qystart.top', 0),
   ('虎虎', '双口径', 'huhuai.xyz', '注册送额度入口', '倍率制', '试用信息清晰', '主流模型待群补', 'Plus 0.13 / Pro 0.16', '0.13x 起', '缺高峰样本', '缺统一样本', '注册链接 + 历史试用单 + QQ 群反馈', '先试再说', '当前走注册链接送额度；历史填表活动留档。', '试用入口清晰，适合新用户优先体验。', '实际长期价格和稳定性还要继续看群友反馈。', 'https://huhuai.xyz/register?aff=BCPA5AKW3KHX', 1),
   ('Aether', '常用', 'https://to-aether.com/dashboard', 'Dashboard 直链', '倍率制', '可调用 GPT 5.5 / 5.4，社区常用', '可调用 GPT 5.5 / 5.4', '0.263 倍率', '0.263x', '社区印象偏稳', '缺统一样本', '群友常用口径', '价格还行，口碑偏稳', '群里常用，价格不算最低但反馈偏稳。', '价格不差，当前备注里稳定性印象较好。', '缺少结构化实测数据，仍需要群友补高峰反馈。', 'https://to-aether.com/dashboard', 2),
   ('杂货铺', '双口径', 'https://api.dstopology.com/keys', 'Keys 页面', '模型分组计价', '需要分开理解', 'GPT / CC Max', 'GPT 0.058 / CC Max 0.89', '0.058x 起', '缺公开样本', '缺统一样本', '群友备注', '一定要按模型分开看', 'GPT 与 CC Max 分开计价，不要只看最低值。', '很适合展示同站不同模型收费完全不同的真实情况。', '如果只看最低值，很容易误读 CC Max 的实际价格。', 'https://api.dstopology.com/keys', 3),

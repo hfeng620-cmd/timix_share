@@ -1,328 +1,250 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowUpRight, Play, Zap, Palette, BarChart3, Shield } from "lucide-react";
+import {
+  Activity,
+  ArrowUpRight,
+  BarChart3,
+  Gift,
+  MessageSquare,
+  ShieldCheck,
+  Zap,
+} from "lucide-react";
 
-import { BlurIn, BlurText } from "@/components/blur-text";
+import { AiNewsPanel } from "@/components/ai-news-panel";
 import { CoCreatorsWall } from "@/components/co-creators-wall";
 import { Navbar } from "@/components/navbar";
-import { VideoBackground } from "@/components/video-background";
-import { AiNewsPanel } from "@/components/ai-news-panel";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
   openGraph: { url: "/" },
 };
 
-const partners = ["OpenAI", "Claude", "Gemini", "DeepSeek", "Qwen"];
+const stats = [
+  { value: "15", label: "榜单站点" },
+  { value: "0.055x", label: "当前最低倍率" },
+  { value: "审核制", label: "普通用户编辑" },
+  { value: "Live", label: "社区反馈" },
+];
 
-const testimonials = [
+const stationRows = [
   {
-    quote: "以前选站要翻群聊和散帖，现在榜单把价格、倍率、入口叠在同一张判断面上，十分钟就锁定了主力站。",
-    name: "陈工",
-    role: "独立开发者",
+    name: "启元AI",
+    rate: "0.055x",
+    price: "约 110 元 ≈ 10 亿 tokens",
+    status: "低成本观察",
+    tag: "新置顶",
   },
   {
-    quote: "社区反馈比厂商自己说的靠谱太多。哪个站最近不稳、哪个偷偷改倍率，讨论区翻一翻就知道了。",
-    name: "张远",
-    role: "AI 产品经理",
+    name: "虎虎",
+    rate: "0.13x 起",
+    price: "Plus / Pro 双口径",
+    status: "试用入口清晰",
+    tag: "先试用",
   },
   {
-    quote: "从试用门槛到主力站，整个判断链一目了然。不只是榜单，更像一个情报过滤层。",
-    name: "林嘉",
-    role: "全栈工程师",
+    name: "杂货铺",
+    rate: "0.058x 起",
+    price: "GPT / CC Max 分开看",
+    status: "低倍率样本",
+    tag: "双口径",
+  },
+  {
+    name: "Aether",
+    rate: "0.263x",
+    price: "Dashboard 直链",
+    status: "社区常用",
+    tag: "稳定候选",
+  },
+  {
+    name: "viptoken站",
+    rate: "0.15x 起",
+    price: "GPT / Claude 分组",
+    status: "待复核",
+    tag: "补样本",
   },
 ];
 
-const featureCards = [
-  { icon: Zap, title: "实时倍率追踪", body: "GPT、Claude、Grok 各模型倍率分开展示，一眼看出谁在悄悄涨价。" },
-  { icon: Palette, title: "社区交叉验证", body: "反馈、避坑、价格变化，从真实用户处同步，不靠软文判断。" },
-  { icon: BarChart3, title: "数据驱动对比", body: "价格、稳定性、模型覆盖三维并排，决策有据可依。" },
-  { icon: Shield, title: "安全备案", body: "收录站点经过社区验证，减少被钓鱼站或临时站坑的风险。" },
+const signalCards = [
+  {
+    icon: Zap,
+    label: "最低倍率",
+    value: "启元AI 0.055x",
+    body: "已放到榜单前排，后续补高峰稳定性。",
+    href: "/stations",
+    tone: "text-emerald-300",
+  },
+  {
+    icon: MessageSquare,
+    label: "社区热议",
+    value: "讨论区反馈",
+    body: "站点体验、避坑和价格变化集中沉淀。",
+    href: "/community",
+    tone: "text-blue-300",
+  },
+  {
+    icon: Gift,
+    label: "福利 Drop",
+    value: "兑换码 / 活动",
+    body: "限量福利、领取状态和活动审核集中管理。",
+    href: "/drops",
+    tone: "text-fuchsia-300",
+  },
+  {
+    icon: BarChart3,
+    label: "模型择优",
+    value: "模型与站点联动",
+    body: "把模型能力、价格和可用站点放在同一视图。",
+    href: "/models",
+    tone: "text-amber-300",
+  },
 ];
-
-const HERO_VIDEO =
-  "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260307_083826_e938b29f-a43a-41ec-a153-3d4730578ab8.mp4";
 
 export default function Home() {
   return (
-    <div className="bg-black text-white">
+    <div className="relative isolate min-h-screen overflow-hidden bg-[#09090b] font-sans text-white">
+      <div className="pointer-events-none absolute left-1/2 top-0 -z-10 h-[300px] w-[760px] -translate-x-1/2 rounded-full bg-emerald-500/12 blur-[115px]" />
+      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_16%_10%,rgba(52,211,153,0.14),transparent_26%),radial-gradient(circle_at_84%_4%,rgba(59,130,246,0.10),transparent_24%),linear-gradient(rgba(255,255,255,0.032)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.032)_1px,transparent_1px)] bg-[size:auto,auto,42px_42px,42px_42px]" />
       <Navbar />
 
-      <section className="relative overflow-visible" style={{ height: "1000px" }}>
-        <VideoBackground mp4Src={HERO_VIDEO} poster="/bg-1-hd.jpg" topOffset="20%" className="z-0" />
-        <div className="pointer-events-none absolute inset-0 z-0 bg-black/5" />
-        <div
-          className="pointer-events-none absolute bottom-0 z-0 h-[300px] w-full"
-          style={{ background: "linear-gradient(to bottom, transparent, black)" }}
-        />
-
-        <div className="relative z-10 mx-auto flex max-w-7xl flex-col px-6 lg:px-10" style={{ paddingTop: "150px" }}>
-          <BlurIn delay={0.3}>
-            <div className="liquid-glass inline-flex items-center gap-2 rounded-full px-1 py-1">
-              <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-black font-body">新上线</span>
-              <span className="pr-3 text-xs font-medium text-white font-body">社区共建的 AI 中转站观察平台</span>
+      <main className="mx-auto max-w-7xl px-4 pb-16 pt-24 sm:px-6 lg:px-8">
+        <section className="grid gap-5 lg:grid-cols-[minmax(0,0.92fr)_minmax(520px,1.08fr)]">
+          <div className="rounded-[28px] border border-white/10 bg-white/[0.035] p-5 shadow-[0_24px_90px_rgba(0,0,0,0.32)] backdrop-blur sm:p-7">
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-xs font-bold text-emerald-300">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-70" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
+              </span>
+              TiMix AI 观测站 · 社区共建
             </div>
-          </BlurIn>
 
-          <BlurText
-            text={`把中转站从"能用"，筛到"值得长期用"。`}
-            className="mt-8 max-w-2xl"
-            tagClassName="text-5xl font-heading italic leading-[1.08] text-white md:text-6xl lg:text-[5.5rem]"
-            delay={100}
-          />
-
-          <BlurIn delay={0.8} className="mt-6 max-w-xl">
-            <p className="text-sm font-light leading-relaxed text-white/70 md:text-base font-body">
-              价格、倍率、试用、反馈放在同一张判断面上，帮你更快决定先试谁、避开什么。
+            <h1 className="max-w-3xl bg-gradient-to-b from-white to-zinc-500 bg-clip-text text-4xl font-extrabold tracking-tight text-transparent sm:text-5xl lg:text-6xl">
+              把中转站筛到值得长期用
+            </h1>
+            <p className="mt-4 max-w-2xl text-sm leading-7 text-zinc-400 sm:text-base">
+              榜单、倍率、社区反馈、福利和审核流放在同一张桌面上。进站先看数据，不再先看空 Banner。
             </p>
-          </BlurIn>
 
-          <BlurIn delay={1.1}>
-            <div className="mt-8 flex flex-wrap items-center gap-4">
+            <div className="mt-6 flex flex-wrap gap-3">
               <Link
                 href="/stations"
-                className="liquid-glass-strong group inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium text-white transition hover:scale-105 font-body"
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-bold transition hover:bg-zinc-200"
+                style={{ color: "#09090b" }}
               >
                 直接看榜单
-                <ArrowUpRight className="h-4 w-4 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                <ArrowUpRight className="h-4 w-4" />
               </Link>
               <Link
                 href="/community"
-                className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium text-white transition hover:text-white/80 font-body"
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-5 py-2.5 text-sm font-bold text-white transition hover:bg-white/[0.08]"
               >
-                <Play className="h-4 w-4 fill-current" />
                 看社区讨论
               </Link>
             </div>
-          </BlurIn>
 
-          <div className="mt-auto pb-8 pt-16">
-            <div className="liquid-glass mb-6 inline-block rounded-full px-3.5 py-1 text-xs font-medium text-white font-body">
-              覆盖主流 AI 模型
-            </div>
-            <div className="flex flex-wrap items-center gap-12 md:gap-16">
-              {partners.map((name) => (
-                <span key={name} className="text-2xl font-heading italic text-white/60 md:text-3xl">{name}</span>
+            <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {stats.map((item) => (
+                <div key={item.label} className="rounded-2xl border border-white/[0.06] bg-black/25 p-3.5">
+                  <p className="text-2xl font-extrabold tracking-tight text-white">{item.value}</p>
+                  <p className="mt-1 text-xs text-zinc-500">{item.label}</p>
+                </div>
               ))}
             </div>
           </div>
-        </div>
-      </section>
 
-      <div className="bg-black">
-        <section className="relative overflow-hidden" style={{ minHeight: "500px" }}>
-          <VideoBackground
-            hlsSrc="https://stream.mux.com/9JXDljEVWYwWu01PUkAemafDugK89o01BR6zqJ3aS9u00A.m3u8"
-            className="absolute inset-0 h-full w-full object-cover"
-          />
-          <div className="video-fade-top" />
-          <div className="video-fade-bottom" />
-
-          <div className="relative z-10 mx-auto flex max-w-3xl flex-col items-center px-6 py-32 text-center">
-            <div className="liquid-glass inline-block rounded-full px-3.5 py-1 text-xs font-medium text-white font-body">
-              如何使用
-            </div>
-            <h2 className="mt-6 text-4xl font-heading italic leading-[1.12] text-white md:text-5xl lg:text-6xl">
-              你负责判断，我们负责信息。
-            </h2>
-            <p className="mt-6 max-w-xl text-sm font-light leading-relaxed text-white/60 md:text-base font-body">
-              打开榜单、看价格倍率、翻社区反馈、定主力站。整个判断链路已经压成三屏。
-            </p>
-            <Link
-              href="/stations"
-              className="liquid-glass-strong mt-8 inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-medium text-white transition hover:scale-105 font-body"
-            >
-              开始探索
-              <ArrowUpRight className="h-4 w-4" />
-            </Link>
-          </div>
-        </section>
-
-        <section className="relative mx-auto max-w-7xl px-6 py-24 lg:px-10">
-          <div className="mb-16">
-            <div className="liquid-glass mb-4 inline-block rounded-full px-3.5 py-1 text-xs font-medium text-white font-body">
-              核心能力
-            </div>
-            <h2 className="text-4xl font-heading italic leading-[1.12] text-white md:text-5xl lg:text-6xl">
-              专业功能。零复杂度。
-            </h2>
-          </div>
-
-          <div className="mb-20 flex flex-col items-center gap-10 lg:flex-row lg:gap-16">
-            <div className="flex-1">
-              <h3 className="text-3xl font-heading italic leading-[1.25] text-white md:text-4xl">
-                为对比而设计。为判断而建。
-              </h3>
-              <p className="mt-5 max-w-md text-sm font-light leading-relaxed text-white/60 md:text-base font-body">
-                每个字段都经过筛选：倍率、价格、试用门槛、模型覆盖——只留对决策有用的信息，不堆砌噪音。
-              </p>
-              <Link
-                href="/stations"
-                className="liquid-glass-strong mt-6 inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium text-white font-body"
-              >
-                看完整榜单
-                <ArrowUpRight className="h-4 w-4" />
-              </Link>
-            </div>
-            <div className="liquid-glass flex-1 overflow-hidden rounded-2xl">
-              <div className="flex h-80 items-center justify-center bg-white/5 text-white/30 text-sm font-body">
-                榜单交互预览
-              </div>
-            </div>
-          </div>
-
-          <div className="flex flex-col items-center gap-10 lg:flex-row-reverse lg:gap-16">
-            <div className="flex-1">
-              <h3 className="text-3xl font-heading italic leading-[1.25] text-white md:text-4xl">
-                信息持续更新。自动同步。
-              </h3>
-              <p className="mt-5 max-w-md text-sm font-light leading-relaxed text-white/60 md:text-base font-body">
-                社区反馈、站点状态、倍率变化——持续收录，管理员审核。你看到的是活的榜单，不是一次性文章。
-              </p>
-              <Link
-                href="/community"
-                className="liquid-glass-strong mt-6 inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium text-white font-body"
-              >
-                进入讨论区
-                <ArrowUpRight className="h-4 w-4" />
-              </Link>
-            </div>
-            <div className="liquid-glass flex-1 overflow-hidden rounded-2xl">
-              <div className="flex h-80 items-center justify-center bg-white/5 text-white/30 text-sm font-body">
-                社区讨论预览
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="relative mx-auto max-w-7xl px-6 py-24 lg:px-10">
-          <div className="mb-16">
-            <div className="liquid-glass mb-4 inline-block rounded-full px-3.5 py-1 text-xs font-medium text-white font-body">
-              为什么选我们
-            </div>
-            <h2 className="text-4xl font-heading italic leading-[1.12] text-white md:text-5xl lg:text-6xl">
-              差异就是一切。
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-            {featureCards.map((card) => {
-              const Icon = card.icon;
-              return (
-                <div key={card.title} className="liquid-glass rounded-2xl p-6 transition hover:scale-[1.02]">
-                  <div className="liquid-glass-strong flex h-10 w-10 items-center justify-center rounded-full">
-                    <Icon className="h-5 w-5 text-white" />
-                  </div>
-                  <h3 className="mt-5 text-lg font-heading italic text-white">{card.title}</h3>
-                  <p className="mt-3 text-sm font-light leading-relaxed text-white/60 font-body">{card.body}</p>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-
-        <section className="relative overflow-hidden" style={{ minHeight: "500px" }}>
-          <VideoBackground
-            hlsSrc="https://stream.mux.com/NcU3HlHeF7CUL86azTTzpy3Tlb00d6iF3BmCdFslMJYM.m3u8"
-            desaturated
-            className="absolute inset-0 h-full w-full object-cover"
-          />
-          <div className="video-fade-top" />
-          <div className="video-fade-bottom" />
-
-          <div className="relative z-10 mx-auto flex max-w-4xl flex-col items-center px-6 py-32">
-            <div className="liquid-glass w-full rounded-3xl p-12 md:p-16">
-              <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
-                {[
-                  { value: "20+", label: "收录站点" },
-                  { value: "98%", label: "信息准确率" },
-                  { value: "5 分钟", label: "平均判断时间" },
-                  { value: "持续更新", label: "社区驱动" },
-                ].map((stat) => (
-                  <div key={stat.label} className="text-center">
-                    <p className="text-4xl font-heading italic text-white md:text-5xl lg:text-6xl">{stat.value}</p>
-                    <p className="mt-2 text-sm font-light text-white/60 font-body">{stat.label}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="relative mx-auto max-w-7xl px-6 py-24 lg:px-10">
-          <div className="mb-16">
-            <div className="liquid-glass mb-4 inline-block rounded-full px-3.5 py-1 text-xs font-medium text-white font-body">
-              用户怎么说
-            </div>
-            <h2 className="text-4xl font-heading italic leading-[1.12] text-white md:text-5xl lg:text-6xl">
-              别只听我们说。
-            </h2>
-          </div>
-
-          <div className="grid gap-6 md:grid-cols-3">
-            {testimonials.map((t) => (
-              <div key={t.name} className="liquid-glass rounded-2xl p-8">
-                <p className="text-sm font-light italic leading-relaxed text-white/80 font-body">
-                  &ldquo;{t.quote}&rdquo;
+          <div className="overflow-hidden rounded-[28px] border border-white/10 bg-[#0f1115]/95 shadow-[0_24px_90px_rgba(0,0,0,0.36)]">
+            <div className="flex items-center justify-between gap-4 border-b border-white/[0.08] px-5 py-4">
+              <div>
+                <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-emerald-300">
+                  <Activity className="h-4 w-4" />
+                  Relay Signal
                 </p>
-                <p className="mt-5 text-sm font-medium text-white font-body">{t.name}</p>
-                <p className="mt-1 text-xs font-light text-white/50 font-body">{t.role}</p>
+                <h2 className="mt-1 text-xl font-extrabold tracking-tight text-white">中转站榜单快照</h2>
               </div>
-            ))}
-          </div>
-        </section>
-
-        <section className="relative overflow-hidden" style={{ minHeight: "600px" }}>
-          <VideoBackground
-            hlsSrc="https://stream.mux.com/8wrHPCX2dC3msyYU9ObwqNdm00u3ViXvOSHUMRYSEe5Q.m3u8"
-            className="absolute inset-0 h-full w-full object-cover"
-          />
-          <div className="video-fade-top" />
-          <div className="video-fade-bottom" />
-
-          <div className="relative z-10 mx-auto flex max-w-3xl flex-col items-center px-6 py-40 text-center">
-            <h2 className="text-5xl font-heading italic leading-[1.1] text-white md:text-6xl lg:text-7xl">
-              你的下一站判断，从这里开始。
-            </h2>
-            <p className="mt-8 max-w-xl text-sm font-light leading-relaxed text-white/70 md:text-base font-body">
-              打开榜单，看价格、翻反馈、定主力。没有广告，没有软文，只有社区共建的真实信息。
-            </p>
-            <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
               <Link
                 href="/stations"
-                className="liquid-glass-strong inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-medium text-white transition hover:scale-105 font-body"
+                className="shrink-0 rounded-full border border-emerald-300/20 bg-emerald-300/10 px-3 py-1.5 text-xs font-bold text-emerald-200 transition hover:bg-emerald-300/15"
               >
-                打开榜单
-                <ArrowUpRight className="h-4 w-4" />
-              </Link>
-              <Link
-                href="/community"
-                className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-gray-900 transition hover:bg-gray-100 font-body"
-              >
-                进入社区
+                完整表格
               </Link>
             </div>
 
-            <div className="mt-32 w-full border-t border-white/10 pt-8">
-              <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
-                <p className="text-xs text-white/40 font-body">&copy; 2026 Timix观察站。社区共建。</p>
-                <div className="flex items-center gap-6">
-                  <Link href="/stations" className="text-xs text-white/40 transition hover:text-white/60 font-body">榜单</Link>
-                  <Link href="/community" className="text-xs text-white/40 transition hover:text-white/60 font-body">社区</Link>
-                  <Link href="/models" className="text-xs text-white/40 transition hover:text-white/60 font-body">模型</Link>
-                </div>
-              </div>
+            <div className="divide-y divide-white/[0.06]">
+              {stationRows.map((row, index) => (
+                <Link
+                  key={row.name}
+                  href="/stations"
+                  className="grid grid-cols-[30px_minmax(0,1.05fr)_minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 transition hover:bg-white/[0.035] sm:px-5"
+                >
+                  <span className="font-mono text-xs text-zinc-600">{String(index + 1).padStart(2, "0")}</span>
+                  <span className="min-w-0">
+                    <span className="flex items-center gap-2">
+                      <span className="truncate text-sm font-bold text-white">{row.name}</span>
+                      <span className="rounded-full bg-white/[0.06] px-2 py-0.5 text-[10px] font-bold text-zinc-400">
+                        {row.tag}
+                      </span>
+                    </span>
+                    <span className="mt-1 block truncate text-xs text-zinc-500">{row.status}</span>
+                  </span>
+                  <span className="hidden truncate text-xs text-zinc-500 sm:block">{row.price}</span>
+                  <span className="font-mono text-sm font-bold text-emerald-300">{row.rate}</span>
+                </Link>
+              ))}
             </div>
           </div>
         </section>
 
-        <section className="relative mx-auto max-w-7xl px-6 py-12 lg:px-10">
+        <section className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {signalCards.map((card) => {
+            const Icon = card.icon;
+            return (
+              <Link
+                key={card.label}
+                href={card.href}
+                className="group rounded-3xl border border-white/[0.08] bg-white/[0.025] p-4 transition hover:-translate-y-0.5 hover:bg-white/[0.05]"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">{card.label}</span>
+                  <Icon className={`h-5 w-5 ${card.tone}`} />
+                </div>
+                <h2 className="mt-4 text-lg font-extrabold tracking-tight text-white">{card.value}</h2>
+                <p className="mt-2 min-h-[40px] text-sm leading-6 text-zinc-500">{card.body}</p>
+                <span className="mt-4 inline-flex items-center gap-1 text-xs font-bold text-zinc-300 transition group-hover:text-white">
+                  进入
+                  <ArrowUpRight className="h-3.5 w-3.5" />
+                </span>
+              </Link>
+            );
+          })}
+        </section>
+
+        <section className="mt-8 grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
+          <div className="rounded-[28px] border border-white/[0.08] bg-white/[0.025] p-5">
+            <div className="mb-4 flex items-center gap-2 text-sm font-bold text-zinc-300">
+              <ShieldCheck className="h-4 w-4 text-emerald-300" />
+              审核流状态
+            </div>
+            <div className="grid gap-3 text-sm text-zinc-400">
+              <div className="rounded-2xl border border-white/[0.06] bg-black/20 p-4">
+                普通用户编辑正式站点：提交到待审核，不直接改正式榜单。
+              </div>
+              <div className="rounded-2xl border border-white/[0.06] bg-black/20 p-4">
+                站主 / 管理员：可直接保存、排序、审核新增站点。
+              </div>
+              <Link
+                href="/admin"
+                className="inline-flex items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-bold text-white transition hover:bg-white/[0.08]"
+              >
+                打开站主面板
+              </Link>
+            </div>
+          </div>
           <CoCreatorsWall />
         </section>
-        <section className="relative mx-auto max-w-7xl px-6 py-16 lg:px-10">
+
+        <section className="mt-8">
           <AiNewsPanel />
         </section>
-      </div>
+      </main>
     </div>
   );
 }

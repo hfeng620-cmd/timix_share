@@ -191,30 +191,20 @@ export function Navbar() {
           href="/"
           className="group flex shrink-0 items-center transition-all duration-300"
         >
-          <span
-            className="text-2xl tracking-wide font-extrabold bg-clip-text text-transparent bg-gradient-to-b from-white via-gray-100 to-gray-400"
-            style={{ filter: "drop-shadow(0 0 10px rgba(255,255,255,0.25))" }}
-          >
+          <span className="text-2xl font-extrabold tracking-wide text-[var(--color-ink)]">
             Ti
           </span>
-          <span
-            className="text-2xl tracking-wide font-light bg-clip-text text-transparent bg-gradient-to-b from-white via-gray-200 to-gray-500"
-            style={{ filter: "drop-shadow(0 0 8px rgba(255,255,255,0.15))" }}
-          >
+          <span className="text-2xl font-light tracking-wide text-[var(--color-muted)]">
             Mix
           </span>
         </Link>
 
         {/* iOS 26 frosted glass nav pill */}
         <div
-          className="hidden items-center gap-0.5 rounded-full px-1.5 py-1 md:flex"
+          className="hidden items-center gap-0.5 rounded-full border border-[var(--color-line)] bg-[var(--color-header)] px-1.5 py-1 shadow-[var(--shadow-card)] backdrop-blur-xl md:flex"
           style={{
-            background: "rgba(255,255,255,0.12)",
             backdropFilter: "blur(28px) saturate(200%)",
             WebkitBackdropFilter: "blur(28px) saturate(200%)",
-            border: "1px solid rgba(255,255,255,0.14)",
-            boxShadow:
-              "0 4px 24px rgba(0,0,0,0.12), inset 0 0.5px 0 rgba(255,255,255,0.18), inset 0 -0.5px 0 rgba(255,255,255,0.04)",
           }}
         >
           {links.map((link) => {
@@ -225,8 +215,8 @@ export function Navbar() {
                 href={link.href}
                 className={`rounded-full px-3.5 py-2 text-sm font-medium transition-all duration-200 font-body ${
                   active
-                    ? "bg-white/18 text-white shadow-[inset_0_0.5px_0_rgba(255,255,255,0.15)]"
-                    : "text-white/65 hover:text-white hover:bg-white/6"
+                    ? "bg-[var(--color-brand)] text-[var(--color-on-brand)] shadow-[inset_0_0.5px_0_rgba(255,255,255,0.15)]"
+                    : "text-[var(--color-muted)] hover:bg-[var(--color-soft)] hover:text-[var(--color-ink)]"
                 }`}
               >
                 {link.label}
@@ -238,12 +228,10 @@ export function Navbar() {
         <div className="flex items-center gap-2">
           <Link
             href="/stations"
-            className="rounded-full px-4 py-2 text-sm font-medium text-white md:hidden"
+            className="rounded-full border border-[var(--color-line)] bg-[var(--color-header)] px-4 py-2 text-sm font-medium text-[var(--color-ink)] shadow-[var(--shadow-card)] backdrop-blur-xl md:hidden"
             style={{
-              background: "rgba(255,255,255,0.12)",
               backdropFilter: "blur(28px) saturate(200%)",
               WebkitBackdropFilter: "blur(28px) saturate(200%)",
-              border: "1px solid rgba(255,255,255,0.12)",
             }}
           >
             榜单

@@ -95,13 +95,13 @@ export function AppearanceModal({ open, onClose }: Props) {
     >
       {/* 主容器 — 宽屏 Apple 风格 */}
       <div
-        className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-3xl border border-white/10 bg-zinc-950/90 p-6 sm:p-8 shadow-2xl"
+        className="relative max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-3xl border border-[var(--color-line)] bg-[var(--color-panel-strong)] p-6 shadow-2xl sm:p-8"
         onClick={(e) => e.stopPropagation()}
       >
         {/* 关闭按钮 */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/30 hover:text-white hover:bg-white/10 transition-colors"
+          className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full border border-[var(--color-line)] bg-[var(--color-soft)] text-[var(--color-muted)] transition-colors hover:bg-[var(--color-hover)] hover:text-[var(--color-ink)]"
           type="button"
           aria-label="关闭"
         >
@@ -110,10 +110,10 @@ export function AppearanceModal({ open, onClose }: Props) {
 
         {/* 标题区 */}
         <div className="mb-8 pr-10">
-          <h2 className="text-2xl font-heading italic text-text-main">
-            外观与主题 <span className="text-text-sub font-body text-base not-italic font-light">(Appearance)</span>
+          <h2 className="text-2xl font-heading italic text-[var(--color-ink)]">
+            外观与主题 <span className="font-body text-base font-light not-italic text-[var(--color-muted)]">(Appearance)</span>
           </h2>
-          <p className="mt-2 text-sm text-text-sub font-body tracking-wide">
+          <p className="mt-2 text-sm tracking-wide text-[var(--color-muted)] font-body">
             选择符合你当前心流的工作空间氛围。
           </p>
         </div>
@@ -128,8 +128,8 @@ export function AppearanceModal({ open, onClose }: Props) {
                 onClick={() => handleSelect(theme.id)}
                 className={`group relative text-left rounded-2xl border p-5 transition-all duration-300 hover:-translate-y-1 hover:bg-white/[0.02] ${
                   isActive
-                    ? "ring-2 ring-primary border-primary/30 bg-bg-card shadow-[0_8px_32px_var(--dt-primary-glow)]"
-                    : "border-white/10 bg-white/[0.03]"
+                    ? "border-[var(--color-brand)] bg-[var(--color-brand-soft)] shadow-[0_8px_32px_var(--dt-primary-glow)] ring-2 ring-[var(--color-brand)]"
+                    : "border-[var(--color-line)] bg-[var(--color-panel)] hover:bg-[var(--color-soft)]"
                 }`}
                 type="button"
               >
@@ -152,25 +152,25 @@ export function AppearanceModal({ open, onClose }: Props) {
 
                 {/* 选中标记 */}
                 {isActive ? (
-                  <span className="absolute top-3 right-3 flex h-6 w-6 items-center justify-center rounded-full bg-primary/20 ring-1 ring-primary/30">
-                    <Check className="h-3.5 w-3.5 text-primary" />
+                  <span className="absolute right-3 top-3 flex h-6 w-6 items-center justify-center rounded-full bg-[var(--color-brand-soft)] ring-1 ring-[var(--color-brand)]">
+                    <Check className="h-3.5 w-3.5 text-[var(--color-brand-deep)]" />
                   </span>
                 ) : (
-                  <span className="absolute top-3 right-3 flex h-6 w-6 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] opacity-0 group-hover:opacity-100 transition-opacity">
-                    <span className="text-[10px] text-white/20">✓</span>
+                  <span className="absolute right-3 top-3 flex h-6 w-6 items-center justify-center rounded-full border border-[var(--color-line)] bg-[var(--color-soft)] opacity-0 transition-opacity group-hover:opacity-100">
+                    <span className="text-[10px] text-[var(--color-muted)]">✓</span>
                   </span>
                 )}
 
                 {/* 标题 */}
-                <h3 className="text-base font-heading italic text-text-main">
+                <h3 className="text-base font-heading italic text-[var(--color-ink)]">
                   {theme.name}
                 </h3>
-                <p className="text-[11px] text-text-sub font-body mt-0.5 tracking-wide">
+                <p className="mt-0.5 text-[11px] tracking-wide text-[var(--color-muted)] font-body">
                   {theme.enName}
                 </p>
 
                 {/* 描述 */}
-                <p className="text-xs text-text-sub/70 font-body mt-3 leading-relaxed">
+                <p className="mt-3 text-xs leading-relaxed text-[var(--color-muted)] font-body">
                   {theme.desc}
                 </p>
               </button>
@@ -179,7 +179,7 @@ export function AppearanceModal({ open, onClose }: Props) {
         </div>
 
         {/* 底部提示 */}
-        <p className="mt-6 text-center text-[10px] text-white/12 font-body tracking-wide">
+        <p className="mt-6 text-center text-[10px] tracking-wide text-[var(--color-muted)] font-body">
           主题偏好自动保存 · 随时切换 · 即时生效
         </p>
       </div>

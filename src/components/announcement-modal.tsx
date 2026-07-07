@@ -173,42 +173,42 @@ export function AnnouncementModal() {
   if (loadFailed || !visible || !announcement) return null;
 
   return (
-    <div aria-modal="false" className="pointer-events-none fixed inset-0 z-[300] flex items-center justify-center bg-black/50 px-4 backdrop-blur-xl" role="dialog">
-      <div ref={panelRef} aria-labelledby="announcement-title" className="pointer-events-auto w-full max-w-lg overflow-hidden rounded-[28px] border border-white/15 bg-white/6 shadow-2xl backdrop-blur-xl" onClick={(e) => e.stopPropagation()}>
+    <div aria-modal="false" className="pointer-events-none fixed inset-x-3 bottom-4 z-[300] flex justify-center sm:inset-x-auto sm:bottom-auto sm:right-6 sm:top-24" role="dialog">
+      <div ref={panelRef} aria-labelledby="announcement-title" className="pointer-events-auto w-full max-w-lg overflow-hidden rounded-[24px] border border-[var(--color-line)] bg-[var(--color-panel-strong)] shadow-2xl backdrop-blur-xl sm:w-[420px]" onClick={(e) => e.stopPropagation()}>
         {/* Close button */}
-        <button onClick={() => setVisible(false)} className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white/50 hover:bg-white/20 hover:text-white transition z-10" type="button" aria-label="关闭">
+        <button onClick={() => setVisible(false)} className="absolute right-4 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-soft)] text-[var(--color-muted)] transition hover:bg-[var(--color-hover)] hover:text-[var(--color-ink)]" type="button" aria-label="关闭">
           <X className="h-4 w-4" />
         </button>
 
         {/* Header */}
-        <div className="border-b border-white/10 px-6 py-4">
+        <div className="border-b border-[var(--color-line)] px-5 py-4">
           <div className="flex items-center gap-2">
             <span className="text-lg">📢</span>
-            <h2 className="text-lg font-heading italic text-white" id="announcement-title">{announcement.title}</h2>
+            <h2 className="pr-8 text-base font-bold text-[var(--color-ink)]" id="announcement-title">{announcement.title}</h2>
           </div>
         </div>
 
         {/* Body with rendered markdown images */}
-        <div className="max-h-[55vh] overflow-y-auto px-6 py-5">
+        <div className="max-h-[42vh] overflow-y-auto px-5 py-4">
           <div
-            className="text-sm leading-7 text-white/75 font-body"
+            className="text-sm leading-7 text-[var(--color-ink)] font-body"
             dangerouslySetInnerHTML={{ __html: renderBody(announcement.body) }}
           />
-          <p className="mt-3 text-[11px] text-white/30 font-body">
+          <p className="mt-3 text-[11px] text-[var(--color-muted)] font-body">
             {new Date(announcement.created_at).toLocaleString("zh-CN")}
           </p>
         </div>
 
         {/* Footer */}
-        <div className="border-t border-white/10 px-6 py-4 flex flex-wrap justify-end gap-3">
+        <div className="flex flex-wrap justify-end gap-3 border-t border-[var(--color-line)] px-5 py-4">
           <button
-            className="rounded-full border border-white/10 bg-white/[0.04] px-5 py-2.5 text-sm font-medium text-white/50 hover:bg-white/10 hover:text-white transition font-body"
+            className="rounded-full border border-[var(--color-line)] bg-[var(--color-soft)] px-4 py-2 text-sm font-medium text-[var(--color-muted)] transition hover:bg-[var(--color-hover)] hover:text-[var(--color-ink)] font-body"
             onClick={handleDismissToday} type="button"
           >
             今日不再显示
           </button>
           <button
-            className="rounded-full bg-white/15 px-5 py-2.5 text-sm font-bold text-white hover:bg-white/25 transition font-body"
+            className="rounded-full bg-[var(--color-brand)] px-4 py-2 text-sm font-bold text-[var(--color-on-brand)] transition hover:opacity-90 font-body"
             onClick={handleDismissPermanent} type="button"
           >
             不再显示
