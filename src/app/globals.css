@@ -1337,7 +1337,7 @@ html[data-scroll-locked] body {
   transform: translateZ(0);
 }
 /* Ironclad APK WebView App-Shell: root is fixed, each tab is the only scroll container. */
-@media (max-width: 1023px) {
+@media (max-width: 1023px) and (hover: none) and (pointer: coarse) {
   html,
   body {
     height: 100% !important;
@@ -1412,4 +1412,5 @@ html[data-scroll-locked] body {
     touch-action: pan-y !important;
   }
 }
+
 

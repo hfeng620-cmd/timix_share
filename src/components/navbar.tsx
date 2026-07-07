@@ -16,7 +16,7 @@ import { getSupabaseClient, isSupabaseConfigured } from "@/lib/supabase";
 import { showNativeNotification } from "@/lib/native-notifications";
 
 const links = [
-  { label: "分享", href: "/" },
+  { label: "首页", href: "/" },
   { label: "中转站榜单", href: "/stations" },
   { label: "论坛入口", href: "/community" },
   { label: "模型择优", href: "/models" },
@@ -286,3 +286,4 @@ export function Navbar() {
     </nav>
   );
 }
+
