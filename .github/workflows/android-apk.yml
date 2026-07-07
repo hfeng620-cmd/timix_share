@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - "apk-build/**"
+      - "mobile-app"
     tags:
-      - "v*"
+      - "mobile-v*"
 
 permissions:
   contents: write
