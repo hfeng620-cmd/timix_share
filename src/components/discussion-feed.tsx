@@ -179,7 +179,7 @@ function ActionButton({
 
   return (
     <button
-      className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full px-3 text-sm text-[var(--color-muted)] transition active:bg-[var(--color-soft)] active:text-[var(--color-ink)] active:scale-[0.98] active:opacity-80 md:hover:bg-[var(--color-soft)] md:hover:text-[var(--color-ink)] sm:min-h-11 sm:gap-2 sm:text-sm"
+      className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-full px-3 text-sm text-[var(--color-muted)] transition active:bg-[var(--color-soft)] active:text-[var(--color-ink)] active:scale-[0.98] active:opacity-80 md:hover:bg-[var(--color-soft)] md:hover:text-[var(--color-ink)] sm:min-h-9 sm:gap-2 sm:text-sm"
       onClick={(e) => {
         e.stopPropagation();
         onClick();
@@ -230,10 +230,10 @@ function ClampedPostBody({
   }, [body]);
 
   return (
-    <div className="mt-4 max-w-4xl">
+    <div className="mt-2 max-w-4xl">
       <div
         ref={contentRef}
-        className="line-clamp-3 whitespace-pre-wrap break-words text-sm leading-7 text-[var(--color-ink)] sm:text-base sm:leading-8"
+        className="line-clamp-3 whitespace-pre-wrap break-words text-sm leading-6 text-[var(--color-ink)] sm:text-base sm:leading-7"
       >
         <MarkdownContent
           text={body}
@@ -244,7 +244,7 @@ function ClampedPostBody({
 
       {isOverflowing ? (
         <button
-          className="mt-2 inline-flex min-h-11 items-center rounded-full border border-[var(--color-line)] bg-[var(--color-soft)] px-4 py-2 text-sm font-bold text-[var(--color-brand-deep)] transition active:border-[var(--color-brand)] active:bg-[var(--color-brand-soft)] md:hover:border-[var(--color-brand)] md:hover:bg-[var(--color-brand-soft)]"
+          className="text-emerald-500 text-sm font-medium ml-1 inline transition active:text-emerald-600 md:hover:text-emerald-600"
           onClick={onShowFull}
           type="button"
         >
@@ -1327,7 +1327,7 @@ export function DiscussionFeed({
             <article
               id={post.issueNumber}
               key={post.issueNumber}
-              className={`surface-in card-lift relative cursor-pointer rounded-2xl border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-4 transition duration-200 active:border-[var(--color-brand)] active:bg-[linear-gradient(180deg,var(--color-panel),var(--color-soft))] active:scale-[0.98] md:hover:border-[var(--color-brand)] md:hover:bg-[linear-gradient(180deg,var(--color-panel),var(--color-soft))] sm:px-5 ${
+              className={`surface-in card-lift relative cursor-pointer rounded-2xl border border-[var(--color-line)] bg-[var(--color-panel)] px-3 py-3 transition duration-200 active:border-[var(--color-brand)] active:bg-[linear-gradient(180deg,var(--color-panel),var(--color-soft))] active:scale-[0.98] md:hover:border-[var(--color-brand)] md:hover:bg-[linear-gradient(180deg,var(--color-panel),var(--color-soft))] sm:px-4 ${
                 post.is_pinned ? "bg-[linear-gradient(180deg,var(--color-brand-soft),var(--color-panel))] shadow-[0_16px_44px_var(--color-panel-glow)]" : ""
               } ${resolvedStationFilter ? "xl:col-span-2" : ""}`}
               style={createFeedItemStyle(index)}
@@ -1397,7 +1397,7 @@ export function DiscussionFeed({
                   ) : null}
                 </div>
               ) : null}
-              <div className="relative z-[1] flex items-start gap-3 sm:gap-4">
+              <div className="relative z-[1] flex items-start gap-2 sm:gap-3">
                 {post.authorId ? (
                   <Link
                     aria-label={`打开 ${post.author} 的公开主页`}
@@ -1410,93 +1410,80 @@ export function DiscussionFeed({
                     {post.authorAvatarUrl ? (
                       <img
                         alt={post.author}
-                        className="h-10 w-10 rounded-full border border-[var(--color-line)] object-cover transition hover:ring-2 hover:ring-[var(--color-brand)]"
+                        className="h-8 w-8 rounded-full border border-[var(--color-line)] object-cover transition hover:ring-2 hover:ring-[var(--color-brand)]"
                         src={post.authorAvatarUrl}
                       />
                     ) : (
-                      <span className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--color-line)] bg-[var(--color-soft)] text-sm font-bold text-[var(--color-muted)] transition hover:ring-2 hover:ring-[var(--color-brand)]">
+                      <span className="flex h-8 w-8 items-center justify-center rounded-full border border-[var(--color-line)] bg-[var(--color-soft)] text-xs font-bold text-[var(--color-muted)] transition hover:ring-2 hover:ring-[var(--color-brand)]">
                         {post.author.charAt(0)}
                       </span>
                     )}
                   </Link>
                 ) : post.authorAvatarUrl ? (
-                  <img alt={post.author} className="h-10 w-10 shrink-0 rounded-full border border-[var(--color-line)] object-cover" src={post.authorAvatarUrl} />
+                  <img alt={post.author} className="h-8 w-8 shrink-0 rounded-full border border-[var(--color-line)] object-cover" src={post.authorAvatarUrl} />
                 ) : (
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--color-line)] bg-[var(--color-soft)] text-sm font-bold text-[var(--color-muted)]">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[var(--color-line)] bg-[var(--color-soft)] text-xs font-bold text-[var(--color-muted)]">
                     {post.author.charAt(0)}
                   </div>
                 )}
                 <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                    {post.authorId ? (
-                      <Link
-                        className="cursor-pointer rounded-md text-base font-black text-[var(--color-ink)] transition active:text-[var(--color-brand)] md:hover:text-[var(--color-brand)]"
-                        href={getUserProfileHref(post.authorId)}
-                        onClick={(event) => event.stopPropagation()}
-                        onContextMenu={(event) => handleAvatarClick(post.authorId, event)}
-                        title="查看公开主页"
-                      >
-                        {post.author}
-                      </Link>
-                    ) : (
-                      <h3 className="text-base font-black text-[var(--color-ink)]">{post.author}</h3>
-                    )}
-                    {post.authorId && ownerUserIds.has(post.authorId) ? (
-                      <span className="rounded border border-red-500/20 bg-red-500/10 px-2 py-0.5 text-xs font-bold text-red-500">
-                        TiMix 站主
-                      </span>
-                    ) : null}
-                    {post.authorId && !ownerUserIds.has(post.authorId) && adminUserIds.has(post.authorId) ? (
-                      <span className="rounded border border-white/10 bg-white/[0.06] px-2 py-0.5 text-xs font-bold text-zinc-300">
-                        管理员
-                      </span>
-                    ) : null}
-                    {post.authorCustomTitle ? (
-                      <span className="rounded-md border border-[var(--color-line)] bg-[var(--color-soft)] px-2 py-0.5 text-xs font-semibold text-[var(--color-muted)]">
-                        {post.authorCustomTitle}
-                      </span>
-                    ) : null}
-                    {post.is_pinned ? (
-                      <span className="rounded-full bg-[var(--color-brand)] px-2 py-0.5 text-[10px] font-bold text-[var(--color-on-brand)] ring-1 ring-[var(--color-brand)]/30">
-                        📌 置顶
-                      </span>
-                    ) : null}
-                    <span className="text-sm text-[var(--color-muted)]">{post.handle}</span>
-                    <span className="text-sm text-[var(--color-muted)]">·</span>
-                    <span className="text-sm text-[var(--color-muted)]">{formatRelativeTime(post.postedAt)}</span>
-                    {post.createdAt && post.updatedAt && post.updatedAt !== post.createdAt ? (
-                      (() => {
-                        const created = new Date(post.createdAt).getTime();
-                        const updated = new Date(post.updatedAt).getTime();
-                        const diffMs = updated - created;
-                        if (diffMs > 60000) {
-                          return <span className="text-[11px] font-semibold text-[var(--color-brand-deep)]">(已编辑)</span>;
-                        }
-                        return null;
-                      })()
-                    ) : null}
-                    {post.station ? (
-                      <span className="rounded-full border border-[var(--color-line)] bg-[var(--color-soft)] px-2.5 py-1 text-xs font-bold text-[var(--color-brand-deep)]">
-                        {post.station}
-                      </span>
-                    ) : null}
-                  </div>
-                  <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] font-semibold text-[var(--color-muted)]">
-                    {post.is_pinned ? (
-                      <span className="rounded-full border border-[var(--color-brand)]/20 bg-[var(--color-brand-soft)] px-2.5 py-1 text-[var(--color-brand-deep)]">
-                        优先处理
-                      </span>
-                    ) : null}
-                    {post.replyCount > 0 ? (
-                      <span className="rounded-full border border-[var(--color-line)] bg-[var(--color-soft)] px-2.5 py-1">
-                        {post.replyCount} 条回复
-                      </span>
-                    ) : null}
-                    {post.likes > 0 ? (
-                      <span className="rounded-full border border-[var(--color-line)] bg-[var(--color-soft)] px-2.5 py-1">
-                        {post.likes} 个赞
-                      </span>
-                    ) : null}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                      <div className="flex flex-col gap-0.5 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {post.authorId ? (
+                            <Link
+                              className="cursor-pointer text-sm font-bold text-[var(--color-ink)] transition active:text-[var(--color-brand)] md:hover:text-[var(--color-brand)]"
+                              href={getUserProfileHref(post.authorId)}
+                              onClick={(event) => event.stopPropagation()}
+                              onContextMenu={(event) => handleAvatarClick(post.authorId, event)}
+                              title="查看公开主页"
+                            >
+                              {post.author}
+                            </Link>
+                          ) : (
+                            <h3 className="text-sm font-bold text-[var(--color-ink)]">{post.author}</h3>
+                          )}
+                          {post.authorId && ownerUserIds.has(post.authorId) ? (
+                            <span className="rounded border border-red-500/20 bg-red-500/10 px-1.5 py-0.5 text-[10px] font-bold text-red-500">
+                              站主
+                            </span>
+                          ) : null}
+                          {post.authorId && !ownerUserIds.has(post.authorId) && adminUserIds.has(post.authorId) ? (
+                            <span className="rounded border border-white/10 bg-white/[0.06] px-1.5 py-0.5 text-[10px] font-bold text-zinc-300">
+                              管理员
+                            </span>
+                          ) : null}
+                          {post.is_pinned ? (
+                            <span className="rounded-full bg-[var(--color-brand)] px-1.5 py-0.5 text-[9px] font-bold text-[var(--color-on-brand)]">
+                              📌
+                            </span>
+                          ) : null}
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-[var(--color-muted)] flex-wrap">
+                          <span>{formatRelativeTime(post.postedAt)}</span>
+                          {post.createdAt && post.updatedAt && post.updatedAt !== post.createdAt ? (
+                            (() => {
+                              const created = new Date(post.createdAt).getTime();
+                              const updated = new Date(post.updatedAt).getTime();
+                              const diffMs = updated - created;
+                              if (diffMs > 60000) {
+                                return <span className="text-[10px] font-semibold text-[var(--color-brand-deep)]">(已编辑)</span>;
+                              }
+                              return null;
+                            })()
+                          ) : null}
+                          {post.station ? (
+                            <span className="rounded-full border border-[var(--color-line)] bg-[var(--color-soft)] px-2 py-0.5 text-[10px] font-bold text-[var(--color-brand-deep)]">
+                              {post.station}
+                            </span>
+                          ) : null}
+                          {post.tags.slice(0, 2).map((tag) => (
+                            <span key={tag} className="text-[10px]">#{tag}</span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
                   </div>
                   {editingPostId === post.issueNumber ? (
                     <div className="mt-3" onClick={(e) => e.stopPropagation()}>
@@ -1531,35 +1518,16 @@ export function DiscussionFeed({
                       onShowFull={() => openPostModal(post.issueNumber)}
                     />
                   )}
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    {post.tags.map((tag) => (
-                      <button
-                        key={`${post.issueNumber}-${tag}`}
-                        className={`rounded-full px-2.5 py-1 text-xs font-semibold transition ${
-                          selectedTag === tag
-                            ? "bg-[var(--color-brand)] text-[var(--color-on-brand)]"
-                            : "border border-[var(--color-line)] bg-[var(--color-soft)] text-[var(--color-muted)] active:bg-[var(--color-hover)] active:text-[var(--color-ink)] md:hover:bg-[var(--color-hover)] md:hover:text-[var(--color-ink)]"
-                        }`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedTag(selectedTag === tag ? null : tag);
-                        }}
-                        type="button"
-                      >
-                        #{tag}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="mt-5 grid grid-cols-2 gap-2 border-t border-[var(--color-line)] pt-3 sm:flex sm:flex-wrap sm:items-center sm:gap-3">
+                  <div className="mt-3 grid grid-cols-2 gap-2 border-t border-[var(--color-line)] pt-2 sm:flex sm:flex-wrap sm:items-center sm:gap-2">
                     <button
-                      className="rounded-full bg-[var(--color-brand)] px-3 py-2.5 text-sm font-semibold text-[var(--color-on-brand)] shadow-[0_10px_24px_var(--color-panel-glow)] transition active:bg-[var(--color-brand-deep)] md:hover:bg-[var(--color-brand-deep)] sm:px-4"
+                      className="rounded-full bg-[var(--color-brand)] px-3 py-2 text-xs font-semibold text-[var(--color-on-brand)] shadow-[0_10px_24px_var(--color-panel-glow)] transition active:bg-[var(--color-brand-deep)] md:hover:bg-[var(--color-brand-deep)] sm:px-4"
                       onClick={(event) => {
                         event.stopPropagation();
                         openPostModal(post.issueNumber);
                       }}
                       type="button"
                     >
-                      回复讨论
+                      回复
                     </button>
                     <ActionButton count={post.replyCount} icon="comment" onClick={() => openPostModal(post.issueNumber)} />
                     <ActionButton
@@ -1570,7 +1538,7 @@ export function DiscussionFeed({
                     />
                     {/* Bookmark button */}
                     <button
-                      className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full px-3 text-sm text-[var(--color-muted)] transition active:bg-[var(--color-soft)] active:text-[var(--color-ink)] active:scale-[0.98] active:opacity-80 md:hover:bg-[var(--color-soft)] md:hover:text-[var(--color-ink)] sm:min-h-11 sm:justify-start sm:gap-2 sm:text-sm"
+                      className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-full px-3 text-sm text-[var(--color-muted)] transition active:bg-[var(--color-soft)] active:text-[var(--color-ink)] active:scale-[0.98] active:opacity-80 md:hover:bg-[var(--color-soft)] md:hover:text-[var(--color-ink)] sm:min-h-9 sm:justify-start sm:gap-2 sm:text-sm"
                       onClick={(event) => {
                         event.stopPropagation();
                         handleToggleBookmark(post.issueNumber);
@@ -1584,7 +1552,7 @@ export function DiscussionFeed({
                     {/* Sync to main discussion button (only in station view) */}
                     {showSyncButton && resolvedStationFilter && (
                       <a
-                        className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full px-3 py-2 text-sm font-bold text-[var(--color-brand-deep)] transition active:bg-[var(--color-brand-soft)] md:hover:bg-[var(--color-brand-soft)] sm:min-h-11"
+                        className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-full px-3 py-2 text-sm font-bold text-[var(--color-brand-deep)] transition active:bg-[var(--color-brand-soft)] md:hover:bg-[var(--color-brand-soft)] sm:min-h-9"
                         href="/community"
                         onClick={(e) => e.stopPropagation()}
                         title="同步到站内讨论区"
@@ -1598,14 +1566,14 @@ export function DiscussionFeed({
                       </a>
                     )}
                     <button
-                      className="min-h-11 rounded-full border border-[var(--color-line)] px-4 py-2 text-sm font-bold text-[var(--color-muted)] transition active:bg-[var(--color-soft)] active:text-[var(--color-brand-deep)] md:hover:bg-[var(--color-soft)] md:hover:text-[var(--color-brand-deep)] sm:min-h-11"
+                      className="min-h-9 rounded-full border border-[var(--color-line)] px-4 py-2 text-sm font-bold text-[var(--color-muted)] transition active:bg-[var(--color-soft)] active:text-[var(--color-brand-deep)] md:hover:bg-[var(--color-soft)] md:hover:text-[var(--color-brand-deep)] sm:min-h-9"
                       onClick={(event) => {
                         event.stopPropagation();
                         openPostModal(post.issueNumber);
                       }}
                       type="button"
                     >
-                      查看详情
+                      详情
                     </button>
                   </div>
                 </div>
