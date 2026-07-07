@@ -2,17 +2,14 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Activity, Flame, Github, MessageSquarePlus, QrCode, Trophy } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 
 import { Navbar } from "@/components/navbar";
 import { CommunityPostPanel } from "@/components/community-post-panel";
 import { DiscussionFeed } from "@/components/discussion-feed";
-import { MobileThemeToggle } from "@/components/mobile-theme-toggle";
 import HotTopicsPanel from "@/components/hot-topics-panel";
 import UserRankPanel from "@/components/user-rank-panel";
 import { siteLinks } from "@/lib/site-links";
-import { lockBodyScroll } from "@/lib/body-scroll-lock";
 import { useSystemMonitor } from "@/lib/system-monitor-context";
 
 const hubs = [
@@ -25,94 +22,20 @@ const hubs = [
 export default function CommunityPage() {
   const [feedRefreshKey, setFeedRefreshKey] = useState(0);
   const [mobilePanel, setMobilePanel] = useState<"hot" | "rank" | null>(null);
-  const [mobileComposerOpen, setMobileComposerOpen] = useState(false);
   const [qqModalOpen, setQqModalOpen] = useState(false);
   const { openMonitor } = useSystemMonitor();
 
-  useEffect(() => {
-    if (!qqModalOpen) return;
-    return lockBodyScroll();
-  }, [qqModalOpen]);
   const handleTopicClick = useCallback((postId: string) => {
     const el = document.getElementById(postId);
     if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
   }, []);
 
   return (
-    <div className="mobile-tab-scroll community-mobile-app flex-1 min-h-0 h-full overflow-y-auto overscroll-y-contain pb-24 text-white">
-      <div className="mx-auto max-w-[1680px] px-3 pt-4 sm:px-5">
-        <header className="community-mobile-header -mx-3 mb-2 border-b border-white/5 bg-[#09090b]/80 px-4 pb-2.5 pt-2.5 text-zinc-100 shadow-[0_10px_30px_rgba(0,0,0,0.32)] backdrop-blur-xl md:hidden">
-          <div className="flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-500">Community</p>
-              <h1 className="mt-0.5 text-lg font-bold leading-none tracking-normal text-zinc-50">社区</h1>
-            </div>
-            <div className="flex shrink-0 items-center gap-2">
-              <MobileThemeToggle />
-              <button
-                onClick={openMonitor}
-                className="touch-press inline-flex h-10 items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-2.5 text-[11px] font-semibold text-zinc-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] active:bg-white/10"
-                type="button"
-              >
-                <Activity className="h-3.5 w-3.5" />
-                VPS
-              </button>
-            </div>
-          </div>
+    <div className="min-h-screen text-white">
+      <Navbar />
 
-          <div className="mt-2 grid grid-cols-[minmax(0,1fr)_auto] gap-2">
-            <button
-              className="touch-press inline-flex min-h-9 items-center justify-center gap-2 rounded-xl bg-zinc-100 px-4 text-xs font-semibold text-zinc-950 shadow-[0_10px_24px_rgba(255,255,255,0.055),inset_0_1px_0_rgba(255,255,255,0.58)] transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]"
-              onClick={() => setMobileComposerOpen((open) => !open)}
-              type="button"
-            >
-              <MessageSquarePlus className="h-3.5 w-3.5" />
-              {mobileComposerOpen ? "收起" : "发帖"}
-            </button>
-            <a
-              href={siteLinks.discussions}
-              className="touch-press inline-flex min-h-9 items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] px-3 text-[11px] font-semibold text-zinc-400 transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] active:bg-white/10"
-              rel="noopener noreferrer"
-              target="_blank"
-            >
-              <Github className="h-3.5 w-3.5" />
-              GitHub
-            </a>
-          </div>
-        </header>
-
-        <nav className="mb-2 flex gap-2 overflow-x-auto pb-1 text-white md:hidden" aria-label="社区快捷入口">
-          <button
-            className={`inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full px-3 text-[11px] font-bold shadow-sm transition active:scale-95 active:opacity-85 ${
-              mobilePanel === "hot" ? "bg-zinc-100 text-zinc-950" : "border border-white/10 bg-white/[0.04] text-zinc-300"
-            }`}
-            onClick={() => setMobilePanel(mobilePanel === "hot" ? null : "hot")}
-            type="button"
-          >
-            <Flame className="h-3.5 w-3.5" />
-            热门
-          </button>
-          <button
-            className={`inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full px-3 text-[11px] font-bold shadow-sm transition active:scale-95 active:opacity-85 ${
-              mobilePanel === "rank" ? "bg-zinc-100 text-zinc-950" : "border border-white/10 bg-white/[0.04] text-zinc-300"
-            }`}
-            onClick={() => setMobilePanel(mobilePanel === "rank" ? null : "rank")}
-            type="button"
-          >
-            <Trophy className="h-3.5 w-3.5" />
-            排行
-          </button>
-          <button
-            className="touch-press inline-flex min-h-8 shrink-0 items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 text-[11px] font-semibold text-zinc-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] active:bg-white/10"
-            onClick={() => setQqModalOpen(true)}
-            type="button"
-          >
-            <QrCode className="h-3.5 w-3.5 text-zinc-400" />
-            QQ群
-          </button>
-        </nav>
-
-        <section className="liquid-glass mb-6 hidden overflow-hidden rounded-[28px] p-5 sm:p-7 md:block">
+      <div className="mx-auto max-w-[1680px] px-4 pt-28 sm:px-5 lg:px-8">
+        <section className="mb-6 liquid-glass overflow-hidden rounded-[28px] p-5 sm:p-7">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <div className="liquid-glass mb-3 inline-block rounded-full px-3.5 py-1 text-xs font-medium text-white font-body">
@@ -162,7 +85,7 @@ export default function CommunityPage() {
                     key={hub.id}
                     onClick={() => setQqModalOpen(true)}
                     type="button"
-                    className="touch-press group flex flex-col justify-between rounded-2xl border p-4 text-left transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] hover:-translate-y-0.5 liquid-glass"
+                    className="group flex flex-col justify-between rounded-2xl border p-4 text-left transition hover:-translate-y-0.5 liquid-glass"
                   >
                     <div>
                       <span className="inline-flex rounded-full bg-white/8 px-2.5 py-1 text-[11px] font-bold tracking-[0.16em] text-white/60">
@@ -184,7 +107,7 @@ export default function CommunityPage() {
                   key={hub.id}
                   href={(hub as any).href}
                   {...(hub.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-                  className={`touch-press group flex flex-col justify-between rounded-2xl border p-4 transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] hover:-translate-y-0.5 ${
+                  className={`group flex flex-col justify-between rounded-2xl border p-4 transition hover:-translate-y-0.5 ${
                     isPrimary ? "border-white/30 bg-white/10" : "liquid-glass"
                   }`}
                 >
@@ -206,11 +129,11 @@ export default function CommunityPage() {
           </div>
         </section>
 
-        <div className="mb-5 hidden gap-2 md:flex xl:hidden">
+        <div className="mb-5 flex gap-2 xl:hidden">
           {(["hot", "rank"] as const).map((key) => (
             <button
               key={key}
-              className={`touch-press flex-1 rounded-full px-4 py-2.5 text-sm font-semibold transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] font-body ${
+              className={`flex-1 rounded-full px-4 py-2.5 text-sm font-semibold transition font-body ${
                 mobilePanel === key ? "liquid-glass-strong text-white" : "liquid-glass text-white/60"
               }`}
               onClick={() => setMobilePanel(mobilePanel === key ? null : key)}
@@ -222,21 +145,11 @@ export default function CommunityPage() {
         </div>
 
         <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px] 2xl:grid-cols-[minmax(0,1fr)_360px]">
-          <div className="min-w-0 space-y-3 md:space-y-5">
-            {mobileComposerOpen ? (
-              <div id="community-composer" className="community-composer-shell mt-1 scroll-mt-24 md:hidden">
-                <CommunityPostPanel onPostCreated={() => {
-                  setFeedRefreshKey((v) => v + 1);
-                  setMobileComposerOpen(false);
-                }} />
-              </div>
-            ) : null}
-            <div id="community-composer-desktop" className="community-composer-shell hidden scroll-mt-24 md:block">
+          <div className="min-w-0 space-y-5">
+            <div id="community-composer" className="scroll-mt-24">
               <CommunityPostPanel onPostCreated={() => setFeedRefreshKey((v) => v + 1)} />
             </div>
-            <div className="community-feed-shell">
-              <DiscussionFeed key={feedRefreshKey} hideComposer title="讨论工作台" limit={8} />
-            </div>
+            <DiscussionFeed key={feedRefreshKey} hideComposer title="讨论工作台" limit={8} />
           </div>
 
           <aside className="hidden min-w-0 xl:block">
@@ -258,19 +171,17 @@ export default function CommunityPage() {
       {/* ── QQ 群二维码毛玻璃弹窗 ── */}
       {qqModalOpen && (
         <div
-          className="fixed inset-0 z-[100] flex items-end justify-center overscroll-contain bg-[#09090b]/60 px-0 backdrop-blur-xl md:items-center md:px-4"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-xl px-4"
           onClick={() => setQqModalOpen(false)}
-          role="dialog"
-          aria-modal="true"
         >
           <div
-            className="relative w-full max-w-md overflow-hidden rounded-t-3xl border border-white/10 border-b-0 bg-zinc-950/95 shadow-2xl backdrop-blur-xl md:rounded-3xl md:border-b"
+            className="relative w-full max-w-md overflow-hidden rounded-3xl border border-white/15 bg-white/8 shadow-2xl backdrop-blur-xl"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Close button */}
             <button
               onClick={() => setQqModalOpen(false)}
-              className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white/60 transition active:scale-95 active:bg-white/20 hover:bg-white/20 hover:text-white"
+              className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white/60 hover:bg-white/20 hover:text-white transition"
               type="button"
               aria-label="关闭"
             >
@@ -278,7 +189,7 @@ export default function CommunityPage() {
             </button>
 
             {/* Content */}
-            <div className="flex flex-col items-center px-8 py-10 pb-[max(env(safe-area-inset-bottom,0px),2.5rem)] md:pb-10">
+            <div className="flex flex-col items-center px-8 py-10">
               <p className="text-sm font-heading italic text-white mb-6">加入 QQ 群</p>
 
               {/* QR Code */}
@@ -307,189 +218,6 @@ export default function CommunityPage() {
           </div>
         </div>
       )}
-
-      <style jsx global>{`
-        @media (max-width: 767px) {
-          .community-mobile-app {
-            --color-bg: var(--mobile-app-bg);
-            --color-ink: var(--mobile-app-ink);
-            --color-muted: var(--mobile-app-muted);
-            --color-line: var(--mobile-app-line);
-            --color-soft: var(--mobile-app-panel);
-            --color-brand: var(--mobile-app-primary);
-            --color-brand-deep: var(--mobile-app-primary);
-            --color-brand-strong: var(--mobile-app-accent);
-            --color-on-brand: var(--mobile-app-button-ink);
-            --color-brand-soft: color-mix(in srgb, var(--mobile-app-primary) 7%, transparent);
-            --color-panel: var(--mobile-app-panel);
-            --color-panel-strong: var(--mobile-app-panel-strong);
-            --color-panel-glow: color-mix(in srgb, var(--mobile-app-primary) 10%, transparent);
-            --color-header: var(--mobile-app-panel-strong);
-            --color-hover: color-mix(in srgb, var(--mobile-app-primary) 6%, transparent);
-            --color-input: var(--mobile-app-panel-strong);
-            --shadow-card: var(--mobile-app-shadow);
-            background: var(--mobile-app-surface);
-            color: var(--mobile-app-ink);
-            font-size: 12px;
-            line-height: 1.45;
-            overflow-x: hidden;
-            touch-action: pan-y;
-          }
-
-          .community-mobile-app > div {
-            padding-top: 60px !important;
-          }
-
-          .community-mobile-app nav[aria-label="社区快捷入口"] {
-            margin-bottom: 8px !important;
-            scrollbar-width: none;
-          }
-
-          .community-mobile-app nav[aria-label="社区快捷入口"]::-webkit-scrollbar {
-            display: none;
-          }
-
-          .community-mobile-app .community-composer-shell > div {
-            border-radius: 18px !important;
-            background: var(--mobile-app-panel) !important;
-            box-shadow: var(--mobile-app-shadow) !important;
-            padding: 10px !important;
-          }
-
-          .community-mobile-app .community-composer-shell h2 {
-            font-size: 14px !important;
-            line-height: 1.2 !important;
-          }
-
-          .community-mobile-app .community-composer-shell p,
-          .community-mobile-app .community-composer-shell span {
-            font-size: 11px !important;
-            line-height: 1.45 !important;
-          }
-
-          .community-mobile-app .community-composer-shell a {
-            display: none !important;
-          }
-
-          .community-mobile-app .community-composer-shell button,
-          .community-mobile-app .community-composer-shell input,
-          .community-mobile-app .community-composer-shell textarea {
-            border-radius: 14px !important;
-            font-size: 12px !important;
-          }
-
-          .community-mobile-app .community-composer-shell textarea {
-            min-height: 84px !important;
-            line-height: 1.6 !important;
-          }
-
-          .community-mobile-app .community-feed-shell section[data-selection-comments="off"] {
-            transform: none !important;
-            opacity: 1 !important;
-            overflow: visible !important;
-            border: 0 !important;
-            border-radius: 0 !important;
-            background: transparent !important;
-            box-shadow: none !important;
-            padding-bottom: 76px !important;
-          }
-
-          .community-mobile-app .community-feed-shell section[data-selection-comments="off"] > div.border-b {
-            display: none !important;
-          }
-
-          .community-mobile-app .community-feed-shell section[data-selection-comments="off"] > div.grid {
-            display: block !important;
-            background: transparent !important;
-            padding: 0 !important;
-          }
-
-          .community-mobile-app .community-feed-shell article {
-            margin-bottom: 8px !important;
-            border-color: var(--mobile-app-line) !important;
-            border-radius: 16px !important;
-            background: var(--mobile-app-panel) !important;
-            box-shadow: var(--mobile-app-shadow) !important;
-            padding: 10px !important;
-          }
-
-          .community-mobile-app .community-feed-shell article > div.relative {
-            gap: 8px !important;
-          }
-
-          .community-mobile-app .community-feed-shell article img,
-          .community-mobile-app .community-feed-shell article a > span.flex,
-          .community-mobile-app .community-feed-shell article > div > div:first-child {
-            height: 30px !important;
-            width: 30px !important;
-            font-size: 12px !important;
-          }
-
-          .community-mobile-app .community-feed-shell article h3,
-          .community-mobile-app .community-feed-shell article a.rounded-md {
-            font-size: 12px !important;
-            line-height: 1.2 !important;
-          }
-
-          .community-mobile-app .community-feed-shell article span,
-          .community-mobile-app .community-feed-shell article button,
-          .community-mobile-app .community-feed-shell article a {
-            font-size: 11px !important;
-          }
-
-          .community-mobile-app .community-feed-shell article .line-clamp-3 {
-            margin-top: 6px !important;
-            font-size: 12px !important;
-            line-height: 1.5 !important;
-            color: var(--mobile-app-muted) !important;
-            -webkit-line-clamp: 2;
-            max-height: 36px !important;
-          }
-
-          .community-mobile-app .community-feed-shell article .mt-5 {
-            margin-top: 8px !important;
-            padding-top: 8px !important;
-          }
-
-          .community-mobile-app .community-feed-shell article .min-h-\\[40px\\] {
-            min-height: 30px !important;
-          }
-
-          .community-mobile-app .community-feed-shell article .rounded-full {
-            border-radius: 999px !important;
-          }
-
-          .community-mobile-app .community-feed-shell article .mt-3.flex.flex-wrap,
-          .community-mobile-app .community-feed-shell article .mt-4.flex.flex-wrap {
-            display: none !important;
-          }
-
-          .community-mobile-app .community-feed-shell article .mt-5.grid {
-            display: flex !important;
-            flex-wrap: nowrap !important;
-            align-items: center !important;
-            gap: 8px !important;
-            margin-top: 6px !important;
-            overflow-x: auto !important;
-            border-top: 0 !important;
-            padding-top: 2px !important;
-            scrollbar-width: none;
-          }
-
-          .community-mobile-app .community-feed-shell article .mt-5.grid > button:first-child,
-          .community-mobile-app .community-feed-shell article .mt-5.grid > button:last-child {
-            display: none !important;
-          }
-          .community-mobile-app .community-feed-shell article .mt-5.grid::-webkit-scrollbar {
-            display: none;
-          }
-
-          .community-mobile-app .community-feed-shell > section > div.border-t {
-            border: 0 !important;
-            padding: 4px 0 12px !important;
-          }
-        }
-      `}</style>
     </div>
   );
 }

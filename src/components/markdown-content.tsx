@@ -48,7 +48,7 @@ function renderMarkdownPart(
 
     return (
       <img
-        key={`${index}-${part.slice(0, 24)}`}
+        key={index}
         alt={alt || options.imageAlt}
         className={options.imageClassName}
         loading="lazy"
@@ -67,7 +67,7 @@ function renderMarkdownPart(
     const isTarget = options.highlightAuthor && name === options.highlightAuthor;
     return (
       <span
-        key={`${index}-${part.slice(0, 24)}`}
+        key={index}
         className={`font-semibold ${isTarget ? "rounded bg-[var(--color-brand-soft)] px-0.5 text-[var(--color-brand-deep)]" : "text-[var(--color-brand)]"}`}
       >
         {part}
@@ -85,7 +85,7 @@ function renderMarkdownPart(
 
     return (
       <span
-        key={`${index}-${part.slice(0, 24)}`}
+        key={index}
         className={`mx-0.5 inline-flex items-center gap-1.5 align-middle font-medium ${
           isDoge
             ? "rounded-2xl border border-amber-300/20 bg-amber-300/10 px-2.5 py-1 text-[12px] text-amber-50 shadow-[0_6px_18px_rgba(251,191,36,0.12)]"

@@ -41,13 +41,13 @@ export function FavoriteButton({ stationName }: { stationName: string }) {
     <button
       type="button"
       onClick={handleClick}
-      className="flex h-11 w-11 items-center justify-center rounded-full transition hover:bg-[var(--color-soft)]"
+      className="flex h-8 w-8 items-center justify-center rounded-full transition hover:bg-[var(--color-soft)]"
       title={favorited ? "取消收藏" : "收藏站点"}
       aria-label={favorited ? "取消收藏" : "收藏站点"}
     >
       <svg
         aria-hidden="true"
-        className="h-5 w-5 transition-colors"
+        className="h-4 w-4 transition-colors"
         fill={favorited ? "var(--color-brand)" : "none"}
         viewBox="0 0 24 24"
         stroke="currentColor"

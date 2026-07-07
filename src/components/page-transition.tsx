@@ -2,9 +2,9 @@
 
 import { AnimatePresence, motion } from "motion/react";
 import { usePathname } from "next/navigation";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useRef, type ReactNode } from "react";
 
-const TAB_ORDER = ["/", "/guides", "/stations", "/community", "/drops", "/profile", "/models", "/admin", "/user", "/legacy"];
+const TAB_ORDER = ["/", "/stations", "/community", "/models", "/profile", "/drops", "/guides", "/admin", "/user", "/legacy"];
 
 function getNavIndex(path: string): number {
   for (let i = 0; i < TAB_ORDER.length; i++) {
@@ -16,20 +16,19 @@ function getNavIndex(path: string): number {
 
 export function PageTransition({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const [prevPath, setPrevPath] = useState(pathname);
+  const prevPath = useRef(pathname);
+  const direction = useRef<"forward" | "back">("forward");
 
-  const direction = useMemo<"forward" | "back">(() => {
-    const fromIdx = getNavIndex(prevPath);
+  if (prevPath.current !== pathname) {
+    const fromIdx = getNavIndex(prevPath.current);
     const toIdx = getNavIndex(pathname);
-    return fromIdx >= 0 && toIdx >= 0 && toIdx < fromIdx ? "back" : "forward";
-  }, [pathname, prevPath]);
+    direction.current =
+      fromIdx >= 0 && toIdx >= 0 && toIdx < fromIdx ? "back" : "forward";
+    prevPath.current = pathname;
+  }
 
-  useEffect(() => {
-    setPrevPath(pathname);
-  }, [pathname]);
-
-  const xEnter = direction === "forward" ? "30%" : "-30%";
-  const xExit = direction === "forward" ? "-30%" : "30%";
+  const xEnter = direction.current === "forward" ? "30%" : "-30%";
+  const xExit = direction.current === "forward" ? "-30%" : "30%";
 
   return (
     <AnimatePresence mode="popLayout" initial={false}>
@@ -39,7 +38,6 @@ export function PageTransition({ children }: { children: ReactNode }) {
         animate={{ opacity: 1, x: "0%" }}
         exit={{ opacity: 0, x: xExit }}
         transition={{ type: "spring", stiffness: 350, damping: 30, mass: 0.8 }}
-        className="mobile-page-transition flex-1 h-full w-full flex flex-col overflow-hidden"
         style={{ willChange: "transform, opacity" }}
       >
         {children}

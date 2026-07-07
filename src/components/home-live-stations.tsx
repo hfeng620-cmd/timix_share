@@ -229,7 +229,7 @@ export function LiveTopStationRows() {
     <>
       {getTopRows(rows).map((row, index) => (
         <StationRowLink
-          key={row.name}
+          key={`${row.name}-${index}`}
           href={row.url}
           className="stagger-in grid cursor-pointer gap-4 border-b border-[var(--color-line)] py-5 transition hover:bg-[var(--color-hover)] md:grid-cols-[0.55fr_1fr_0.95fr_0.75fr_1.35fr] md:items-start"
         >
@@ -271,7 +271,7 @@ export function LiveMoreStationRows() {
 
   return (
     <>
-      {getMoreRows(rows).map((row) => {
+      {getMoreRows(rows).map((row, index) => {
         const baseClasses =
           "stagger-in card-lift grid gap-3 border-b border-[var(--color-line)] py-5 transition md:grid-cols-[0.9fr_0.9fr_0.6fr_1.4fr]";
         const linkClasses = `${baseClasses} cursor-pointer hover:bg-[var(--color-hover)]`;
@@ -302,7 +302,7 @@ export function LiveMoreStationRows() {
 
         return row.url ? (
           <StationRowLink
-            key={`${row.name}-extended`}
+            key={`${row.name}-extended-${index}`}
             className={linkClasses}
             href={row.url}
           >
@@ -310,7 +310,7 @@ export function LiveMoreStationRows() {
           </StationRowLink>
         ) : (
           <article
-            key={`${row.name}-extended`}
+            key={`${row.name}-extended-${index}`}
             className={plainClasses}
           >
             {content}

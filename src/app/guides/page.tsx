@@ -1,17 +1,18 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  Heart, MessageCircle, Bookmark, Plus, Flame,
-  Folder, ChevronRight, Trash2,
+  Heart, MessageCircle, Bookmark, Plus, Flame, X,
+  Folder, ChevronRight, Trash2, Send, Loader2,
+  Clock, Pencil,
 } from "lucide-react";
+import { Navbar } from "@/components/navbar";
+import { lockBodyScroll } from "@/lib/body-scroll-lock";
 import { useForumAuth } from "@/lib/forum-auth";
 import { useToast } from "@/lib/toast-context";
-import { loadFolders, loadAllPosts, createFolder, createSharePost, deleteSharePost, deleteFolder, getFolderCreator, getFolderContributors, toggleHot, togglePostLike, type ShareFolder, type SharePost, type Contributor, type Liker } from "@/lib/share-storage";
+import { loadFolders, loadAllPosts, createFolder, createSharePost, deleteSharePost, deleteFolder, updateFolder, updateSharePost, getFolderCreator, getFolderContributors, loadEditLogs, toggleHot, togglePostLike, type ShareFolder, type SharePost, type Contributor, type EditLogEntry, type Liker } from "@/lib/share-storage";
 import { EditPanelModal } from "@/components/edit-panel-modal";
 import { LikeIndicator } from "@/components/like-indicator";
-import { MobileThemeToggle } from "@/components/mobile-theme-toggle";
-import { PwaInstallCallout } from "@/components/pwa-install-prompt";
 import { ShareCreateModal, type CreateMode } from "@/components/share-create-modal";
 import { PostDetailModal } from "@/components/post-detail-modal";
 
@@ -86,6 +87,56 @@ function buildTreeFromDb(dbFolders: ShareFolder[], dbPosts: SharePost[]): Folder
   return { type: "folder", name: "root", children: [...rootFolders, ...rootPosts] };
 }
 
+const OLD_MOCK: FolderNode = {
+  type: "folder", name: "root", children: [
+    {
+      type: "folder", name: "基础部分", desc: "Codex，ClaudeCode使用教程",
+      children: [
+        {
+          type: "folder", name: "Codex", children: [
+            {
+              type: "post", id: "p1", title: "Codex CLI 实战：用自然语言操控终端",
+              summary: "OpenAI Codex 命令行工具深度体验，附常用 prompt 模板和避坑记录。",
+              link: null, tag: "Codex", likes: [], comments: 156, bookmarks: 892, authorId: "",
+              authorName: null, authorAvatar: null, createdAt: "", body: "", isHot: false,
+            },
+          ],
+        },
+        {
+          type: "folder", name: "ClaudeCode", children: [
+            {
+              type: "post", id: "p2", title: "Claude Code 终极配置指南",
+              summary: "从零搭建 Claude Code 开发环境，MCP 插件、自定义 hooks 与快捷键映射。",
+              link: null, tag: "ClaudeCode", likes: [], comments: 98, bookmarks: 654, authorId: "",
+              authorName: null, authorAvatar: null, createdAt: "", body: "", isHot: false,
+            },
+          ],
+        },
+        { type: "folder", name: "Cursor", children: [] },
+        { type: "folder", name: "Windsurf", children: [] },
+      ],
+    },
+    {
+      type: "folder", name: "Github优质项目汇总",
+      children: [
+        {
+          type: "folder", name: "前端", children: [
+            {
+              type: "post", id: "p3", title: "Tauri 2.0 桌面应用开发指南",
+              summary: "基于 Rust 的轻量级跨平台桌面应用框架，替代 Electron 的首选方案。",
+              link: null, tag: "前端", likes: [], comments: 187, bookmarks: 940, authorId: "",
+              authorName: null, authorAvatar: null, createdAt: "", body: "", isHot: false,
+            },
+          ],
+        },
+        { type: "folder", name: "后端", children: [] },
+        { type: "folder", name: "AI工具", children: [] },
+        { type: "folder", name: "DevOps", children: [] },
+      ],
+    },
+  ],
+};
+
 /* ── Helpers ── */
 
 type Breadcrumb = { name: string; index: number }[];
@@ -100,8 +151,17 @@ function resolvePath(tree: FolderNode, indices: number[]): FolderNode | null {
   return current;
 }
 
+function findAllPosts(folder: FolderNode): PostNode[] {
+  const result: PostNode[] = [];
+  for (const child of folder.children) {
+    if (child.type === "post") result.push(child);
+    else result.push(...findAllPosts(child));
+  }
+  return result;
+}
+
 function getBreadcrumb(tree: FolderNode, indices: number[]): Breadcrumb {
-  const crumbs: Breadcrumb = [{ name: "分享", index: -1 }];
+  const crumbs: Breadcrumb = [{ name: "热门有趣项目Share", index: -1 }];
   let current = tree;
   for (const i of indices) {
     const child = current.children[i];
@@ -150,36 +210,36 @@ function PostCard({ post, onClick, onEdit, onDelete, onToggleHot }: { post: Post
   return (
     <div
       onClick={onClick}
-      className="share-post-row group w-full cursor-pointer rounded-[14px] border border-white/5 bg-white/[0.03] p-2.5 text-left shadow-[0_14px_36px_rgba(0,0,0,0.24),inset_0_1px_0_rgba(255,255,255,0.05)] transition-all duration-200 active:scale-[0.99] sm:rounded-[20px] sm:p-3.5"
+      className="w-full text-left rounded-xl bg-white/5 border border-white/10 p-4 hover:bg-white/10 transition-all duration-200 group cursor-pointer"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h3 className="truncate text-[13px] font-semibold text-white">{post.title}</h3>
-          <p className="mt-0.5 line-clamp-1 text-[11px] leading-4 text-white/50 font-body sm:mt-1 sm:line-clamp-2 sm:text-[12px] sm:leading-5">{post.summary}</p>
+          <h3 className="text-base font-heading italic text-white truncate">{post.title}</h3>
+          <p className="mt-1.5 text-sm leading-relaxed text-white/45 font-body line-clamp-2">{post.summary}</p>
         </div>
         {canEdit && (onEdit || onDelete) && (
-          <div className="relative shrink-0 opacity-100 transition sm:opacity-0 sm:group-hover:opacity-100" onClick={(e) => e.stopPropagation()}>
-            <button className="rounded-lg p-1.5 text-white/50 transition active:scale-95 active:bg-white/10 md:hover:bg-white/10 md:hover:text-white" title="更多操作" type="button"
+          <div className="relative shrink-0 opacity-0 group-hover:opacity-100 transition" onClick={(e) => e.stopPropagation()}>
+            <button className="rounded-lg p-1.5 text-white/30 hover:text-white hover:bg-white/10 transition" title="更多操作" type="button"
               onClick={(e) => { e.stopPropagation(); const menu = (e.currentTarget as HTMLElement).nextElementSibling as HTMLElement; if (menu) menu.classList.toggle('hidden'); }}>
               <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
             </button>
-            <div className="hidden absolute right-0 top-full mt-1 w-28 rounded-xl border border-white/10 bg-[#09090b]/90 backdrop-blur py-1 shadow-xl z-30">
+            <div className="hidden absolute right-0 top-full mt-1 w-28 rounded-xl border border-white/10 bg-black/90 backdrop-blur py-1 shadow-xl z-30">
               {onEdit && (
-                <button className="flex w-full items-center gap-2 px-3 py-2 text-xs text-white/60 transition active:bg-white/10 md:hover:bg-white/10 md:hover:text-white font-body" type="button"
+                <button className="flex w-full items-center gap-2 px-3 py-2 text-xs text-white/60 hover:bg-white/10 hover:text-white transition font-body" type="button"
                   onClick={(e) => { e.stopPropagation(); onEdit(); }}>
                   <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                   编辑
                 </button>
               )}
               {(isAdmin || isOwner) && onToggleHot && (
-                <button className="flex w-full items-center gap-2 px-3 py-2 text-xs text-amber-400 transition active:bg-amber-400/10 active:text-amber-300 md:hover:bg-amber-400/10 md:hover:text-amber-300 font-body" type="button"
+                <button className="flex w-full items-center gap-2 px-3 py-2 text-xs text-amber-400 hover:bg-amber-400/10 hover:text-amber-300 transition font-body" type="button"
                   onClick={(e) => { e.stopPropagation(); onToggleHot(); }}>
                   <Flame className="h-3.5 w-3.5" />
                   {post.isHot ? "取消热门" : "设为热门"}
                 </button>
               )}
               {onDelete && (
-                <button className="flex w-full items-center gap-2 px-3 py-2 text-xs text-red-400 transition active:bg-red-400/10 active:text-red-300 md:hover:bg-red-400/10 md:hover:text-red-300 font-body" type="button"
+                <button className="flex w-full items-center gap-2 px-3 py-2 text-xs text-red-400 hover:bg-red-400/10 hover:text-red-300 transition font-body" type="button"
                   onClick={(e) => { e.stopPropagation(); if (window.confirm("确认删除？此操作不可撤销。")) onDelete(); }}>
                   <Trash2 className="h-3.5 w-3.5" />
                   删除
@@ -189,8 +249,8 @@ function PostCard({ post, onClick, onEdit, onDelete, onToggleHot }: { post: Post
           </div>
         )}
       </div>
-      <div className="mt-2 flex items-center gap-3 text-[10px] text-slate-400 font-body sm:mt-3 sm:gap-4 sm:text-[11px]">
-        <button type="button" onClick={handleLike} disabled={likePending} className={`inline-flex items-center gap-1 transition ${liked ? "text-red-400" : ""} ${user ? "md:hover:text-red-400 cursor-pointer" : "cursor-default"}`}><Heart className={`h-3 w-3 ${liked ? "fill-current" : ""}`} />{likers.length >= 1000 ? `${(likers.length / 1000).toFixed(1)}k` : likers.length}<LikeIndicator likers={likers} /></button>
+      <div className="mt-3 flex items-center gap-5 text-xs text-white/30 font-body">
+        <button type="button" onClick={handleLike} disabled={likePending} className={`inline-flex items-center gap-1 transition ${liked ? "text-red-400" : ""} ${user ? "hover:text-red-400 cursor-pointer" : "cursor-default"}`}><Heart className={`h-3 w-3 ${liked ? "fill-current" : ""}`} />{likers.length >= 1000 ? `${(likers.length / 1000).toFixed(1)}k` : likers.length}<LikeIndicator likers={likers} /></button>
         <span className="inline-flex items-center gap-1"><MessageCircle className="h-3 w-3" />{post.comments}</span>
         <span className="inline-flex items-center gap-1"><Bookmark className="h-3 w-3" />{post.bookmarks}</span>
       </div>
@@ -229,7 +289,7 @@ function HotSidebar({ allPosts, onPostClick }: { allPosts: (PostNode & { path: s
             </span>
             <div className="min-w-0">
               <span className="text-[10px] text-white/30 font-body">[{post.path}]</span>
-              <span className="ml-1.5 text-sm text-white/50 transition md:group-hover:text-white/80 font-body truncate block">
+              <span className="ml-1.5 text-sm text-white/50 group-hover:text-white/80 transition font-body truncate block">
                 {post.title}
               </span>
             </div>
@@ -264,7 +324,13 @@ export default function GuidesPage() {
 
   // Edit state
   const [editingFolder, setEditingFolder] = useState(false);
+  const [editFolderName, setEditFolderName] = useState("");
+  const [editFolderDesc, setEditFolderDesc] = useState("");
   const [editingPost, setEditingPost] = useState<PostNode | null>(null);
+  const [editPostTitle, setEditPostTitle] = useState("");
+  const [editPostSummary, setEditPostSummary] = useState("");
+  const [editPostBody, setEditPostBody] = useState("");
+  const [editSaving, setEditSaving] = useState(false);
 
   // Load from Supabase
   useEffect(() => {
@@ -309,11 +375,37 @@ export default function GuidesPage() {
   // Edit handlers
   function openEditFolder() {
     setEditingFolder(true);
+    setEditFolderName(currentFolder.name === "root" ? "" : currentFolder.name);
+    setEditFolderDesc((currentFolder as any).desc ?? "");
+  }
+  async function saveEditFolder() {
+    const dbFolder = (dbFolders ?? []).find((f) => f.name === currentFolder.name);
+    if (!dbFolder) return;
+    setEditSaving(true);
+    try { await updateFolder(dbFolder.id, editFolderName, editFolderDesc); triggerRefresh(); setEditingFolder(false); }
+    catch (e: any) { alert(e?.message || "更新板块失败"); }
+    finally { setEditSaving(false); }
   }
 
   function openEditPost(post: PostNode) {
     setEditingPost(post);
+    setEditPostTitle(post.title);
+    setEditPostSummary(post.summary);
+    setEditPostBody((post as any).body ?? post.summary);
   }
+  async function saveEditPost() {
+    if (!editingPost) return;
+    setEditSaving(true);
+    try { await updateSharePost(editingPost.id, editPostTitle, editPostSummary, editPostBody, (editingPost as any).link ?? ""); triggerRefresh(); setEditingPost(null); }
+    catch (e: any) { alert(e?.message || "更新帖子失败"); }
+    finally { setEditSaving(false); }
+  }
+
+  const reloadData = useCallback(async () => {
+    const [folders, posts] = await Promise.all([loadFolders(), loadAllPosts()]);
+    setDbFolders(folders); setDbPosts(posts);
+  }, []);
+
   const handleCreateFolder = useCallback(async (name: string, desc: string, parentId: string | null) => {
     const result = await createFolder(name, desc, parentId);
     const [folders, posts] = await Promise.all([loadFolders(), loadAllPosts()]);
@@ -377,63 +469,26 @@ export default function GuidesPage() {
   }
 
   return (
-    <div className="mobile-tab-scroll timix-mobile-shell flex-1 min-h-0 h-full overflow-y-auto overscroll-y-contain pb-24 bg-[var(--mobile-app-bg,#09090b)] text-white">
-      <header className="sticky top-0 z-40 border-b border-white/5 bg-[#09090b]/80 px-3 pt-[calc(env(safe-area-inset-top,0px)+10px)] pb-2.5 text-zinc-100 shadow-[0_14px_38px_rgba(0,0,0,0.34)] backdrop-blur-xl sm:px-4 sm:pt-[calc(env(safe-area-inset-top,0px)+14px)] sm:pb-4">
-        <div className="mx-auto max-w-5xl">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-[10px] font-medium tracking-[0.18em] text-white/70 sm:text-[11px]">TIMIX</p>
-              <h1 className="mt-0.5 text-[22px] font-semibold leading-none tracking-normal text-white sm:mt-1 sm:text-[28px]">分享</h1>
-            </div>
-            <div className="flex items-center gap-2 text-white/95 sm:gap-3">
-              <MobileThemeToggle />
-              <button
-                aria-label="新建分享"
-                className="flex h-9 w-9 items-center justify-center rounded-full bg-white/20 active:scale-95 sm:h-10 sm:w-10"
-                onClick={() => { setCreateMode("post"); setCreateOpen(true); }}
-                type="button"
-              >
-                <Plus className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={2.5} />
-              </button>
-            </div>
-          </div>
-          <div className="mt-2 flex items-center gap-2 sm:mt-3 sm:gap-3">
-            <button
-              className="mobile-primary-action rounded-full bg-white/24 px-3 py-1.5 text-[11px] font-medium text-white shadow-inner active:scale-95 sm:px-4 sm:text-[12px]"
-              onClick={() => { setCreateMode("folder"); setCreateOpen(true); }}
-              type="button"
-            >
-              新建板块
-            </button>
-            <p className="truncate text-[11px] text-white/82 sm:text-[12px]">项目、教程、工具和灵感</p>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen text-white">
+      <Navbar />
 
-      <div className="timix-share-app mx-auto max-w-5xl px-2.5 pb-28 pt-3 sm:px-5 sm:pt-4 lg:max-w-7xl lg:px-8">
-        <div className="mb-2.5 flex items-center gap-1.5 overflow-x-auto pb-1 sm:mb-3 sm:gap-2">
-          <span className="shrink-0 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-[11px] font-bold text-white/70">
-            {isRoot ? "全部" : currentPathLabel()}
-          </span>
-          <span className="shrink-0 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-[11px] font-bold text-white/55">
-            {(dbPosts?.length ?? 0)} 条分享
-          </span>
-          <button
-            className="mobile-secondary-action ml-auto inline-flex min-h-8 shrink-0 items-center gap-1.5 rounded-full bg-white/[0.08] px-3 text-[11px] font-bold text-zinc-300 shadow-sm border border-white/10 active:scale-95 font-body"
-            type="button"
-            onClick={() => { setCreateMode("folder"); setCreateOpen(true); }}
-          >
-            <Folder className="h-3.5 w-3.5" />
-            板块
-          </button>
-          <button
-            className="mobile-secondary-action inline-flex min-h-8 shrink-0 items-center gap-1.5 rounded-full bg-white/[0.08] px-3 text-[11px] font-bold text-zinc-300 shadow-sm border border-white/10 active:scale-95 font-body"
-            type="button"
-            onClick={() => { setCreateMode("post"); setCreateOpen(true); }}
-          >
-            <Plus className="h-3.5 w-3.5" />
-            分享
-          </button>
+      <div className="mx-auto max-w-7xl px-4 pt-28 sm:px-6 lg:px-10">
+        {/* Header */}
+        <div className="mb-6">
+          <div className="liquid-glass mb-3 inline-block rounded-full px-3.5 py-1 text-xs font-medium text-white font-body">
+            热门有趣项目Share
+          </div>
+          <h1 className="text-3xl font-heading italic leading-[1.15] text-white md:text-5xl">
+            {isRoot ? "发现、分享、讨论有趣的项目。" : currentPathLabel()}
+          </h1>
+          <p className="mt-2 text-xs text-white/25 font-body">
+            文件夹:{dbFolders?.length ?? "…"} 帖子:{dbPosts?.length ?? "…"} hasReal:{String(hasRealData)}
+          </p>
+          {isRoot && (
+            <p className="mt-1 max-w-2xl text-sm leading-relaxed text-white/50 font-body">
+              Codex、ClaudeCode 使用教程 · Github 优质开源项目汇总 · 社区共建持续更新
+            </p>
+          )}
         </div>
 
         {/* Breadcrumb (non-root) */}
@@ -444,7 +499,7 @@ export default function GuidesPage() {
                 {i > 0 && <ChevronRight className="h-3 w-3 text-white/20" />}
                 <button
                   onClick={() => navigateToCrumb(i === 0 ? -1 : i - 1)}
-                  className={`transition ${i === breadcrumb.length - 1 ? "text-white/70" : ""} active:text-white active:scale-[0.98] md:hover:text-white`}
+                  className={`hover:text-white transition ${i === breadcrumb.length - 1 ? "text-white/70" : ""}`}
                   type="button"
                 >
                   {crumb.name}
@@ -454,9 +509,29 @@ export default function GuidesPage() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 gap-3 lg:grid-cols-12 lg:gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* ── Left: main content ── */}
-          <div className="space-y-3 lg:col-span-8 md:space-y-8">
+          <div className="lg:col-span-8 space-y-8">
+            {/* Action buttons */}
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-4 py-2 text-sm font-medium text-white/70 hover:bg-white/20 transition font-body"
+                type="button"
+                onClick={() => { setCreateMode("folder"); setCreateOpen(true); }}
+              >
+                <Folder className="h-4 w-4" />
+                建立板块
+              </button>
+              <button
+                className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-4 py-2 text-sm font-medium text-white/70 hover:bg-white/20 transition font-body"
+                type="button"
+                onClick={() => { setCreateMode("post"); setCreateOpen(true); }}
+              >
+                <Plus className="h-4 w-4" />
+                Share（分享项目）
+              </button>
+            </div>
+
             {/* Creator + Contributors banner (non-root only) */}
             {!isRoot && (
               <div className="space-y-3">
@@ -475,7 +550,7 @@ export default function GuidesPage() {
                     <div />
                   )}
                   {hasRealData && (
-                    <button onClick={openEditFolder} className="text-xs text-white/30 transition active:text-white/60 active:scale-[0.98] md:hover:text-white/60 font-body">更改</button>
+                    <button onClick={openEditFolder} className="text-xs text-white/30 hover:text-white/60 transition font-body">更改</button>
                   )}
                 </div>
 
@@ -486,13 +561,13 @@ export default function GuidesPage() {
                     <div className="flex items-center -space-x-2 overflow-x-auto scrollbar-none">
                       {contributors.slice(0, 8).map((c) => (
                         c.avatarUrl ? (
-                          <img key={c.userId} src={c.avatarUrl} className="w-7 h-7 rounded-full ring-2 ring-white/10 object-cover shrink-0" title={c.displayName} alt={c.displayName} />
+                          <img key={c.userId} src={c.avatarUrl} className="w-7 h-7 rounded-full ring-2 ring-black object-cover shrink-0" title={c.displayName} alt={c.displayName} />
                         ) : (
-                          <span key={c.userId} className="flex w-7 h-7 shrink-0 items-center justify-center rounded-full bg-white/10 ring-2 ring-white/10 text-[10px] text-white/50" title={c.displayName}>{c.displayName.charAt(0)}</span>
+                          <span key={c.userId} className="flex w-7 h-7 shrink-0 items-center justify-center rounded-full bg-white/10 ring-2 ring-black text-[10px] text-white/50" title={c.displayName}>{c.displayName.charAt(0)}</span>
                         )
                       ))}
                       {contributors.length > 8 && (
-                        <span className="flex w-7 h-7 shrink-0 items-center justify-center rounded-full bg-white/15 ring-2 ring-white/10 text-[10px] text-white/60 font-body">+{contributors.length - 8}</span>
+                        <span className="flex w-7 h-7 shrink-0 items-center justify-center rounded-full bg-white/15 ring-2 ring-black text-[10px] text-white/60 font-body">+{contributors.length - 8}</span>
                       )}
                     </div>
                   </div>
@@ -516,46 +591,38 @@ export default function GuidesPage() {
               <div className="rounded-2xl border border-dashed border-white/10 p-12 text-center">
                 <Folder className="h-10 w-10 text-white/20 mx-auto mb-4" />
                 <h3 className="text-lg font-heading italic text-white/60">还没有板块</h3>
-                <p className="mt-2 text-sm text-white/30 font-body">点击上方「建立板块」创建第一个分类目录，然后「分享项目」发布内容。</p>
+                <p className="mt-2 text-sm text-white/30 font-body">点击上方「建立板块」创建第一个分类目录，然后「Share 项目」发布内容。</p>
               </div>
             )}
             {isRoot && subFolders.length > 0 && (
-              <div className="share-folder-list overflow-hidden rounded-[16px] border border-white/5 bg-white/[0.03] shadow-[0_14px_36px_rgba(0,0,0,0.24),inset_0_1px_0_rgba(255,255,255,0.05)] sm:grid sm:grid-cols-2 sm:gap-4 sm:rounded-[22px] sm:border-0 sm:bg-transparent sm:shadow-none">
+              <div className="grid gap-4 sm:grid-cols-2">
                 {subFolders.map((folder, i) => {
                   const dbId = (folder as any).dbId;
                   return (
                   <div
-                    key={dbId ?? folder.name}
-                    className="group relative cursor-pointer border-b border-white/5 px-2.5 py-2.5 text-left transition-all duration-200 active:bg-white/[0.06] last:border-b-0 sm:rounded-[22px] sm:border sm:border-white/5 sm:bg-white/[0.03] sm:p-4 sm:shadow-[0_14px_36px_rgba(0,0,0,0.24),inset_0_1px_0_rgba(255,255,255,0.05)]"
+                    key={`${folder.name}-${i}`}
+                    className="liquid-glass rounded-2xl p-6 text-left hover:bg-white/10 transition-all duration-200 group cursor-pointer relative"
                     onClick={() => navigateToChild(i)}
                   >
-                    <div className="flex items-center gap-3">
-                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.05] sm:h-9 sm:w-9">
-                        <Folder className="h-4 w-4 text-white/50 transition md:group-hover:text-white/80 sm:h-5 sm:w-5" />
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <h2 className="truncate text-[13px] font-semibold text-white sm:text-[14px]">{folder.name}</h2>
-                        {folder.desc && <p className="mt-0.5 truncate text-[11px] text-white/50 font-body">{folder.desc}</p>}
-                      </div>
-                      <span className="shrink-0 rounded-full bg-white/[0.08] px-2 py-1 text-[10px] font-bold text-white/45">
-                        {folder.children.length}
-                      </span>
-                    </div>
+                    <Folder className="h-7 w-7 text-white/50 group-hover:text-white/80 transition mb-3" />
+                    <h2 className="text-xl font-heading italic text-white">{folder.name}</h2>
+                    {folder.desc && <p className="mt-2 text-sm text-white/35 font-body">{folder.desc}</p>}
+                    <p className="mt-4 text-xs text-white/25 font-body">{folder.children.length} 个子项</p>
 
                     {/* Three-dot menu — only on real DB folders */}
                     {hasRealData && dbId && (
-                      <div className="absolute right-2 top-2 opacity-0 transition group-hover:opacity-100 sm:right-3 sm:top-3" onClick={(e) => e.stopPropagation()}>
-                        <button className="rounded-lg p-1.5 text-white/50 transition active:scale-95 active:bg-white/10 hover:bg-white/10 hover:text-white" type="button"
+                      <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition" onClick={(e) => e.stopPropagation()}>
+                        <button className="rounded-lg p-1.5 text-white/30 hover:text-white hover:bg-white/10 transition" type="button"
                           onClick={(e) => { e.stopPropagation(); const menu = (e.currentTarget as HTMLElement).nextElementSibling as HTMLElement; if (menu) menu.classList.toggle('hidden'); }}>
                           <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
                         </button>
-                        <div className="hidden absolute right-0 top-full mt-1 w-28 rounded-xl border border-white/10 bg-[#09090b]/90 backdrop-blur py-1 shadow-xl z-30">
-                          <button className="flex w-full items-center gap-2 px-3 py-2 text-xs text-white/60 transition active:bg-white/10 md:hover:bg-white/10 md:hover:text-white font-body" type="button"
+                        <div className="hidden absolute right-0 top-full mt-1 w-28 rounded-xl border border-white/10 bg-black/90 backdrop-blur py-1 shadow-xl z-30">
+                          <button className="flex w-full items-center gap-2 px-3 py-2 text-xs text-white/60 hover:bg-white/10 hover:text-white transition font-body" type="button"
                             onClick={(e) => { e.stopPropagation(); openEditFolder(); }}>
                             <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                             编辑
                           </button>
-                          <button className="flex w-full items-center gap-2 px-3 py-2 text-xs text-red-400 transition active:bg-red-400/10 active:text-red-300 md:hover:bg-red-400/10 md:hover:text-red-300 font-body" type="button"
+                          <button className="flex w-full items-center gap-2 px-3 py-2 text-xs text-red-400 hover:bg-red-400/10 hover:text-red-300 transition font-body" type="button"
                             onClick={(e) => { e.stopPropagation(); handleDeleteFolder(dbId, folder.name); }}>
                             <Trash2 className="h-3.5 w-3.5" />
                             删除
@@ -578,13 +645,13 @@ export default function GuidesPage() {
                     <div className="grid gap-3 sm:grid-cols-2">
                       {subFolders.map((folder, i) => (
                         <button
-                          key={(folder as any).dbId ?? folder.name}
+                          key={`${folder.name}-${i}`}
                           onClick={() => navigateToChild(i)}
                           type="button"
-                          className="liquid-glass rounded-xl p-4 text-left transition active:scale-[0.98] active:bg-white/10 md:hover:bg-white/10 group"
+                          className="liquid-glass rounded-xl p-4 text-left hover:bg-white/10 transition group"
                         >
                           <div className="flex items-center gap-2.5">
-                            <Folder className="h-5 w-5 text-white/40 transition md:group-hover:text-white/70" />
+                            <Folder className="h-5 w-5 text-white/40 group-hover:text-white/70 transition" />
                             <span className="text-sm font-heading italic text-white">{folder.name}</span>
                           </div>
                           <p className="mt-1.5 text-xs text-white/30 font-body">
@@ -608,7 +675,7 @@ export default function GuidesPage() {
                     {posts.length === 0 && subFolders.length === 0 && (
                       <div className="rounded-2xl bg-white/[0.02] border border-dashed border-white/10 p-10 text-center">
                         <p className="text-sm text-white/30 font-body">此板块暂无内容</p>
-                        <p className="mt-1 text-xs text-white/20 font-body">点击上方「分享项目」发布第一条帖子</p>
+                        <p className="mt-1 text-xs text-white/20 font-body">点击上方「Share（分享项目）」发布第一条帖子</p>
                       </div>
                     )}
                   </div>
@@ -627,21 +694,19 @@ export default function GuidesPage() {
           </div>
 
           {/* ── Right: sidebar ── */}
-          <aside className="hidden lg:col-span-4 lg:block">
+          <aside className="lg:col-span-4">
             <div className="sticky top-28 space-y-6">
               <HotSidebar allPosts={allPostsWithPath} onPostClick={(p) => setModalPost(p)} />
-
-              <PwaInstallCallout />
 
               <div className="liquid-glass rounded-2xl p-5 text-center">
                 <p className="text-sm text-white/40 font-body mb-4">有好的项目想分享？</p>
                 <button
-                  className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-5 py-2.5 text-sm font-medium text-white transition active:scale-[0.98] active:bg-white/20 md:hover:bg-white/20 font-body"
+                  className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-5 py-2.5 text-sm font-medium text-white hover:bg-white/20 transition font-body"
                   type="button"
                   onClick={() => { setCreateMode("post"); setCreateOpen(true); }}
                 >
                   <Plus className="h-4 w-4" />
-                  分享项目
+                  Share 项目
                 </button>
               </div>
             </div>

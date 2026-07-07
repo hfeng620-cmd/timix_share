@@ -17,7 +17,6 @@ import {
 } from "@/lib/direct-message-storage";
 import { useForumAuth } from "@/lib/forum-auth";
 import { lockBodyScroll } from "@/lib/body-scroll-lock";
-import { useBackButtonClose } from "@/lib/use-back-button-close";
 
 export type DirectMessageModalProps = {
   open?: boolean;
@@ -113,8 +112,6 @@ export function DirectMessageModal({
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const overlayRef = useRef<HTMLDivElement | null>(null);
-
-  useBackButtonClose(open, onClose);
 
   const peerId = targetUser?.id ?? recipientId ?? targetUserId ?? peerUserId ?? toUserId ?? null;
   const fallbackName =
@@ -280,17 +277,17 @@ export function DirectMessageModal({
     <div
       ref={overlayRef}
       aria-modal="true"
-      className="fixed inset-0 z-[240] flex min-h-[100dvh] items-end justify-center overflow-y-auto overscroll-contain bg-[#09090b]/75 px-0 pt-[var(--safe-top)] backdrop-blur-md sm:items-center sm:px-4 sm:py-6"
+      className="fixed inset-0 z-[240] flex items-center justify-center overflow-y-auto bg-black/75 px-4 py-6 backdrop-blur-md"
       onClick={onClose}
       role="dialog"
       tabIndex={-1}
     >
       <div
-        className="relative flex h-auto max-h-[calc(100dvh_-_var(--safe-top))] w-full max-w-2xl flex-col overflow-hidden rounded-t-[28px] border border-white/10 border-b-0 bg-zinc-950/90 text-zinc-100 shadow-[0_34px_120px_rgba(0,0,0,0.55)] backdrop-blur-2xl sm:h-[min(760px,88dvh)] sm:rounded-[30px] sm:border-b"
+        className="relative flex h-[min(760px,88vh)] w-full max-w-2xl flex-col overflow-hidden rounded-[30px] border border-white/12 bg-zinc-950/75 text-zinc-100 shadow-[0_34px_120px_rgba(0,0,0,0.55)] backdrop-blur-2xl"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_0%,rgba(56,189,248,0.22),transparent_34%),radial-gradient(circle_at_88%_12%,rgba(245,158,11,0.16),transparent_32%),linear-gradient(135deg,rgba(255,255,255,0.10),transparent_38%)]" />
-        <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-white/20" />
+        <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-white/45 to-transparent" />
 
         <header className="relative flex items-center justify-between gap-4 border-b border-white/10 px-5 py-4 sm:px-6">
           <div className="flex min-w-0 items-center gap-3">
@@ -321,7 +318,7 @@ export function DirectMessageModal({
 
           <button
             aria-label="关闭私信"
-            className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/5 text-zinc-400 transition active:scale-95 active:bg-white/10 active:scale-[0.98] md:hover:border-white/20 md:hover:bg-white/10 md:hover:text-white"
+            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/5 text-zinc-400 transition hover:border-white/20 hover:bg-white/10 hover:text-white"
             onClick={onClose}
             type="button"
           >
@@ -353,7 +350,7 @@ export function DirectMessageModal({
                 私信会通过 Supabase 当前账号写入 direct_messages 表，并只展示你和对方之间的双向消息。
               </p>
               <button
-                className="mt-5 rounded-full bg-white px-5 py-2.5 text-sm font-bold text-zinc-950 transition active:scale-[0.98] active:opacity-90 md:hover:bg-zinc-200"
+                className="mt-5 rounded-full bg-white px-5 py-2.5 text-sm font-bold text-zinc-950 transition hover:bg-zinc-200"
                 onClick={showAuthModal}
                 type="button"
               >
@@ -362,8 +359,8 @@ export function DirectMessageModal({
             </div>
           ) : messages.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center text-center">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05]">
-                <MessageCircle className="h-6 w-6 text-zinc-300" />
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-sky-300/20 bg-sky-400/10">
+                <MessageCircle className="h-6 w-6 text-sky-200" />
               </div>
               <p className="mt-4 text-sm font-semibold text-zinc-200">还没有消息</p>
               <p className="mt-2 max-w-sm text-xs leading-6 text-zinc-500">
@@ -396,7 +393,7 @@ export function DirectMessageModal({
                       <div
                         className={`whitespace-pre-wrap break-words rounded-3xl px-4 py-3 text-sm leading-6 shadow-lg ${
                           isMine
-                            ? "rounded-br-lg bg-zinc-100 text-zinc-950 shadow-black/20"
+                            ? "rounded-br-lg bg-sky-400 text-slate-950 shadow-sky-950/20"
                             : "rounded-bl-lg border border-white/10 bg-white/[0.07] text-zinc-100 shadow-black/20"
                         }`}
                       >
@@ -414,7 +411,7 @@ export function DirectMessageModal({
           )}
         </div>
 
-        <footer className="relative border-t border-white/10 bg-[#09090b]/20 px-4 pb-[max(env(safe-area-inset-bottom,0px),1rem)] pt-4 sm:px-6 sm:py-4">
+        <footer className="relative border-t border-white/10 bg-black/20 px-4 py-4 sm:px-6">
           {error ? (
             <p className="mb-3 rounded-2xl border border-rose-300/20 bg-rose-400/10 px-3 py-2 text-xs leading-5 text-rose-100">
               {error}
@@ -424,7 +421,7 @@ export function DirectMessageModal({
           <div className="relative">
             <textarea
               ref={textareaRef}
-              className="min-h-[82px] w-full resize-none rounded-3xl border border-white/10 bg-white/[0.06] px-4 py-3 pr-28 text-sm leading-6 text-zinc-100 outline-none transition placeholder:text-zinc-500 focus:border-white/20 focus:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-60"
+              className="min-h-[82px] w-full resize-none rounded-3xl border border-white/10 bg-white/[0.06] px-4 py-3 pr-28 text-sm leading-6 text-zinc-100 outline-none transition placeholder:text-zinc-500 focus:border-sky-300/40 focus:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-60"
               disabled={!canSend || sending}
               onChange={(event) => setDraft(event.target.value)}
               onKeyDown={(event) => {
@@ -441,7 +438,7 @@ export function DirectMessageModal({
             <div className="absolute bottom-3 right-14">
               <EmojiPickerButton
                 align="right"
-                buttonClassName="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] text-zinc-400 transition active:scale-95 active:bg-white/[0.1] active:scale-[0.98] md:hover:border-white/20 md:hover:bg-white/[0.1] md:hover:text-white disabled:cursor-not-allowed disabled:opacity-45"
+                buttonClassName="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] text-zinc-400 transition hover:border-white/20 hover:bg-white/[0.1] hover:text-white disabled:cursor-not-allowed disabled:opacity-45"
                 disabled={!canSend || sending}
                 iconClassName="h-4 w-4"
                 onClose={() => setShowEmojiPicker(false)}
@@ -452,14 +449,14 @@ export function DirectMessageModal({
             </div>
             <button
               aria-label="发送私信"
-              className="absolute bottom-3 right-3 inline-flex h-11 w-11 items-center justify-center rounded-full bg-white text-zinc-950 shadow-lg shadow-black/20 transition active:scale-95 active:opacity-90 active:scale-[0.98] md:hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-45"
+              className="absolute bottom-3 right-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-zinc-950 shadow-lg shadow-black/20 transition hover:bg-sky-100 disabled:cursor-not-allowed disabled:opacity-45"
               disabled={!canSend || sending || !draft.trim()}
               onClick={() => {
                 void handleSend();
               }}
               type="button"
             >
-              {sending ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
+              {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
             </button>
           </div>
         </footer>

@@ -70,7 +70,7 @@ function MetricBar({
   tone?: "emerald" | "blue" | "cyan";
 }) {
   const fillClass =
-    tone === "blue" ? "bg-zinc-400" : tone === "cyan" ? "bg-emerald-400" : "bg-emerald-500";
+    tone === "blue" ? "bg-blue-500" : tone === "cyan" ? "bg-cyan-400" : "bg-emerald-500";
 
   return (
     <div>
@@ -219,7 +219,7 @@ export function SystemMonitorModal({ open, onClose }: SystemMonitorModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center overscroll-none bg-[#09090b]/85 px-4 backdrop-blur-xl"
+      className="fixed inset-0 z-[100] flex items-center justify-center overscroll-none bg-black/85 px-4 backdrop-blur-xl"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
@@ -255,7 +255,7 @@ export function SystemMonitorModal({ open, onClose }: SystemMonitorModalProps) {
 
           <div className="system-monitor-scrollbar max-h-[64vh] overflow-y-auto pr-1">
             <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-              <section className="rounded-3xl border border-white/10 bg-[#09090b]/20 p-5">
+              <section className="rounded-3xl border border-white/10 bg-black/20 p-5">
                 <div className="mb-4 flex items-center justify-between">
                   <h3 className="text-xs uppercase tracking-widest text-zinc-500">RackNerd Node</h3>
                   {vpsLoading ? <Loader2 className="h-4 w-4 animate-spin text-zinc-500" /> : <Server className="h-4 w-4 text-zinc-500" />}
@@ -282,7 +282,7 @@ export function SystemMonitorModal({ open, onClose }: SystemMonitorModalProps) {
                 </div>
               </section>
 
-              <section className="rounded-3xl border border-white/10 bg-[#09090b]/20 p-5">
+              <section className="rounded-3xl border border-white/10 bg-black/20 p-5">
                 <div className="mb-4 flex items-center justify-between">
                   <h3 className="text-xs uppercase tracking-widest text-zinc-500">Supabase Database</h3>
                   {supabaseLoading ? <Loader2 className="h-4 w-4 animate-spin text-zinc-500" /> : <Database className="h-4 w-4 text-zinc-500" />}

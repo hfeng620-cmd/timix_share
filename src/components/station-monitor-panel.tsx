@@ -98,7 +98,7 @@ function MonitorRow({ metric, nowMs }: { metric: StationMonitorMetric; nowMs: nu
   const trend = metric.priceChangePercent;
 
   return (
-    <tr className="border-b border-[var(--color-line)] bg-[var(--color-panel)]/70 transition active:bg-[var(--color-soft)] md:hover:bg-[var(--color-soft)]">
+    <tr className="border-b border-[var(--color-line)] bg-[var(--color-panel)]/70 transition hover:bg-[var(--color-soft)]">
       <td className="min-w-[160px] px-3 py-3">
         <div className="flex flex-wrap items-center gap-2">
           {href ? (
@@ -146,51 +146,6 @@ function MonitorRow({ metric, nowMs }: { metric: StationMonitorMetric; nowMs: nu
   );
 }
 
-
-function MonitorCard({ metric, nowMs }: { metric: StationMonitorMetric; nowMs: number }) {
-  const href = getSafeExternalHref(metric.targetUrl);
-  const trend = metric.priceChangePercent;
-
-  return (
-    <div className="rounded-[16px] border border-[var(--color-line)] bg-white px-3 py-2.5 shadow-[0_8px_24px_rgba(15,23,42,0.05)]">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          {href ? (
-            <a className="block truncate text-sm font-black text-[var(--color-ink)]" href={href} target="_blank" rel="noreferrer">
-              {metric.stationName}
-            </a>
-          ) : (
-            <p className="truncate text-sm font-black text-[var(--color-ink)]">{metric.stationName}</p>
-          )}
-          <p className="mt-0.5 text-[11px] text-[var(--color-muted)]">{formatCheckedAt(metric.checkedAt, nowMs)}</p>
-        </div>
-        <div className="flex shrink-0 items-center gap-1.5">
-          <span className={`h-2 w-2 rounded-full ${statusColor(metric.status)}`} />
-          <span className="text-[11px] font-bold text-[var(--color-muted)]">{statusLabel(metric.status, metric.statusMessage)}</span>
-        </div>
-      </div>
-
-      <div className="mt-2 grid grid-cols-4 gap-1.5 text-xs">
-        <div className="rounded-[12px] bg-[var(--color-soft)] px-2 py-1.5">
-          <p className="text-[10px] text-[var(--color-muted)]">价格</p>
-          <p className="mt-0.5 truncate font-bold text-[var(--color-ink)]">{metric.priceLabel || (metric.price !== undefined ? `¥${metric.price}` : "--")}</p>
-        </div>
-        <div className="rounded-[12px] bg-[var(--color-soft)] px-2 py-1.5">
-          <p className="text-[10px] text-[var(--color-muted)]">趋势</p>
-          <p className={`mt-0.5 truncate font-bold ${trendColor(trend)}`}>{trend === undefined ? "-" : `${trend > 0 ? "+" : ""}${trend}%`}</p>
-        </div>
-        <div className="rounded-[12px] bg-[var(--color-soft)] px-2 py-1.5">
-          <p className="text-[10px] text-[var(--color-muted)]">在线</p>
-          <p className="mt-0.5 truncate font-bold text-[var(--color-ink)]">{metric.onlineRate === undefined ? "--" : `${metric.onlineRate}%`}</p>
-        </div>
-        <div className="rounded-[12px] bg-[var(--color-soft)] px-2 py-1.5">
-          <p className="text-[10px] text-[var(--color-muted)]">延迟</p>
-          <p className="mt-0.5 truncate font-bold text-[var(--color-ink)]">{formatLatency(metric.latencyMs)}</p>
-        </div>
-      </div>
-    </div>
-  );
-}
 export function StationMonitorPanel() {
   const [metrics, setMetrics] = useState<StationMonitorMetric[]>([]);
   const [loading, setLoading] = useState(true);
@@ -238,21 +193,21 @@ export function StationMonitorPanel() {
   }, []);
 
   return (
-    <section className="surface-in rounded-[18px] border border-[var(--color-line)] bg-[var(--color-panel)] p-3 shadow-[var(--shadow-card)] sm:p-5 lg:rounded-[28px]">
-      <div className="flex flex-col gap-3 border-b border-[var(--color-line)] pb-4 lg:flex-row lg:items-start lg:justify-between lg:gap-5 lg:pb-5">
+    <section className="surface-in rounded-[28px] border border-[var(--color-line)] bg-[var(--color-panel)] p-4 shadow-[var(--shadow-card)] sm:p-5">
+      <div className="flex flex-col gap-5 border-b border-[var(--color-line)] pb-5 lg:flex-row lg:items-start lg:justify-between">
         <div className="max-w-3xl">
-          <div className="flex items-center gap-1.5 text-[10px] font-semibold leading-none text-[var(--color-muted)] lg:text-xs">
-            <Activity className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
-            <span className="truncate">实时倍率监测 · Supabase 最新快照</span>
+          <div className="flex items-center gap-2 text-xs font-semibold text-[var(--color-muted)]">
+            <Activity className="h-4 w-4" />
+            <span>实时倍率监测 · Supabase 最新快照</span>
           </div>
-          <h2 className="mt-2 text-base font-black leading-none text-[var(--color-ink)] lg:mt-3 lg:text-2xl xl:text-3xl">实时检测</h2>
-          <p className="mt-2 hidden text-sm leading-7 text-[var(--color-muted)] lg:block">
+          <h2 className="mt-3 text-2xl font-black text-[var(--color-ink)] sm:text-3xl">中转站实时检测</h2>
+          <p className="mt-2 text-sm leading-7 text-[var(--color-muted)]">
             当前面板读取 `station_monitor_latest` 最新结果；VPS worker 接入后会持续写入检测快照，前端每 30 秒自动刷新。
           </p>
         </div>
 
         <button
-          className="inline-flex items-center justify-center gap-1.5 rounded-full bg-[var(--color-brand)] px-3 py-2 text-xs font-black text-[var(--color-on-brand)] transition active:bg-[var(--color-brand-deep)] active:scale-[0.98] md:hover:bg-[var(--color-brand-deep)] disabled:cursor-wait disabled:opacity-70 lg:gap-2 lg:px-6 lg:py-3 lg:text-sm"
+          className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--color-brand)] px-6 py-3 text-sm font-black text-[var(--color-on-brand)] transition hover:bg-[var(--color-brand-deep)] disabled:cursor-wait disabled:opacity-70"
           disabled={refreshing}
           onClick={() => refreshMetrics(true)}
           type="button"
@@ -262,11 +217,11 @@ export function StationMonitorPanel() {
         </button>
       </div>
 
-      <div className="mt-3 flex flex-col gap-3 lg:mt-5 lg:flex-row lg:items-center lg:justify-between lg:gap-4">
-        <div className="inline-grid w-full grid-cols-2 rounded-full border border-[var(--color-line)] bg-[var(--color-soft)] p-1 lg:max-w-md">
+      <div className="mt-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="inline-grid w-full max-w-md grid-cols-2 rounded-full border border-[var(--color-line)] bg-[var(--color-soft)] p-1">
           <button
-            className={`rounded-full px-3 py-1.5 text-xs font-black transition lg:px-4 lg:py-2 lg:text-sm ${
-              activeTab === "stations" ? "bg-[var(--color-brand)] text-[var(--color-on-brand)]" : "text-[var(--color-muted)] active:text-[var(--color-ink)] active:scale-[0.98] md:hover:text-[var(--color-ink)]"
+            className={`rounded-full px-4 py-2 text-sm font-black transition ${
+              activeTab === "stations" ? "bg-[var(--color-brand)] text-[var(--color-on-brand)]" : "text-[var(--color-muted)] hover:text-[var(--color-ink)]"
             }`}
             onClick={() => setActiveTab("stations")}
             type="button"
@@ -274,8 +229,8 @@ export function StationMonitorPanel() {
             中转站
           </button>
           <button
-            className={`rounded-full px-3 py-1.5 text-xs font-black transition lg:px-4 lg:py-2 lg:text-sm ${
-              activeTab === "news" ? "bg-[var(--color-brand)] text-[var(--color-on-brand)]" : "text-[var(--color-muted)] active:text-[var(--color-ink)] active:scale-[0.98] md:hover:text-[var(--color-ink)]"
+            className={`rounded-full px-4 py-2 text-sm font-black transition ${
+              activeTab === "news" ? "bg-[var(--color-brand)] text-[var(--color-on-brand)]" : "text-[var(--color-muted)] hover:text-[var(--color-ink)]"
             }`}
             onClick={() => setActiveTab("news")}
             type="button"
@@ -285,17 +240,17 @@ export function StationMonitorPanel() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--color-muted)]">
-          <span className="rounded-full border border-[var(--color-line)] bg-[var(--color-soft)] px-2.5 py-1.5">
+          <span className="rounded-full border border-[var(--color-line)] bg-[var(--color-soft)] px-3 py-2">
             已检测 {metrics.length} 项
           </span>
-          <span className="rounded-full border border-[var(--color-line)] bg-[var(--color-soft)] px-2.5 py-1.5">
+          <span className="rounded-full border border-[var(--color-line)] bg-[var(--color-soft)] px-3 py-2">
             正常 {normalCount} 项
           </span>
-          <span className="rounded-full border border-[var(--color-line)] bg-[var(--color-soft)] px-2.5 py-1.5">
+          <span className="rounded-full border border-[var(--color-line)] bg-[var(--color-soft)] px-3 py-2">
             最新 {formatCheckedAt(latestCheckedAt, nowMs)}
           </span>
           {Number.isFinite(avgOnlineRate) && avgOnlineRate > 0 ? (
-            <span className="rounded-full border border-[var(--color-line)] bg-[var(--color-soft)] px-2.5 py-1.5">
+            <span className="rounded-full border border-[var(--color-line)] bg-[var(--color-soft)] px-3 py-2">
               平均在线率 {avgOnlineRate.toFixed(0)}%
             </span>
           ) : null}
@@ -305,7 +260,7 @@ export function StationMonitorPanel() {
       {activeTab === "news" ? (
         <div className="mt-8 rounded-[22px] border border-dashed border-[var(--color-line)] bg-[var(--color-soft)] px-5 py-8 text-center">
           <p className="text-sm font-bold text-[var(--color-ink)]">AI 新闻监测稍后接入</p>
-          <p className="mt-2 hidden text-sm leading-7 text-[var(--color-muted)] lg:block">这块可以复用同一套快照结构，但数据源会是 RSS / API / 人工审核。</p>
+          <p className="mt-2 text-sm leading-7 text-[var(--color-muted)]">这块可以复用同一套快照结构，但数据源会是 RSS / API / 人工审核。</p>
         </div>
       ) : loading ? (
         <div className="mt-6 grid gap-3">
@@ -318,7 +273,7 @@ export function StationMonitorPanel() {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-sm font-bold text-[var(--color-ink)]">还没有监测数据</p>
-              <p className="mt-2 hidden text-sm leading-7 text-[var(--color-muted)] lg:block">
+              <p className="mt-2 text-sm leading-7 text-[var(--color-muted)]">
                 先在 Supabase SQL Editor 运行 `supabase/station-monitoring-schema.sql`，面板就会显示示例检测项。
               </p>
             </div>
@@ -326,33 +281,27 @@ export function StationMonitorPanel() {
           </div>
         </div>
       ) : (
-        <div className="mt-4 space-y-5 lg:mt-7 lg:space-y-8">
+        <div className="mt-7 space-y-8">
           {groups.map((group) => (
             <div key={group.modelName}>
               <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <h3 className="text-base font-black text-[var(--color-ink)] lg:text-lg">{group.modelName}</h3>
+                  <h3 className="text-lg font-black text-[var(--color-ink)]">{group.modelName}</h3>
                   <a
-                    className="inline-flex items-center gap-1 text-xs font-bold text-[var(--color-muted)] transition active:text-[var(--color-brand-deep)] active:scale-[0.98] md:hover:text-[var(--color-brand-deep)]"
+                    className="inline-flex items-center gap-1 text-xs font-bold text-[var(--color-muted)] transition hover:text-[var(--color-brand-deep)]"
                     href="#station-monitor-all"
                   >
                     查看全部
                     <ArrowUpRight className="h-3.5 w-3.5" />
                   </a>
                 </div>
-                <div className="hidden flex-wrap items-center gap-2 text-xs text-[var(--color-muted)] sm:flex">
+                <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--color-muted)]">
                   <span className="rounded-full border border-[var(--color-line)] px-3 py-1.5">认证筛选：全部站点</span>
                   <span className="rounded-full border border-[var(--color-line)] px-3 py-1.5">排序方式：精选</span>
                 </div>
               </div>
 
-              <div id="station-monitor-all" className="grid gap-2 lg:hidden">
-                {group.metrics.map((metric) => (
-                  <MonitorCard key={metric.monitorId} metric={metric} nowMs={nowMs} />
-                ))}
-              </div>
-
-              <div className="hidden overflow-x-auto rounded-[22px] border border-[var(--color-line)] lg:block">
+              <div id="station-monitor-all" className="overflow-x-auto rounded-[22px] border border-[var(--color-line)]">
                 <table className="min-w-[1080px] w-full border-collapse bg-[var(--color-panel)] text-left">
                   <thead>
                     <tr className="border-b border-[var(--color-line)] bg-[var(--color-soft)] text-xs font-black text-[var(--color-muted)]">

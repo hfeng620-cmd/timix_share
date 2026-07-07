@@ -27,9 +27,9 @@ export function RegisterCounter() {
   const day = now.getDate();
 
   return (
-    <div className="pointer-events-none fixed bottom-[calc(74px+env(safe-area-inset-bottom,0px))] right-3 z-[35] max-w-[54vw] select-none lg:bottom-4 lg:right-4 lg:z-[60] lg:max-w-none">
-      <div className="truncate rounded-full border border-[var(--mobile-app-line,rgba(255,255,255,0.10))] bg-[var(--mobile-app-panel,rgba(255,255,255,0.05))] px-3 py-1.5 text-[10px] text-[var(--mobile-app-muted,rgba(255,255,255,0.40))] shadow-lg backdrop-blur-md lg:px-4 lg:py-2 lg:text-xs">
-        截止{month}{day}日 · 注册 <span className="font-bold text-[var(--mobile-app-ink,#fff)]">{count}</span> 人
+    <div className="pointer-events-none fixed bottom-20 right-4 z-[60] select-none lg:bottom-4">
+      <div className="rounded-full border border-white/10 bg-white/5 backdrop-blur-md px-4 py-2 text-xs text-white/40 shadow-lg">
+        截止{month}{day}日 · 站内已累计注册 <span className="text-white font-bold">{count}</span> 人
       </div>
     </div>
   );

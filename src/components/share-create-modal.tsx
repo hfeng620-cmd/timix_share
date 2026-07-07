@@ -17,7 +17,7 @@ type Props = {
   onCreatePost: (title: string, summary: string, body: string, link: string, folderId: string | null) => Promise<any>;
 };
 
-const inputClass = "w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-[13px] text-white font-body outline-none placeholder:text-white/25 focus:border-white/30 focus:ring-1 focus:ring-white/20 transition-all sm:px-4 sm:py-3 sm:text-sm";
+const inputClass = "w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white font-body outline-none placeholder:text-white/25 focus:border-white/30 focus:ring-1 focus:ring-white/20 transition-all";
 
 export function ShareCreateModal({ open, mode, currentFolder, folders, onClose, onCreateFolder, onCreatePost }: Props) {
   const [name, setName] = useState("");
@@ -79,15 +79,15 @@ export function ShareCreateModal({ open, mode, currentFolder, folders, onClose, 
         setSuccess(true);
         setError(`板块创建成功！ID: ${(result as any)?.id?.slice(0,8) ?? '未知'}`);
       } else {
-        if (!title.trim()) { setError("请输入分享标题。"); setLoading(false); return; }
-        if (!summary.trim()) { setError("请输入分享简介。"); setLoading(false); return; }
-        if (!body.trim()) { setError("请输入分享正文。"); setLoading(false); return; }
-        if (!selectedFolderId) { setError("请选择所属板块。"); setLoading(false); return; }
+        if (!title.trim()) { setError("请输入项目标题。"); setLoading(false); return; }
+        if (!summary.trim()) { setError("请输入项目简介。"); setLoading(false); return; }
+        if (!body.trim()) { setError("请输入帖子内容。"); setLoading(false); return; }
+        if (!selectedFolderId) { setError("❌ 必须选择一个所属板块！"); setLoading(false); return; }
         const result = await onCreatePost(title.trim(), summary.trim(), body.trim(), link.trim(), selectedFolderId);
         setSuccess(true);
         setError(`发布成功！ID: ${(result as any)?.id?.slice(0,8) ?? '未知'}`);
       }
-    } catch (err: any) { setError(err?.message || '操作失败'); }
+    } catch (err: any) { setError(`❌ ${err?.message || '操作失败'}`); }
     finally { setLoading(false); }
   }
 
@@ -95,72 +95,70 @@ export function ShareCreateModal({ open, mode, currentFolder, folders, onClose, 
   const options = buildOptions();
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-[#09090b]/50 px-0 backdrop-blur-xl sm:px-4" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="relative w-full max-h-[88dvh] overflow-y-auto rounded-t-3xl sm:rounded-3xl border border-white/10 bg-zinc-950/95 p-4 pb-[max(env(safe-area-inset-bottom,0px),1rem)] shadow-2xl backdrop-blur-xl sm:max-w-lg sm:border-white/15 sm:bg-white/6 sm:p-6" onClick={(e) => e.stopPropagation()}>
-        {/* Drag handle for mobile */}
-        <div className="w-12 h-1.5 bg-zinc-300 dark:bg-zinc-700 rounded-full mx-auto mt-3 mb-1 shrink-0 sm:hidden" />
-        <button onClick={onClose} className="absolute right-3 top-3 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white/50 transition active:scale-95 active:bg-white/20 active:scale-[0.98] active:text-white md:hover:bg-white/20 md:hover:text-white sm:right-4 sm:top-4" type="button"><X className="h-5 w-5" /></button>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-xl px-4" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl border border-white/15 bg-white/6 shadow-2xl backdrop-blur-xl p-6" onClick={(e) => e.stopPropagation()}>
+        <button onClick={onClose} className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white/50 hover:bg-white/20 hover:text-white transition z-10" type="button"><X className="h-4 w-4" /></button>
 
-        <div className="mb-4 flex items-center gap-2 sm:mb-6">
-          {mode === "folder" ? <Folder className="h-4 w-4 text-white/50 sm:h-5 sm:w-5" /> : <Plus className="h-4 w-4 text-white/50 sm:h-5 sm:w-5" />}
-          <h2 className="text-base font-heading italic text-white sm:text-lg">{mode === "folder" ? "新建板块" : "发布分享"}</h2>
+        <div className="flex items-center gap-2 mb-6">
+          {mode === "folder" ? <Folder className="h-5 w-5 text-white/50" /> : <Plus className="h-5 w-5 text-white/50" />}
+          <h2 className="text-lg font-heading italic text-white">{mode === "folder" ? "建立板块" : "Share（分享项目）"}</h2>
         </div>
 
         {success ? (
           <div className="flex flex-col items-center justify-center py-8 gap-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-400/20"><Check className="h-6 w-6 text-emerald-400" /></div>
-            <p className="text-sm text-white/70 font-body">{error || (mode === "folder" ? "板块创建成功！" : "分享发布成功！")}</p>
-            <p className="text-xs text-white/30 font-body">已保存，刷新后可见</p>
-            <button onClick={onClose} className="mt-3 rounded-full bg-white/10 px-5 py-2 text-xs text-white/60 transition active:scale-[0.98] active:bg-white/20 md:hover:bg-white/20 font-body">完成</button>
+            <p className="text-sm text-white/70 font-body">{error || (mode === "folder" ? "板块创建成功！" : "项目分享成功！")}</p>
+            <p className="text-xs text-white/30 font-body">已写入数据库，刷新页面可见</p>
+            <button onClick={onClose} className="mt-3 rounded-full bg-white/10 px-5 py-2 text-xs text-white/60 hover:bg-white/20 transition font-body">关闭</button>
           </div>
         ) : (
           <>
-            <div className="space-y-3 sm:space-y-4">
+            <div className="space-y-4">
               {mode === "folder" ? (
                 <>
                   <div>
                     <label className="block text-xs text-white/40 font-body mb-1.5">板块名称</label>
                     <input ref={nameRef} type="text" value={name} onChange={(e) => { setName(e.target.value); setError(""); }}
-                      placeholder="板块名称" maxLength={100} className={inputClass}
+                      placeholder="输入板块名称..." maxLength={100} className={inputClass}
                       onKeyDown={(e) => { if (e.nativeEvent.isComposing) return; if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSubmit(); } }} />
                   </div>
                   <div>
-                    <label className="block text-xs text-white/40 font-body mb-1.5">板块说明</label>
+                    <label className="block text-xs text-white/40 font-body mb-1.5">板块简介</label>
                     <textarea value={folderDesc} onChange={(e) => { setFolderDesc(e.target.value); setError(""); }}
-                      placeholder="这个板块收什么内容" rows={3} maxLength={300}
+                      placeholder="用简短的话描述该板块主要收录什么类型的帖子..." rows={3} maxLength={300}
                       className={`${inputClass} resize-none`} />
                   </div>
                 </>
               ) : (
                 <>
                   <div>
-                    <label className="block text-xs text-white/40 font-body mb-1.5">分享标题</label>
+                    <label className="block text-xs text-white/40 font-body mb-1.5">帖子标题</label>
                     <input ref={titleRef} type="text" value={title} onChange={(e) => { setTitle(e.target.value); setError(""); }}
-                      placeholder="分享标题" maxLength={200} className={inputClass} />
+                      placeholder="输入极具吸引力的标题..." maxLength={200} className={inputClass} />
                   </div>
                   <div>
-                    <label className="block text-xs text-white/40 font-body mb-1.5">分享链接</label>
+                    <label className="block text-xs text-white/40 font-body mb-1.5">相关项目链接</label>
                     <input type="text" value={link} onChange={(e) => { setLink(e.target.value); setError(""); }}
                       placeholder="例如: 官网: https://a.com ;; 备用: https://b.com" className={inputClass} />
-                    <p className="mt-1.5 flex items-center gap-1 text-[10px] font-light text-white/30 sm:text-[11px]">
+                    <p className="mt-1.5 flex items-center gap-1 text-[11px] font-light tracking-wider text-white/30">
                       <span className="text-white/50">*</span>
-                      选填，多个链接用 <span className="rounded bg-emerald-500/10 px-1 font-mono text-emerald-500/50">;;</span> 分隔
+                      选填。如需放置多个链接，请使用双分号 <span className="rounded bg-emerald-500/10 px-1 font-mono text-emerald-500/50">;;</span> 隔开
                     </p>
                   </div>
                   <div>
-                    <label className="block text-xs text-white/40 font-body mb-1.5">分享简介</label>
+                    <label className="block text-xs text-white/40 font-body mb-1.5">帖子简介</label>
                     <textarea value={summary} onChange={(e) => { setSummary(e.target.value); setError(""); }}
-                      placeholder="一两句话说明亮点" rows={2} maxLength={500}
+                      placeholder="一两句话简单描述这个项目..." rows={2} maxLength={500}
                       className={`${inputClass} resize-none`} />
                   </div>
                   <div>
                     <div className="flex items-center justify-between mb-1.5">
-                      <label className="text-xs text-white/40 font-body">分享正文</label>
+                      <label className="text-xs text-white/40 font-body">帖子内容</label>
                       <button
                         type="button"
                         onClick={triggerUpload}
                         disabled={uploading}
-                        className="inline-flex items-center gap-1 text-xs text-zinc-500 transition-colors disabled:opacity-40 font-body active:text-zinc-200 active:scale-[0.98] md:hover:text-zinc-200"
+                        className="inline-flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-200 transition-colors disabled:opacity-40 font-body"
                         title="上传图片 (Ctrl+V 粘贴)"
                       >
                         {uploading ? (
@@ -176,8 +174,8 @@ export function ShareCreateModal({ open, mode, currentFolder, folders, onClose, 
                       value={body}
                       onChange={(e) => { setBody(e.target.value); setError(""); }}
                       onPaste={onPaste}
-                      placeholder="特点、体验、教程都可以写。支持粘贴截图"
-                      rows={5}
+                      placeholder="详细介绍该项目的特点、使用体验或教程... (Ctrl+V 粘贴截图)"
+                      rows={6}
                       maxLength={10000}
                       className={`${inputClass} resize-none`}
                     />
@@ -187,24 +185,24 @@ export function ShareCreateModal({ open, mode, currentFolder, folders, onClose, 
                     <select value={selectedFolderId ?? ""} onChange={(e) => setSelectedFolderId(e.target.value || null)}
                       className={`${inputClass} appearance-none cursor-pointer`}
                       style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.4)' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 12px center", paddingRight: "2.5rem" }}>
-                      <option value="" className="bg-gray-900">选择板块</option>
+                      <option value="" className="bg-gray-900">-- 请选择板块 --</option>
                       {options.map((f) => (
                         <option key={f.id} value={f.id} className="bg-gray-900">{"  ".repeat(f.depth)}{f.label}</option>
                       ))}
                     </select>
                     {options.length === 0 && (
-                      <p className="mt-1 text-[10px] text-amber-400 font-body">还没有板块，请先新建板块</p>
+                      <p className="mt-1 text-[10px] text-amber-400 font-body">还没有板块，请先点击「建立板块」创建</p>
                     )}
                   </div>
                 </>
               )}
             </div>
             <FileInput />
-            {error && <p className="mt-4 text-xs font-semibold text-red-400 font-body sm:text-sm" role="alert">{error}</p>}
-            <div className="mt-5 flex items-center justify-end gap-2 sm:mt-6 sm:gap-3" style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 16px)' }}>
-              <button onClick={onClose} className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs text-white/50 transition active:scale-[0.98] active:bg-white/10 active:text-white md:hover:bg-white/10 md:hover:text-white font-body sm:px-5 sm:py-2.5 sm:text-sm" type="button" disabled={loading}>取消</button>
-              <button onClick={handleSubmit} disabled={loading} className="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-xs font-medium text-white transition active:scale-[0.98] active:bg-white/25 md:hover:bg-white/25 font-body disabled:opacity-50 sm:px-5 sm:py-2.5 sm:text-sm" type="button">
-                {loading ? <><Loader2 className="h-4 w-4 animate-spin" />{mode === "folder" ? "创建中..." : "发布中..."}</> : mode === "folder" ? <><Folder className="h-4 w-4" />创建板块</> : <><Plus className="h-4 w-4" />发布分享</>}
+            {error && <p className="mt-4 text-sm font-semibold text-red-400 font-body" role="alert">{error}</p>}
+            <div className="mt-6 flex items-center justify-end gap-3">
+              <button onClick={onClose} className="rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm text-white/50 hover:bg-white/10 hover:text-white transition font-body" type="button" disabled={loading}>取消</button>
+              <button onClick={handleSubmit} disabled={loading} className="inline-flex items-center gap-2 rounded-full bg-white/15 px-5 py-2.5 text-sm font-medium text-white hover:bg-white/25 transition font-body disabled:opacity-50" type="button">
+                {loading ? <><Loader2 className="h-4 w-4 animate-spin" />{mode === "folder" ? "创建中..." : "发布中..."}</> : mode === "folder" ? <><Folder className="h-4 w-4" />创建板块</> : <><Plus className="h-4 w-4" />发布项目</>}
               </button>
             </div>
           </>

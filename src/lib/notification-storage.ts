@@ -276,8 +276,8 @@ export async function deleteNotification(id: string): Promise<void> {
 
 // ── Realtime subscription ─────────────────────────────
 
-// Module-level channel tracking for independent UI subscribers.
-const activeChannels = new Set<RealtimeChannel>();
+// Module-level channel tracking to prevent duplicate subscriptions
+let activeChannel: RealtimeChannel | null = null;
 
 /**
  * Subscribe to real-time notification inserts for the given user.
@@ -293,7 +293,13 @@ export function subscribeNotifications(
 
   const supabase = getSupabaseClient();
 
-  // Use unique channel name so the mobile dock, navbar, and notification center can coexist
+  // Remove any existing channel first - this is synchronous
+  if (activeChannel) {
+    supabase.removeChannel(activeChannel);
+    activeChannel = null;
+  }
+
+  // Use unique channel name to avoid conflicts with stale channels
   const channelName = `notifications:${userId}:${Date.now()}`;
 
   const channel: RealtimeChannel = supabase
@@ -315,10 +321,12 @@ export function subscribeNotifications(
     )
     .subscribe();
 
-  activeChannels.add(channel);
+  activeChannel = channel;
 
   return () => {
     supabase.removeChannel(channel);
-    activeChannels.delete(channel);
+    if (activeChannel === channel) {
+      activeChannel = null;
+    }
   };
 }

@@ -57,14 +57,12 @@ export function StationDetailModal({ station, open, onClose }: StationDetailModa
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-[#09090b]/40 px-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 backdrop-blur-sm"
       onClick={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}
     >
-      <div className="modal-enter w-full max-w-lg rounded-t-3xl sm:rounded-[24px] border border-[var(--color-line)] bg-[var(--color-panel)] p-6 shadow-[0_24px_80px_rgba(15,23,42,0.14)]">
-        {/* Drag handle for mobile */}
-        <div className="w-12 h-1.5 bg-zinc-300 dark:bg-zinc-700 rounded-full mx-auto mt-3 mb-1 shrink-0 sm:hidden" />
+      <div className="modal-enter w-full max-w-lg rounded-[24px] border border-[var(--color-line)] bg-[var(--color-panel)] p-6 shadow-[0_24px_80px_rgba(15,23,42,0.14)]">
         {/* ── Header: name, badge, close button ── */}
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0 flex-1">
@@ -79,7 +77,7 @@ export function StationDetailModal({ station, open, onClose }: StationDetailModa
           </div>
           <button
             aria-label="关闭"
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] text-[var(--color-muted)] transition hover:border-[var(--color-ink)] hover:text-[var(--color-ink)]"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] text-[var(--color-muted)] transition hover:border-[var(--color-ink)] hover:text-[var(--color-ink)]"
             onClick={onClose}
             type="button"
           >
@@ -200,7 +198,7 @@ export function StationDetailModal({ station, open, onClose }: StationDetailModa
         </div>
 
         {/* ── Community discussion link ── */}
-        <div className="mt-4" style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 16px)' }}>
+        <div className="mt-4">
           <a
             className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[var(--color-brand)] px-5 py-3 text-sm font-bold text-[var(--color-on-brand)] transition hover:bg-[var(--color-brand-deep)]"
             href={`https://github.com/hfeng620-cmd/timin_api_test_and_forum/discussions?discussions_q=${encodeURIComponent(station.name)}`}

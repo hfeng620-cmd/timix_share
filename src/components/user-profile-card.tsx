@@ -270,13 +270,37 @@ export function UserProfileCard({ userId, position, viewerUserId, onClose }: Use
           : "建议继续补充";
   const joinDate = formatProfileJoinDate(profile?.created_at ?? null);
   const archiveId = createArchiveId(userId);
-  const customTitle = profile?.custom_title?.trim() ?? "";
+  const introStatusLabel = bioText ? `已写 ${bioText.length} 字简介` : "简介仍待补充";
+  const identityConsistencyValue =
+    profile?.display_name?.trim() && tags.length > 0
+      ? "已统一"
+      : profile?.display_name?.trim() || tags.length > 0
+        ? "部分统一"
+        : "待统一";
+  const profilePresentationTone = bioText
+    ? tags.length > 0
+      ? "这张主页已经具备对外自我说明和标签侧写。"
+      : "简介已经补上，再加几个标签会更像完整名片。"
+    : "还缺一句能代表自己的介绍，进入主页补完后展示会更完整。";
   const isOwnProfile = viewerUserId === userId;
+  const customTitle = profile?.custom_title?.trim() ?? "";
+  const profilePreviewHint = "点击或右键讨论区头像/昵称会打开这张公开档案预览；完整个人主页仍用于管理自己的资料。";
+  const identityRows = [
+    { label: "档案编号", value: archiveId },
+    { label: "加入 Timix", value: joinDate },
+    { label: "资料字段", value: `${profileCompleteness}/4 已填写` },
+  ];
+  const completionItems = [
+    { label: "头像", done: Boolean(profile?.avatar_url) },
+    { label: "昵称", done: Boolean(profile?.display_name?.trim()) },
+    { label: "简介", done: Boolean(profile?.bio?.trim()) },
+    { label: "标签", done: tags.length > 0 },
+  ];
 
   return (
     <div
       ref={cardRef}
-      className="z-50 max-h-[calc(100dvh-24px)] w-[min(340px,calc(100vw-24px))] overflow-y-auto overscroll-contain rounded-[28px] border border-white/10 bg-[#121214] text-zinc-100 shadow-[0_28px_80px_rgba(0,0,0,0.36),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-xl"
+      className="z-50 max-h-[calc(100vh-24px)] w-[min(360px,calc(100vw-24px))] overflow-y-auto overscroll-contain rounded-[24px] border border-[var(--color-line)] bg-[var(--color-panel)] shadow-[0_22px_60px_rgba(15,23,42,0.18)]"
       aria-label={`${name} 的公开主页预览`}
       onContextMenu={(event) => { event.preventDefault(); event.stopPropagation(); }}
       role="dialog"
@@ -288,8 +312,8 @@ export function UserProfileCard({ userId, position, viewerUserId, onClose }: Use
         transform: isAnimating ? "scale(1) translateY(0)" : "scale(0.96) translateY(-10px)",
         opacity: isAnimating ? 1 : 0,
         boxShadow: isAnimating
-          ? "0 28px 78px rgba(0,0,0,0.36), inset 0 1px 0 rgba(255,255,255,0.06)"
-          : "0 16px 42px rgba(0,0,0,0.24)",
+          ? "0 28px 78px rgba(15,23,42,0.18), 0 10px 28px rgba(37,99,235,0.08)"
+          : "0 16px 42px rgba(15,23,42,0.12)",
         transition: prefersReducedMotion
           ? "opacity 120ms linear"
           : "opacity 240ms cubic-bezier(0.16, 1, 0.3, 1), transform 280ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 280ms cubic-bezier(0.16, 1, 0.3, 1)",
@@ -315,12 +339,12 @@ export function UserProfileCard({ userId, position, viewerUserId, onClose }: Use
       ) : (
         <>
           <div
-            className="relative overflow-hidden border-b border-white/5 px-5 pb-5 pt-4 text-center"
+            className="relative overflow-hidden border-b border-[var(--color-line)] bg-[linear-gradient(135deg,var(--color-brand-soft),var(--color-panel-strong)_58%,var(--color-soft))] px-5 pb-5 pt-4"
             style={createCardMotionStyle(isAnimating, 40, 12, 0.994, prefersReducedMotion)}
           >
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-[radial-gradient(circle_at_50%_-20%,rgba(255,255,255,0.16),transparent_60%)]" />
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,var(--color-panel-glow),transparent_34%),radial-gradient(circle_at_12%_18%,var(--color-brand-soft),transparent_28%)] opacity-90" />
             <button
-              className="touch-press absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-zinc-500 transition active:bg-white/[0.08] active:text-zinc-100 active:scale-[0.98] md:hover:bg-white/[0.08] md:hover:text-zinc-100"
+              className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full bg-[var(--color-panel)] text-xs text-[var(--color-muted)] ring-1 ring-[var(--color-line)] transition hover:bg-[var(--color-soft)] hover:text-[var(--color-ink)]"
               onClick={handleClose}
               type="button"
               aria-label="关闭"
@@ -330,133 +354,222 @@ export function UserProfileCard({ userId, position, viewerUserId, onClose }: Use
               </svg>
             </button>
 
-            <div className="relative mx-auto mt-9 flex h-20 w-20 items-center justify-center overflow-hidden rounded-[26px] border border-white/10 bg-white/[0.04] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--color-brand-deep)]">
+              个人档案
+            </p>
+
+            <div className="relative mt-4 flex items-start gap-4" style={createCardMotionStyle(isAnimating, 90, 12, 0.996, prefersReducedMotion)}>
               {profile?.avatar_url ? (
                 <img
                   alt={name}
-                  className="h-full w-full object-cover"
+                  className="h-16 w-16 shrink-0 rounded-[22px] object-cover ring-1 ring-[var(--color-line)]"
                   referrerPolicy="no-referrer"
                   src={profile.avatar_url}
                 />
               ) : (
-                <span className="text-3xl font-black text-zinc-400">{initial}</span>
+                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[22px] bg-[var(--color-soft)] text-2xl font-black text-[var(--color-muted)] ring-1 ring-[var(--color-line)]">
+                  {initial}
+                </div>
               )}
+
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="truncate text-lg font-black text-[var(--color-ink)]">{name}</p>
+                  {role === "owner" ? (
+                    <span className="rounded border border-red-500/20 bg-red-500/10 px-2 py-0.5 text-[10px] font-bold text-red-500">
+                      TiMix 站主
+                    </span>
+                  ) : null}
+                  {role === "admin" ? (
+                    <span className="rounded border border-blue-500/20 bg-blue-500/10 px-2 py-0.5 text-[10px] font-bold text-blue-400">
+                      管理员
+                    </span>
+                  ) : null}
+                  {customTitle ? (
+                    <span className="rounded-md border border-purple-500/20 bg-purple-500/10 px-2 py-0.5 text-[10px] font-bold text-purple-400">
+                      {customTitle}
+                    </span>
+                  ) : null}
+                  {role === "user" && !customTitle ? (
+                    <span className="rounded-full bg-[var(--color-brand)]/10 px-2.5 py-1 text-[10px] font-bold text-[var(--color-brand-deep)] ring-1 ring-[var(--color-brand)]/15">
+                    Timix 观察成员
+                    </span>
+                  ) : null}
+                </div>
+                <p className="mt-2 text-xs text-[var(--color-muted)]">{joinDate}</p>
+                <p className="mt-1 text-xs font-medium text-[var(--color-brand-deep)]">{completenessLabel}</p>
+              </div>
             </div>
 
-            <div className="mt-3 flex min-w-0 flex-col items-center">
-              <h2 className="max-w-full truncate text-xl font-black leading-7 text-zinc-50">{name}</h2>
-              <div className="mt-2 flex max-w-full flex-wrap justify-center gap-1.5">
-                {role === "owner" ? (
-                  <span className="rounded-md border border-red-500/25 bg-red-500/10 px-2 py-0.5 text-[10px] font-bold text-red-400">
-                    TiMix 站主
-                  </span>
-                ) : null}
-                {role === "admin" ? (
-                  <span className="rounded-md border border-blue-400/25 bg-blue-400/10 px-2 py-0.5 text-[10px] font-bold text-blue-300">
-                    管理员
-                  </span>
-                ) : null}
-                {customTitle ? (
-                  <span className="rounded-md border border-white/10 bg-white/[0.06] px-2 py-0.5 text-[10px] font-bold text-zinc-300">
-                    {customTitle}
-                  </span>
-                ) : null}
-                {role === "user" && !customTitle ? (
-                  <span className="rounded-md border border-white/10 bg-white/[0.06] px-2 py-0.5 text-[10px] font-bold text-zinc-300">
-                    分享成员
-                  </span>
-                ) : null}
-              </div>
-              <p className="mt-2 text-xs text-zinc-500">{joinDate}</p>
+            <div className="mt-4 flex flex-wrap gap-2" style={createCardMotionStyle(isAnimating, 130, 10, 0.998, prefersReducedMotion)}>
+              {identityRows.map((item) => (
+                <span
+                  key={item.label}
+                  className="rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-2.5 py-1 text-[10px] font-medium text-[var(--color-muted)]"
+                >
+                  <span>{item.label}</span>
+                  <span className="mx-1 text-[var(--color-line)]">·</span>
+                  <span className="font-bold text-[var(--color-ink)]">{item.value}</span>
+                </span>
+              ))}
             </div>
           </div>
 
-          <div className="space-y-3 px-5 pb-5 pt-4">
+          <div className="space-y-4 p-5">
+            <div className="grid grid-cols-2 gap-3" style={createCardMotionStyle(isAnimating, 160, 14, 0.996, prefersReducedMotion)}>
+              <div className="rounded-[18px] border border-[var(--color-line)] bg-[var(--color-soft)] px-3 py-3">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
+                  资料完成度
+                </p>
+                <p className="mt-2 text-xl font-black text-[var(--color-ink)]">{completenessPercent}%</p>
+              </div>
+              <div className="rounded-[18px] border border-[var(--color-line)] bg-[var(--color-soft)] px-3 py-3">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
+                  个人标签
+                </p>
+                <p className="mt-2 text-xl font-black text-[var(--color-ink)]">{tags.length}</p>
+              </div>
+            </div>
+
             <div
-              className="rounded-2xl border border-white/5 bg-white/[0.03] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
-              style={createCardMotionStyle(isAnimating, 120, 12, 0.996, prefersReducedMotion)}
+              className="rounded-[18px] border border-[var(--color-line)] bg-[linear-gradient(135deg,var(--color-brand-soft),var(--color-panel))] px-4 py-3.5"
+              style={createCardMotionStyle(isAnimating, 210, 14, 0.996, prefersReducedMotion)}
             >
               <div className="flex items-center justify-between gap-3">
-                <span className="text-[11px] font-semibold text-zinc-500">公开简介</span>
-                <span className="shrink-0 rounded-full bg-white/[0.06] px-2 py-0.5 text-[10px] font-semibold text-zinc-400">
-                  {bioText ? `${bioText.length} 字` : "未填写"}
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
+                  主页状态
+                </p>
+                <span className="text-xs font-bold text-[var(--color-brand-deep)]">
+                  {completenessPercent}%
                 </span>
               </div>
-              <p className="mt-2 line-clamp-4 text-sm leading-6 text-zinc-300">{bio}</p>
+              <p className="mt-2 text-sm font-bold text-[var(--color-ink)]">
+                {completenessPercent >= 100
+                  ? "这张主页已经比较完整。"
+                  : completenessPercent >= 75
+                    ? "资料已经很接近完整。"
+                    : completenessPercent >= 50
+                      ? "身份信息已经立起来一半以上。"
+                      : "还在补充基础身份信息。"}
+              </p>
+              <p className="mt-2 text-xs leading-5 text-[var(--color-muted)]">
+                {tags.length > 0
+                  ? "已经有自己的标签侧写，再补一点内容互动会更完整。"
+                  : "再补简介、标签或内容记录，这张主页会更像完整名片。"}
+              </p>
+              <div className="mt-3 h-2 overflow-hidden rounded-full bg-[var(--color-soft)]">
+                <div
+                  className="h-full rounded-full bg-[var(--color-brand)] transition-[width]"
+                  style={{ width: `${completenessPercent}%` }}
+                />
+              </div>
             </div>
 
             <div
-              className="grid grid-cols-3 overflow-hidden rounded-2xl border border-white/5 bg-white/[0.03] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
-              style={createCardMotionStyle(isAnimating, 170, 12, 0.996, prefersReducedMotion)}
-            >
-              <div className="px-3 py-3 text-center">
-                <p className="text-base font-black text-zinc-50">{profileCompleteness}/4</p>
-                <p className="mt-0.5 text-[10px] font-semibold text-zinc-500">资料</p>
-              </div>
-              <div className="border-x border-white/5 px-3 py-3 text-center">
-                <p className="text-base font-black text-zinc-50">{tags.length}</p>
-                <p className="mt-0.5 text-[10px] font-semibold text-zinc-500">标签</p>
-              </div>
-              <div className="px-3 py-3 text-center">
-                <p className="text-base font-black text-zinc-50">{completenessPercent}%</p>
-                <p className="mt-0.5 text-[10px] font-semibold text-zinc-500">完成</p>
-              </div>
-            </div>
-
-            <div
-              className="rounded-2xl border border-white/5 bg-white/[0.03] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
-              style={createCardMotionStyle(isAnimating, 220, 12, 0.996, prefersReducedMotion)}
+              className="rounded-[18px] border border-[var(--color-line)] bg-[var(--color-soft)] px-4 py-3.5"
+              style={createCardMotionStyle(isAnimating, 250, 14, 0.996, prefersReducedMotion)}
             >
               <div className="flex items-center justify-between gap-3">
-                <span className="text-[11px] font-semibold text-zinc-500">个人标签</span>
-                <span className="text-[10px] font-semibold text-zinc-500">{completenessLabel}</span>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
+                  身份字段
+                </p>
+                <span className="text-[11px] font-bold text-[var(--color-brand-deep)]">
+                  {profileCompleteness}/4
+                </span>
+              </div>
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                {completionItems.map((item) => (
+                  <div
+                    key={item.label}
+                    className="rounded-[14px] border border-[var(--color-line)] bg-[var(--color-panel)] px-3 py-2"
+                  >
+                    <p className="text-[11px] font-semibold text-[var(--color-muted)]">{item.label}</p>
+                    <p className="mt-1 text-xs font-bold text-[var(--color-ink)]">
+                      {item.done ? "已填写" : "待补充"}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div
+              className="rounded-[18px] border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-3.5"
+              style={createCardMotionStyle(isAnimating, 300, 14, 0.996, prefersReducedMotion)}
+            >
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
+                  个人简介
+                </p>
+                <span className="rounded-full bg-[var(--color-brand)]/10 px-2.5 py-1 text-[10px] font-bold text-[var(--color-brand-deep)] ring-1 ring-[var(--color-brand)]/15">
+                  {introStatusLabel}
+                </span>
+              </div>
+              <p className="mt-3 text-sm leading-6 text-[var(--color-muted)]">{bio}</p>
+              <p className="mt-3 text-xs leading-5 text-[var(--color-muted)]">{profilePresentationTone}</p>
+            </div>
+
+            <div
+              className="rounded-[18px] border border-[var(--color-line)] bg-[var(--color-soft)] px-4 py-3.5"
+              style={createCardMotionStyle(isAnimating, 340, 14, 0.996, prefersReducedMotion)}
+            >
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
+                  标签侧写
+                </p>
+                <span className="text-[11px] font-bold text-[var(--color-brand-deep)]">
+                  {identityConsistencyValue}
+                </span>
               </div>
               <div className="mt-2 flex flex-wrap gap-2">
                 {tags.length > 0 ? (
                   tags.map((tag) => (
                     <span
                       key={tag}
-                      className="rounded-full border border-white/8 bg-white/[0.05] px-2.5 py-1 text-[11px] font-semibold text-zinc-300"
+                      className="rounded-full bg-[var(--color-brand)]/10 px-3 py-1 text-[11px] font-bold text-[var(--color-brand-deep)] ring-1 ring-[var(--color-brand)]/15"
                     >
                       {tag}
                     </span>
                   ))
                 ) : (
-                  <span className="rounded-full border border-dashed border-white/10 px-3 py-1 text-[11px] font-semibold text-zinc-500">
+                  <span className="rounded-full border border-dashed border-[var(--color-line)] px-3 py-1 text-[11px] font-semibold text-[var(--color-muted)]">
                     还没有填写个人标签
                   </span>
                 )}
               </div>
+              <p className="mt-3 text-xs leading-5 text-[var(--color-muted)]">
+                {tags.length > 0
+                  ? "这些标签会直接影响别人对这张主页的第一印象。"
+                  : "进入主页补 2 到 3 个稳定标签，会让身份展示更统一。"}
+              </p>
             </div>
 
-            <div
-              className="flex items-center justify-between gap-3 rounded-2xl border border-white/5 bg-white/[0.025] px-4 py-3 text-xs text-zinc-500"
-              style={createCardMotionStyle(isAnimating, 270, 12, 0.998, prefersReducedMotion)}
+            <p
+              className="rounded-[16px] border border-dashed border-[var(--color-line)] bg-[var(--color-soft)] px-3 py-2 text-xs leading-5 text-[var(--color-muted)]"
+              style={createCardMotionStyle(isAnimating, 370, 12, 0.998, prefersReducedMotion)}
             >
-              <span className="truncate">{archiveId}</span>
-              <span className="shrink-0">公开资料卡</span>
-            </div>
+              {profilePreviewHint}
+            </p>
 
-            <div className="grid gap-2 sm:grid-cols-2" style={createCardMotionStyle(isAnimating, 320, 12, 0.998, prefersReducedMotion)}>
+            <div className="grid gap-2 sm:grid-cols-2" style={createCardMotionStyle(isAnimating, 410, 12, 0.998, prefersReducedMotion)}>
               {isOwnProfile ? (
                 <Link
-                  className="touch-press block rounded-full bg-zinc-100 py-2.5 text-center text-sm font-bold text-zinc-950 transition hover:bg-white"
+                  className="block rounded-full bg-[var(--color-brand)] py-2.5 text-center text-sm font-bold text-[var(--color-on-brand)] transition hover:bg-[var(--color-brand-deep)]"
                   href="/profile"
                 >
-                  编辑主页
+                  编辑我的主页
                 </Link>
               ) : (
                 <button
-                  className="touch-press rounded-full bg-zinc-100 py-2.5 text-center text-sm font-bold text-zinc-950 transition active:bg-white active:scale-[0.98] md:hover:bg-white"
+                  className="rounded-full bg-[var(--color-brand)] py-2.5 text-center text-sm font-bold text-[var(--color-on-brand)] transition hover:bg-[var(--color-brand-deep)]"
                   onClick={handleClose}
                   type="button"
                 >
-                  收起
+                  收起预览
                 </button>
               )}
               {viewerUserId && !isOwnProfile ? (
                 <button
-                  className="touch-press inline-flex items-center justify-center gap-2 rounded-full border border-emerald-400/25 bg-emerald-400/10 py-2.5 text-sm font-semibold text-emerald-300 transition active:bg-emerald-400/15 active:scale-[0.98] md:hover:bg-emerald-400/15"
+                  className="inline-flex items-center justify-center gap-2 rounded-full border border-emerald-500/50 bg-emerald-500/10 py-2.5 text-sm font-semibold text-emerald-400 transition hover:bg-emerald-500/20"
                   onClick={() => setIsDMOpen(true)}
                   type="button"
                 >
@@ -465,10 +578,10 @@ export function UserProfileCard({ userId, position, viewerUserId, onClose }: Use
                 </button>
               ) : (
                 <Link
-                  className="touch-press block rounded-full border border-white/10 bg-white/[0.04] py-2.5 text-center text-sm font-semibold text-zinc-300 transition active:bg-white/[0.07] active:text-white active:scale-[0.98] md:hover:bg-white/[0.07] md:hover:text-white"
+                  className="block rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] py-2.5 text-center text-sm font-semibold text-[var(--color-ink)] transition hover:border-[var(--color-brand)] hover:text-[var(--color-brand-deep)]"
                   href="/community"
                 >
-                  去社区
+                  去讨论区
                 </Link>
               )}
             </div>

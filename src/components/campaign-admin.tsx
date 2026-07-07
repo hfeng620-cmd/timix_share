@@ -120,21 +120,21 @@ export function CampaignAdmin() {
     <section className="space-y-6">
       <div className="flex flex-col gap-4 rounded-3xl border border-white/10 bg-zinc-950/80 p-6 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.35em] text-emerald-300">Campaign Drops</p>
+          <p className="text-xs uppercase tracking-[0.35em] text-cyan-300">Campaign Drops</p>
           <h2 className="mt-2 text-2xl font-heading italic text-white">福利 Drop 活动管理</h2>
           <p className="mt-2 text-sm text-zinc-400">站内创建活动、自动生成兑换码，并查看用户领取反馈。</p>
         </div>
         <button
           type="button"
           onClick={() => setShowForm((value) => !value)}
-          className="rounded-full bg-zinc-100 px-5 py-2 text-sm font-semibold text-zinc-950 transition active:bg-white active:scale-[0.98] md:hover:bg-white"
+          className="rounded-full bg-cyan-400 px-5 py-2 text-sm font-semibold text-zinc-950 transition hover:bg-cyan-300"
         >
           {showForm ? "收起表单" : "新建活动"}
         </button>
       </div>
 
       {status && (
-        <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-100">
+        <div className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 px-4 py-3 text-sm text-cyan-100">
           {status}
         </div>
       )}
@@ -148,7 +148,7 @@ export function CampaignAdmin() {
               <input
                 value={form.title}
                 onChange={(event) => setForm((next) => ({ ...next, title: event.target.value }))}
-                className="w-full rounded-2xl border border-white/10 bg-zinc-900 px-4 py-3 text-white outline-none transition focus:border-emerald-300/35"
+                className="w-full rounded-2xl border border-white/10 bg-zinc-900 px-4 py-3 text-white outline-none transition focus:border-cyan-300/60"
                 placeholder="DeepSeek API 福利活动"
               />
             </label>
@@ -157,7 +157,7 @@ export function CampaignAdmin() {
               <input
                 value={form.sponsorName}
                 onChange={(event) => setForm((next) => ({ ...next, sponsorName: event.target.value }))}
-                className="w-full rounded-2xl border border-white/10 bg-zinc-900 px-4 py-3 text-white outline-none transition focus:border-emerald-300/35"
+                className="w-full rounded-2xl border border-white/10 bg-zinc-900 px-4 py-3 text-white outline-none transition focus:border-cyan-300/60"
                 placeholder="Timix 观察站"
               />
             </label>
@@ -166,7 +166,7 @@ export function CampaignAdmin() {
               <input
                 value={form.sponsorUrl}
                 onChange={(event) => setForm((next) => ({ ...next, sponsorUrl: event.target.value }))}
-                className="w-full rounded-2xl border border-white/10 bg-zinc-900 px-4 py-3 text-white outline-none transition focus:border-emerald-300/35"
+                className="w-full rounded-2xl border border-white/10 bg-zinc-900 px-4 py-3 text-white outline-none transition focus:border-cyan-300/60"
                 placeholder="https://timix.top"
               />
             </label>
@@ -178,7 +178,7 @@ export function CampaignAdmin() {
                 max={1000}
                 value={form.codeCount}
                 onChange={(event) => setForm((next) => ({ ...next, codeCount: event.target.value }))}
-                className="w-full rounded-2xl border border-white/10 bg-zinc-900 px-4 py-3 text-white outline-none transition focus:border-emerald-300/35"
+                className="w-full rounded-2xl border border-white/10 bg-zinc-900 px-4 py-3 text-white outline-none transition focus:border-cyan-300/60"
               />
             </label>
           </div>
@@ -188,19 +188,19 @@ export function CampaignAdmin() {
               value={form.description}
               onChange={(event) => setForm((next) => ({ ...next, description: event.target.value }))}
               rows={4}
-              className="w-full resize-none rounded-2xl border border-white/10 bg-zinc-900 px-4 py-3 text-white outline-none transition focus:border-emerald-300/35"
+              className="w-full resize-none rounded-2xl border border-white/10 bg-zinc-900 px-4 py-3 text-white outline-none transition focus:border-cyan-300/60"
               placeholder="说明兑换码权益、使用方式和注意事项。"
             />
           </label>
-          <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-            <p className="text-sm font-semibold text-emerald-100">附加互动问卷 (可选)</p>
+          <div className="mt-4 rounded-2xl border border-cyan-300/10 bg-cyan-300/[0.03] p-4">
+            <p className="text-sm font-semibold text-cyan-100">附加互动问卷 (可选)</p>
             <div className="mt-4 grid gap-4 md:grid-cols-2">
               <label className="space-y-1 text-sm text-zinc-300">
                 <span>自定义问题</span>
                 <input
                   value={form.customQuestion}
                   onChange={(event) => setForm((next) => ({ ...next, customQuestion: event.target.value }))}
-                  className="w-full rounded-2xl border border-white/10 bg-zinc-900 px-4 py-3 text-white outline-none transition focus:border-emerald-300/35"
+                  className="w-full rounded-2xl border border-white/10 bg-zinc-900 px-4 py-3 text-white outline-none transition focus:border-cyan-300/60"
                   placeholder="例如：你觉得本次活动的UI怎么样？"
                 />
               </label>
@@ -209,7 +209,7 @@ export function CampaignAdmin() {
                 <input
                   value={form.customOptions}
                   onChange={(event) => setForm((next) => ({ ...next, customOptions: event.target.value }))}
-                  className="w-full rounded-2xl border border-white/10 bg-zinc-900 px-4 py-3 text-white outline-none transition focus:border-emerald-300/35"
+                  className="w-full rounded-2xl border border-white/10 bg-zinc-900 px-4 py-3 text-white outline-none transition focus:border-cyan-300/60"
                   placeholder="例如：🔥 夯爆了, 🤖 NPC, 💩 拉完了 (请用逗号分隔)"
                 />
               </label>
@@ -219,7 +219,7 @@ export function CampaignAdmin() {
             type="button"
             onClick={handleCreate}
             disabled={saving}
-            className="mt-5 rounded-full bg-zinc-100 px-6 py-2.5 text-sm font-semibold text-zinc-950 transition active:bg-white active:scale-[0.98] md:hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+            className="mt-5 rounded-full bg-cyan-400 px-6 py-2.5 text-sm font-semibold text-zinc-950 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {saving ? "创建中..." : "确认创建并生成兑换码"}
           </button>
@@ -251,13 +251,13 @@ export function CampaignAdmin() {
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <button type="button" onClick={() => openSubmissions(campaign.id)} className="rounded-full border border-white/10 px-4 py-2 text-sm text-zinc-200 transition active:border-emerald-300/35 active:scale-[0.98] md:hover:border-emerald-300/35">
+                  <button type="button" onClick={() => openSubmissions(campaign.id)} className="rounded-full border border-white/10 px-4 py-2 text-sm text-zinc-200 transition hover:border-cyan-300/50">
                     领取记录
                   </button>
-                  <button type="button" onClick={() => handleToggle(campaign)} className="rounded-full border border-white/10 px-4 py-2 text-sm text-zinc-200 transition active:border-amber-300/50 active:scale-[0.98] md:hover:border-amber-300/50">
+                  <button type="button" onClick={() => handleToggle(campaign)} className="rounded-full border border-white/10 px-4 py-2 text-sm text-zinc-200 transition hover:border-amber-300/50">
                     {campaign.is_active ? "暂停" : "▶ 恢复"}
                   </button>
-                  <button type="button" onClick={() => handleDelete(campaign)} className="rounded-full border border-red-400/30 px-4 py-2 text-sm text-red-300 transition active:bg-red-400/10 active:scale-[0.98] md:hover:bg-red-400/10">
+                  <button type="button" onClick={() => handleDelete(campaign)} className="rounded-full border border-red-400/30 px-4 py-2 text-sm text-red-300 transition hover:bg-red-400/10">
                     删除
                   </button>
                 </div>
