@@ -20,7 +20,6 @@ import {
 import { homeFeaturedStations, type HomeFeaturedStation } from "@/lib/site-data";
 import {
   loadStationSubmissions,
-  saveStationSubmissions,
   loadAllSubmissions,
   updateSubmissionReviewSupabase,
   type StationSubmission,
@@ -1184,7 +1183,7 @@ export default function AdminPage() {
   // ---- Permission gate ----
   if (!isConnected && adminChecked) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-black text-white">
+      <div className="flex min-h-screen items-center justify-center bg-[#09090b] text-white">
         <div className="rounded-[34px] border border-[var(--color-line)] bg-[var(--color-panel)] p-10 text-center shadow-[0_18px_60px_rgba(13,25,48,0.07)]">
           <p className="text-2xl font-black">需要管理员权限</p>
           <p className="mt-3 text-sm text-[var(--color-muted)]">
@@ -1204,7 +1203,7 @@ export default function AdminPage() {
 
   if (!adminOk && adminChecked) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-black text-white">
+      <div className="flex min-h-screen items-center justify-center bg-[#09090b] text-white">
         <div className="rounded-[34px] border border-[var(--color-line)] bg-[var(--color-panel)] p-10 text-center shadow-[0_18px_60px_rgba(13,25,48,0.07)] max-w-lg">
           <p className="text-2xl font-black">需要管理员权限</p>
           <p className="mt-3 text-sm text-[var(--color-muted)]">
@@ -1226,7 +1225,7 @@ export default function AdminPage() {
 
   if (adminLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-black">
+      <div className="flex min-h-screen items-center justify-center bg-[#09090b]">
         <p className="text-sm text-white/55">验证管理员权限中...</p>
       </div>
     );
@@ -1239,47 +1238,47 @@ export default function AdminPage() {
 
       <div className="mx-auto max-w-7xl px-3 md:px-8 px-6 pt-28 lg:px-10">
         <div className="mb-8">
-          <div className="liquid-glass mb-3 inline-block rounded-full px-3.5 py-1 text-xs font-medium text-white font-body">
+          <div className="liquid-glass mb-3 inline-block rounded-full px-3.5 py-1 text-xs font-medium text-zinc-900 font-body">
             {isOwner ? "站主面板" : "管理员面板"}
           </div>
-          <h1 className="text-3xl font-heading italic leading-[1.15] text-white">
+          <h1 className="text-3xl font-heading italic leading-[1.15] text-zinc-900 font-bold">
             {isOwner ? "站主面板" : "管理员面板"}
           </h1>
-          <p className="mt-2 text-sm text-white/55 font-body">{email ?? "管理员"}</p>
+          <p className="mt-2 text-sm text-zinc-600 font-body">{email ?? "管理员"}</p>
         </div>
 
       <div className="mx-auto max-w-7xl px-3 md:px-8 px-6 py-8 lg:px-10">
         {/* ---- Dashboard stats ---- */}
         <section className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
-          <div className="rounded-[24px] border border-[var(--color-line)] bg-[var(--color-panel)] p-5 shadow-[0_8px_30px_rgba(13,25,48,0.05)]">
-            <p className="text-xs font-semibold uppercase tracking-[0.15em] text-[var(--color-muted)]">
+          <div className="rounded-2xl bg-white/90 backdrop-blur-md shadow-sm border border-zinc-200 p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.15em] text-zinc-600">
               待审核帖子
             </p>
-            <p className="mt-2 text-3xl font-black">
+            <p className="mt-2 text-3xl font-black text-zinc-900">
               {statsLoading ? "..." : stats?.pending_posts ?? 0}
             </p>
           </div>
-          <div className="rounded-[24px] border border-[var(--color-line)] bg-[var(--color-panel)] p-5 shadow-[0_8px_30px_rgba(13,25,48,0.05)]">
-            <p className="text-xs font-semibold uppercase tracking-[0.15em] text-[var(--color-muted)]">
+          <div className="rounded-2xl bg-white/90 backdrop-blur-md shadow-sm border border-zinc-200 p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.15em] text-zinc-600">
               已发布帖子
             </p>
-            <p className="mt-2 text-3xl font-black">
+            <p className="mt-2 text-3xl font-black text-zinc-900">
               {statsLoading ? "..." : stats?.visible_posts ?? 0}
             </p>
           </div>
-          <div className="rounded-[24px] border border-[var(--color-line)] bg-[var(--color-panel)] p-5 shadow-[0_8px_30px_rgba(13,25,48,0.05)]">
-            <p className="text-xs font-semibold uppercase tracking-[0.15em] text-[var(--color-muted)]">
+          <div className="rounded-2xl bg-white/90 backdrop-blur-md shadow-sm border border-zinc-200 p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.15em] text-zinc-600">
               活跃用户
             </p>
-            <p className="mt-2 text-3xl font-black">
+            <p className="mt-2 text-3xl font-black text-zinc-900">
               {statsLoading ? "..." : stats?.active_authors ?? 0}
             </p>
           </div>
-          <div className="rounded-[24px] border border-[var(--color-line)] bg-[var(--color-panel)] p-5 shadow-[0_8px_30px_rgba(13,25,48,0.05)]">
-            <p className="text-xs font-semibold uppercase tracking-[0.15em] text-[var(--color-muted)]">
+          <div className="rounded-2xl bg-white/90 backdrop-blur-md shadow-sm border border-zinc-200 p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.15em] text-zinc-600">
               收录站点
             </p>
-            <p className="mt-2 text-3xl font-black">{totalStations}</p>
+            <p className="mt-2 text-3xl font-black text-zinc-900">{totalStations}</p>
           </div>
         </section>
 
@@ -1299,10 +1298,10 @@ export default function AdminPage() {
           ).map(([key, label]) => (
             <button
               key={key}
-              className={`rounded-xl px-5 py-2.5 text-sm font-bold transition ${
+              className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
                 activeTab === key
                   ? "bg-[var(--color-brand)] text-[var(--color-on-brand)] shadow-[0_4px_16px_var(--color-panel-glow)]"
-                  : "text-[var(--color-muted)] hover:bg-[var(--color-soft)] hover:text-[var(--color-ink)]"
+                  : "text-zinc-700 active:text-zinc-900 active:bg-zinc-100/50 md:hover:text-zinc-900 md:hover:bg-zinc-100/50"
               }`}
               onClick={() => setActiveTab(key as AdminTab)}
               type="button"
@@ -1348,7 +1347,7 @@ export default function AdminPage() {
                 </label>
                 <div className="mt-4 flex flex-wrap items-center gap-4">
                   <button
-                    className="rounded-full bg-[var(--color-brand)] px-5 py-3 text-sm font-bold text-[var(--color-on-brand)] transition hover:bg-[var(--color-brand-deep)] disabled:opacity-50"
+                    className="rounded-full bg-[var(--color-brand)] px-5 py-3 text-sm font-bold text-[var(--color-on-brand)] transition active:bg-[var(--color-brand-deep)] active:scale-[0.98] md:hover:bg-[var(--color-brand-deep)] disabled:opacity-50"
                     disabled={announceSending}
                     onClick={handleAnnouncementClick}
                     type="button"
@@ -1371,7 +1370,7 @@ export default function AdminPage() {
                     已审核论坛帖子
                   </p>
                   <button
-                    className="rounded-full bg-[var(--color-soft)] px-4 py-2 text-sm font-bold text-[var(--color-brand-deep)] transition hover:bg-[var(--color-brand-soft)]"
+                    className="rounded-full bg-[var(--color-soft)] px-4 py-2 text-sm font-bold text-[var(--color-brand-deep)] transition active:bg-[var(--color-brand-soft)] active:scale-[0.98] md:hover:bg-[var(--color-brand-soft)]"
                     onClick={() => void refreshForumHistory()}
                     type="button"
                   >
@@ -1415,7 +1414,7 @@ export default function AdminPage() {
                           <p className="flex items-center gap-2 text-xs text-[var(--color-muted)]">
                             <span className="font-mono">{item.id}</span>
                             <button
-                              className="rounded-full border border-[var(--color-line)] bg-[var(--color-input)] px-2 py-0.5 text-[10px] font-bold text-[var(--color-muted)] transition hover:bg-[var(--color-soft)] hover:text-[var(--color-ink)]"
+                              className="rounded-full border border-[var(--color-line)] bg-[var(--color-input)] px-2 py-0.5 text-[10px] font-bold text-[var(--color-muted)] transition active:bg-[var(--color-soft)] active:text-[var(--color-ink)] active:scale-[0.98] md:hover:bg-[var(--color-soft)] md:hover:text-[var(--color-ink)]"
                               onClick={() => {
                                 void navigator.clipboard.writeText(item.id);
                               }}
@@ -1431,7 +1430,7 @@ export default function AdminPage() {
                             {new Date(item.time).toLocaleString("zh-CN")}
                           </p>
                           <button
-                            className="rounded-full bg-red-500/10 px-3 py-1 text-xs font-bold text-red-400 transition hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+                            className="rounded-full bg-red-500/10 px-3 py-1 text-xs font-bold text-red-400 transition active:bg-red-500/20 active:scale-[0.98] md:hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-50"
                             disabled={deletingPostId === item.id}
                             onClick={() => {
                               if (window.confirm("确定要删除这条帖子吗？此操作不可撤销。")) {
@@ -1474,7 +1473,7 @@ export default function AdminPage() {
                 {auditLog.length > 0 && (
                   <div className="mt-4">
                     <button
-                      className="rounded-full border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-2 text-xs font-bold text-[var(--color-muted)] transition hover:bg-[var(--color-soft)] hover:text-[var(--color-ink)]"
+                      className="rounded-full border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-2 text-xs font-bold text-[var(--color-muted)] transition active:bg-[var(--color-soft)] active:text-[var(--color-ink)] active:scale-[0.98] md:hover:bg-[var(--color-soft)] md:hover:text-[var(--color-ink)]"
                       onClick={() => {
                         if (window.confirm("确定要清空所有操作日志吗？")) {
                           setAuditLog([]);
@@ -1506,7 +1505,7 @@ export default function AdminPage() {
                     <h2 className="mt-2 text-2xl font-black">审核 AI 新闻投稿</h2>
                   </div>
                   <button
-                    className="rounded-full bg-[var(--color-soft)] px-4 py-2 text-sm font-bold text-[var(--color-brand-deep)] transition hover:bg-[var(--color-brand-soft)]"
+                    className="rounded-full bg-[var(--color-soft)] px-4 py-2 text-sm font-bold text-[var(--color-brand-deep)] transition active:bg-[var(--color-brand-soft)] active:scale-[0.98] md:hover:bg-[var(--color-brand-soft)]"
                     onClick={() => void Promise.all([refreshPendingNews(), refreshApprovedNews()])}
                     type="button"
                   >
@@ -1547,7 +1546,7 @@ export default function AdminPage() {
                         </div>
                         <div className="mt-4 flex flex-wrap gap-3">
                           <button
-                            className="rounded-full bg-[var(--color-brand)] px-5 py-3 text-sm font-bold text-[var(--color-on-brand)] transition hover:bg-[var(--color-brand-deep)] disabled:cursor-not-allowed disabled:opacity-50"
+                            className="rounded-full bg-[var(--color-brand)] px-5 py-3 text-sm font-bold text-[var(--color-on-brand)] transition active:bg-[var(--color-brand-deep)] active:scale-[0.98] md:hover:bg-[var(--color-brand-deep)] disabled:cursor-not-allowed disabled:opacity-50"
                             disabled={newsActionId === item.id}
                             onClick={() => void handleApproveNews(item.id)}
                             type="button"
@@ -1555,7 +1554,7 @@ export default function AdminPage() {
                             {newsActionId === item.id ? "处理中..." : "通过"}
                           </button>
                           <button
-                            className="rounded-full bg-red-500/10 px-5 py-3 text-sm font-bold text-red-400 transition hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+                            className="rounded-full bg-red-500/10 px-5 py-3 text-sm font-bold text-red-400 transition active:bg-red-500/20 active:scale-[0.98] md:hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-50"
                             disabled={newsActionId === item.id}
                             onClick={() => {
                               if (window.confirm("确定要驳回这条新闻吗？它将从数据库中删除。")) {
@@ -1633,7 +1632,7 @@ export default function AdminPage() {
                 </label>
                 <div className="mt-4 flex flex-wrap items-center gap-4">
                   <button
-                    className="rounded-full bg-[var(--color-brand)] px-5 py-3 text-sm font-bold text-[var(--color-on-brand)] transition hover:bg-[var(--color-brand-deep)] disabled:opacity-50"
+                    className="rounded-full bg-[var(--color-brand)] px-5 py-3 text-sm font-bold text-[var(--color-on-brand)] transition active:bg-[var(--color-brand-deep)] active:scale-[0.98] md:hover:bg-[var(--color-brand-deep)] disabled:opacity-50"
                     disabled={newsFormSending}
                     onClick={() => void handlePublishNews()}
                     type="button"
@@ -1701,8 +1700,8 @@ export default function AdminPage() {
                           <button
                             className={`rounded-full px-4 py-2 text-xs font-bold transition disabled:cursor-not-allowed disabled:opacity-50 ${
                               item.is_hidden
-                                ? "bg-[var(--color-soft)] text-[var(--color-brand-deep)] hover:bg-[var(--color-brand-soft)]"
-                                : "bg-red-500/10 text-red-400 hover:bg-red-500/20"
+                                ? "bg-[var(--color-soft)] text-[var(--color-brand-deep)] active:bg-[var(--color-brand-soft)] md:active:bg-[var(--color-brand-soft)] active:scale-[0.98] md:hover:bg-[var(--color-brand-soft)]"
+                                : "bg-red-500/10 text-red-400 active:bg-red-500/20 md:active:bg-red-500/20 active:scale-[0.98] md:hover:bg-red-500/20"
                             }`}
                             disabled={newsActionId === item.id}
                             onClick={() => void handleToggleHideNews(item.id, item.is_hidden)}
@@ -1748,14 +1747,14 @@ export default function AdminPage() {
                       {showAddForm ? "取消添加" : "＋ 添加站点"}
                     </button>
                     <button
-                      className="rounded-full bg-white/10 px-4 py-2 text-sm font-bold text-white hover:bg-white/20 transition font-body"
+                      className="rounded-full bg-white/10 px-4 py-2 text-sm font-bold text-white active:bg-white/20 active:scale-[0.98] md:hover:bg-white/20 transition font-body"
                       onClick={() => setEditorModalOpen(true)}
                       type="button"
                     >
                       全屏编辑
                     </button>
                     <button
-                      className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-bold text-white/60 hover:bg-white/10 hover:text-white transition font-body"
+                      className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-bold text-white/60 active:bg-white/10 active:text-white md:hover:bg-white/10 md:hover:text-white transition font-body"
                       onClick={async () => {
                         setStationMgmtStatus("正在导入模板站点...");
                         try {
@@ -1775,7 +1774,7 @@ export default function AdminPage() {
                       导入模板
                     </button>
                     <button
-                      className="rounded-full border border-[var(--color-line)] bg-white/[0.06] px-4 py-2 text-sm font-bold text-white hover:bg-[var(--color-soft)]"
+                      className="rounded-full border border-[var(--color-line)] bg-white/[0.06] px-4 py-2 text-sm font-bold text-white active:bg-[var(--color-soft)] active:scale-[0.98] md:hover:bg-[var(--color-soft)]"
                       onClick={refreshAllStations}
                       type="button"
                     >
@@ -1819,7 +1818,7 @@ export default function AdminPage() {
                         onChange={(e) => setNewStationForm({ ...newStationForm, multiplier: e.target.value })}
                       />
                       <button
-                        className="rounded-xl bg-[var(--color-brand)] px-4 py-2.5 text-sm font-bold text-[var(--color-on-brand)] hover:bg-[var(--color-brand-deep)] disabled:opacity-50"
+                        className="rounded-xl bg-[var(--color-brand)] px-4 py-2.5 text-sm font-bold text-[var(--color-on-brand)] active:bg-[var(--color-brand-deep)] active:scale-[0.98] md:hover:bg-[var(--color-brand-deep)] disabled:opacity-50"
                         disabled={newStationSaving}
                         onClick={handleAddStation}
                         type="button"
@@ -1858,20 +1857,20 @@ export default function AdminPage() {
                             </span>
                             <div className="flex shrink-0 items-center gap-0.5">
                               <button
-                                className="rounded px-1.5 py-1 text-xs text-white/40 hover:bg-white/10 hover:text-white disabled:opacity-20 transition"
+                                className="rounded px-1.5 py-1 text-xs text-white/40 active:bg-white/10 active:text-white md:hover:bg-white/10 md:hover:text-white disabled:opacity-20 transition"
                                 disabled={idx === 0 || reorderingId === s.id}
                                 onClick={() => handleMoveStation(s.id, -1, s.name)}
                                 title="上移" type="button"
                               >{reorderingId === s.id ? "…" : "↑"}</button>
                               <button
-                                className="rounded px-1.5 py-1 text-xs text-white/40 hover:bg-white/10 hover:text-white disabled:opacity-20 transition"
+                                className="rounded px-1.5 py-1 text-xs text-white/40 active:bg-white/10 active:text-white md:hover:bg-white/10 md:hover:text-white disabled:opacity-20 transition"
                                 disabled={idx === allStations.length - 1 || reorderingId === s.id}
                                 onClick={() => handleMoveStation(s.id, 1, s.name)}
                                 title="下移" type="button"
                               >{reorderingId === s.id ? "…" : "↓"}</button>
                             </div>
                             <button
-                              className="shrink-0 rounded px-2 py-1 text-xs text-red-400 hover:bg-red-500/15 disabled:opacity-50 transition"
+                              className="shrink-0 rounded px-2 py-1 text-xs text-red-400 active:bg-red-500/15 active:scale-[0.98] md:hover:bg-red-500/15 disabled:opacity-50 transition"
                               disabled={deletingStationId === s.id}
                               onClick={() => handleDeleteStation(s.id, s.name)}
                               type="button"
@@ -1895,14 +1894,14 @@ export default function AdminPage() {
                   </div>
                 <div className="flex flex-wrap gap-3">
                   <button
-                    className="rounded-full bg-[var(--color-brand)] px-5 py-3 text-sm font-bold text-[var(--color-on-brand)] transition hover:bg-[var(--color-brand-deep)]"
+                    className="rounded-full bg-[var(--color-brand)] px-5 py-3 text-sm font-bold text-[var(--color-on-brand)] transition active:bg-[var(--color-brand-deep)] active:scale-[0.98] md:hover:bg-[var(--color-brand-deep)]"
                     onClick={saveAll}
                     type="button"
                   >
                     保存到首页
                   </button>
                   <button
-                    className="rounded-full border border-[var(--color-line)] bg-white/[0.06] px-5 py-3 text-sm font-bold text-white transition hover:bg-[var(--color-soft)]"
+                    className="rounded-full border border-[var(--color-line)] bg-white/[0.06] px-5 py-3 text-sm font-bold text-white transition active:bg-[var(--color-soft)] active:scale-[0.98] md:hover:bg-[var(--color-soft)]"
                     onClick={resetAll}
                     type="button"
                   >
@@ -2050,21 +2049,21 @@ export default function AdminPage() {
                         </label>
                         <div className="mt-5 flex flex-wrap gap-3">
                           <button
-                            className="rounded-full bg-[var(--color-brand)] px-5 py-3 text-sm font-bold text-[var(--color-on-brand)] transition hover:bg-[var(--color-brand-deep)]"
+                            className="rounded-full bg-[var(--color-brand)] px-5 py-3 text-sm font-bold text-[var(--color-on-brand)] transition active:bg-[var(--color-brand-deep)] active:scale-[0.98] md:hover:bg-[var(--color-brand-deep)]"
                             onClick={() => reviewSubmission(item.id, "approved", "direct")}
                             type="button"
                           >
                             直接通过
                           </button>
                           <button
-                            className="rounded-full border border-[var(--color-line)] bg-white/[0.06] px-5 py-3 text-sm font-bold text-white transition hover:bg-[var(--color-soft)]"
+                            className="rounded-full border border-[var(--color-line)] bg-white/[0.06] px-5 py-3 text-sm font-bold text-white transition active:bg-[var(--color-soft)] active:scale-[0.98] md:hover:bg-[var(--color-soft)]"
                             onClick={() => reviewSubmission(item.id, "approved", "edited")}
                             type="button"
                           >
                             保存改动并通过
                           </button>
                           <button
-                            className="rounded-full bg-red-500/10 px-5 py-3 text-sm font-bold text-red-400 transition hover:bg-red-500/20"
+                            className="rounded-full bg-red-500/10 px-5 py-3 text-sm font-bold text-red-400 transition active:bg-red-500/20 active:scale-[0.98] md:hover:bg-red-500/20"
                             onClick={() => reviewSubmission(item.id, "rejected")}
                             type="button"
                           >
@@ -2123,7 +2122,7 @@ export default function AdminPage() {
                         </div>
                         <div className="mt-4 flex flex-wrap gap-3">
                           <button
-                            className="rounded-full bg-[var(--color-brand)] px-4 py-2 text-sm font-bold text-[var(--color-on-brand)] transition hover:bg-[var(--color-brand-deep)] disabled:opacity-50"
+                            className="rounded-full bg-[var(--color-brand)] px-4 py-2 text-sm font-bold text-[var(--color-on-brand)] transition active:bg-[var(--color-brand-deep)] active:scale-[0.98] md:hover:bg-[var(--color-brand-deep)] disabled:opacity-50"
                             disabled={processingEditId === edit.id}
                             onClick={() => handleApproveEdit(edit.id)}
                             type="button"
@@ -2131,7 +2130,7 @@ export default function AdminPage() {
                             {processingEditId === edit.id ? "处理中..." : "通过"}
                           </button>
                           <button
-                            className="rounded-full bg-red-500/10 px-4 py-2 text-sm font-bold text-red-400 transition hover:bg-red-500/20 disabled:opacity-50"
+                            className="rounded-full bg-red-500/10 px-4 py-2 text-sm font-bold text-red-400 transition active:bg-red-500/20 active:scale-[0.98] md:hover:bg-red-500/20 disabled:opacity-50"
                             disabled={processingEditId === edit.id}
                             onClick={() => handleRejectEdit(edit.id)}
                             type="button"
@@ -2207,7 +2206,7 @@ export default function AdminPage() {
                         )}
                         <div className="mt-4 flex flex-wrap gap-3">
                           <button
-                            className="rounded-full bg-[var(--color-brand)] px-4 py-2 text-sm font-bold text-[var(--color-on-brand)] transition hover:bg-[var(--color-brand-deep)] disabled:opacity-50"
+                            className="rounded-full bg-[var(--color-brand)] px-4 py-2 text-sm font-bold text-[var(--color-on-brand)] transition active:bg-[var(--color-brand-deep)] active:scale-[0.98] md:hover:bg-[var(--color-brand-deep)] disabled:opacity-50"
                             disabled={processingGuideId === guide.id}
                             onClick={() => handleApproveGuide(guide.id)}
                             type="button"
@@ -2215,7 +2214,7 @@ export default function AdminPage() {
                             {processingGuideId === guide.id ? "处理中..." : "通过"}
                           </button>
                           <button
-                            className="rounded-full bg-red-500/10 px-4 py-2 text-sm font-bold text-red-400 transition hover:bg-red-500/20 disabled:opacity-50"
+                            className="rounded-full bg-red-500/10 px-4 py-2 text-sm font-bold text-red-400 transition active:bg-red-500/20 active:scale-[0.98] md:hover:bg-red-500/20 disabled:opacity-50"
                             disabled={processingGuideId === guide.id}
                             onClick={() => handleRejectGuide(guide.id)}
                             type="button"
@@ -2291,7 +2290,7 @@ export default function AdminPage() {
                 <h2 className="mt-2 text-2xl font-black">管理员可以直接改 JSON</h2>
               </div>
               <button
-                className="rounded-full bg-[var(--color-soft)] px-4 py-2 text-sm font-bold text-[var(--color-brand-deep)] transition hover:bg-[var(--color-brand-soft)]"
+                className="rounded-full bg-[var(--color-soft)] px-4 py-2 text-sm font-bold text-[var(--color-brand-deep)] transition active:bg-[var(--color-brand-soft)] active:scale-[0.98] md:hover:bg-[var(--color-brand-soft)]"
                 onClick={importJson}
                 type="button"
               >
@@ -2328,7 +2327,7 @@ export default function AdminPage() {
                   value={newAdminEmail}
                 />
                 <button
-                  className="rounded-full bg-[var(--color-brand)] px-6 py-3 text-sm font-bold text-[var(--color-on-brand)] transition hover:bg-[var(--color-brand-deep)] disabled:opacity-50"
+                  className="rounded-full bg-[var(--color-brand)] px-6 py-3 text-sm font-bold text-[var(--color-on-brand)] transition active:bg-[var(--color-brand-deep)] active:scale-[0.98] md:hover:bg-[var(--color-brand-deep)] disabled:opacity-50"
                   disabled={addAdminLoading}
                   onClick={() => void handleAddAdmin()}
                   type="button"
@@ -2351,7 +2350,7 @@ export default function AdminPage() {
                   <h2 className="mt-2 text-2xl font-black">管理现有管理员权限</h2>
                 </div>
                 <button
-                  className="rounded-full bg-[var(--color-soft)] px-4 py-2 text-sm font-bold text-[var(--color-brand-deep)] transition hover:bg-[var(--color-brand-soft)]"
+                  className="rounded-full bg-[var(--color-soft)] px-4 py-2 text-sm font-bold text-[var(--color-brand-deep)] transition active:bg-[var(--color-brand-soft)] active:scale-[0.98] md:hover:bg-[var(--color-brand-soft)]"
                   onClick={() => void loadAdminList()}
                   type="button"
                 >
@@ -2383,7 +2382,7 @@ export default function AdminPage() {
                           </p>
                         </div>
                         <button
-                          className="shrink-0 rounded-full bg-red-500/10 px-4 py-2 text-xs font-bold text-red-400 transition hover:bg-red-500/20"
+                          className="shrink-0 rounded-full bg-red-500/10 px-4 py-2 text-xs font-bold text-red-400 transition active:bg-red-500/20 active:scale-[0.98] md:hover:bg-red-500/20"
                           onClick={() => {
                             if (window.confirm(`确定要移除管理员 ${admin.email} 吗？`)) {
                               void handleRemoveAdmin(admin.user_id, admin.email);
@@ -2417,7 +2416,7 @@ export default function AdminPage() {
               value={userSearch}
             />
             <button
-              className="rounded-full bg-[var(--color-soft)] px-4 py-2 text-sm font-bold text-[var(--color-brand-deep)] transition hover:bg-[var(--color-brand-soft)]"
+              className="rounded-full bg-[var(--color-soft)] px-4 py-2 text-sm font-bold text-[var(--color-brand-deep)] transition active:bg-[var(--color-brand-soft)] active:scale-[0.98] md:hover:bg-[var(--color-brand-soft)]"
               onClick={loadUsers}
               type="button"
             >
@@ -2466,10 +2465,10 @@ export default function AdminPage() {
                       <div className="flex items-center gap-2">
                         <p className="font-semibold text-white text-sm">{user.display_name}</p>
                         {user.isAdmin && (
-                          <span className="shrink-0 rounded border border-blue-500/20 bg-blue-500/10 px-2 py-0.5 text-[10px] font-bold text-blue-400">管理员</span>
+                          <span className="shrink-0 rounded border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[10px] font-bold text-zinc-300">管理员</span>
                         )}
                         {user.custom_title ? (
-                          <span className="shrink-0 rounded-md border border-purple-500/20 bg-purple-500/10 px-2 py-0.5 text-[10px] font-bold text-purple-400">
+                          <span className="shrink-0 rounded-md border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[10px] font-bold text-zinc-300">
                             {user.custom_title}
                           </span>
                         ) : null}
@@ -2491,7 +2490,7 @@ export default function AdminPage() {
                       </span>
                       <button
                         aria-label={`给 ${user.display_name} 发送私信`}
-                        className="flex shrink-0 items-center justify-center rounded-lg bg-zinc-900/50 p-2 text-zinc-500 shadow-sm transition-all hover:bg-emerald-500/10 hover:text-emerald-400"
+                        className="flex shrink-0 items-center justify-center rounded-lg bg-zinc-900/50 p-2 text-zinc-500 shadow-sm transition-all active:bg-emerald-500/10 active:text-emerald-400 active:scale-[0.98] md:hover:bg-emerald-500/10 md:hover:text-emerald-400"
                         onClick={(event) => {
                           event.stopPropagation();
                           setActiveChatUser(user);
@@ -2503,7 +2502,7 @@ export default function AdminPage() {
                       </button>
                       <button
                         aria-label={`设置 ${user.display_name} 的自定义头衔`}
-                        className="flex shrink-0 items-center justify-center rounded-lg bg-zinc-900/50 p-2 text-zinc-500 shadow-sm transition-all hover:bg-purple-500/10 hover:text-purple-400"
+                        className="flex shrink-0 items-center justify-center rounded-lg bg-zinc-900/50 p-2 text-zinc-500 shadow-sm transition-all active:bg-white/[0.04] active:text-zinc-300 active:scale-[0.98] md:hover:bg-white/[0.04] md:hover:text-zinc-300"
                         onClick={(event) => {
                           event.stopPropagation();
                           openTitleEditor(user);
@@ -2516,7 +2515,7 @@ export default function AdminPage() {
 
                       {isOwner && (
                         <button
-                          className="shrink-0 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-medium text-white/50 hover:bg-white/10 hover:text-white transition opacity-0 group-hover:opacity-100"
+                          className="shrink-0 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-medium text-white/50 active:bg-white/10 active:text-white transition opacity-0 group-hover:opacity-100 md:hover:bg-white/10 md:hover:text-white"
                           disabled={togglingUserId === user.id}
                           onClick={() => toggleAdmin(user.id, !user.isAdmin)}
                           type="button"
@@ -2543,7 +2542,7 @@ export default function AdminPage() {
       )}
 
       {editingTitleUser && (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-[#09090b]/60 px-4 backdrop-blur-sm">
           <form
             aria-labelledby="custom-title-modal-title"
             aria-modal="true"
@@ -2566,7 +2565,7 @@ export default function AdminPage() {
               </label>
               <input
                 autoFocus
-                className="mt-3 w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-semibold text-white outline-none transition placeholder:text-white/25 focus:border-purple-500/50 focus:bg-purple-500/10"
+                className="mt-3 w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-semibold text-white outline-none transition placeholder:text-white/25 focus:border-white/20 focus:bg-white/[0.04]"
                 id="custom-title-input"
                 maxLength={40}
                 onChange={(event) => setTitleDraft(event.target.value)}
@@ -2574,7 +2573,7 @@ export default function AdminPage() {
                 value={titleDraft}
               />
               <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-                <span className="rounded-md border border-purple-500/20 bg-purple-500/10 px-2 py-0.5 text-xs font-bold text-purple-400">
+                <span className="rounded-md border border-white/10 bg-white/[0.04] px-2 py-0.5 text-xs font-bold text-zinc-300">
                   {titleDraft.trim() || "紫色头衔预览"}
                 </span>
                 <span className="text-xs text-white/35">{titleDraft.trim().length}/40</span>
@@ -2582,7 +2581,7 @@ export default function AdminPage() {
             </div>
             <div className="flex flex-col-reverse gap-3 border-t border-white/10 px-6 py-4 sm:flex-row sm:justify-end">
               <button
-                className="rounded-xl border border-white/10 px-4 py-2 text-sm font-semibold text-white/60 transition hover:bg-white/10 hover:text-white disabled:opacity-50"
+                className="rounded-xl border border-white/10 px-4 py-2 text-sm font-semibold text-white/60 transition active:bg-white/10 active:text-white md:hover:bg-white/10 md:hover:text-white disabled:opacity-50"
                 disabled={titleSaving}
                 onClick={() => {
                   setEditingTitleUser(null);
@@ -2593,7 +2592,7 @@ export default function AdminPage() {
                 取消
               </button>
               <button
-                className="rounded-xl bg-purple-500/20 px-4 py-2 text-sm font-bold text-purple-200 ring-1 ring-purple-500/30 transition hover:bg-purple-500/30 disabled:opacity-50"
+                className="rounded-xl bg-zinc-100 px-4 py-2 text-sm font-bold text-zinc-950 ring-1 ring-white/10 transition hover:bg-white disabled:opacity-50"
                 disabled={titleSaving}
                 type="submit"
               >
@@ -2606,7 +2605,7 @@ export default function AdminPage() {
 
       {/* ── Announcement confirmation dialog ── */}
       {announceConfirmOpen && (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/50 px-4 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-[#09090b]/50 px-4 backdrop-blur-sm">
           <div
             aria-labelledby="announcement-confirm-title"
             aria-modal="true"
@@ -2637,14 +2636,14 @@ export default function AdminPage() {
             </div>
             <div className="border-t border-[var(--color-line)] px-6 py-4 flex justify-end gap-3">
               <button
-                className="rounded-full border border-[var(--color-line)] bg-[var(--color-input)] px-5 py-2.5 text-sm font-bold text-[var(--color-muted)] transition hover:bg-[var(--color-soft)] hover:text-[var(--color-ink)]"
+                className="rounded-full border border-[var(--color-line)] bg-[var(--color-input)] px-5 py-2.5 text-sm font-bold text-[var(--color-muted)] transition active:bg-[var(--color-soft)] active:text-[var(--color-ink)] active:scale-[0.98] md:hover:bg-[var(--color-soft)] md:hover:text-[var(--color-ink)]"
                 onClick={() => setAnnounceConfirmOpen(false)}
                 type="button"
               >
                 取消
               </button>
               <button
-                className="rounded-full bg-[var(--color-brand)] px-5 py-2.5 text-sm font-bold text-[var(--color-on-brand)] transition hover:bg-[var(--color-brand-deep)]"
+                className="rounded-full bg-[var(--color-brand)] px-5 py-2.5 text-sm font-bold text-[var(--color-on-brand)] transition active:bg-[var(--color-brand-deep)] active:scale-[0.98] md:hover:bg-[var(--color-brand-deep)]"
                 onClick={() => void handleConfirmPublishAnnouncement()}
                 type="button"
               >

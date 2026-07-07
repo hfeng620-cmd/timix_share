@@ -84,47 +84,49 @@ export function EditPanelModal({ open, mode, targetId, initialName, initialDesc,
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/50 backdrop-blur-xl px-4" onClick={onClose}>
-      <div className="relative w-full max-w-5xl max-h-[85vh] overflow-hidden rounded-3xl border border-white/15 bg-black/80 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-        <button onClick={onClose} className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white/50 hover:bg-white/20 hover:text-white transition z-20" type="button"><X className="h-4 w-4" /></button>
+    <div className="fixed inset-0 z-[110] flex items-end sm:items-center justify-center bg-[#09090b]/50 px-0 backdrop-blur-xl sm:px-4" onClick={onClose}>
+      <div className="relative w-full max-h-[88dvh] overflow-hidden rounded-t-3xl sm:rounded-3xl border border-white/10 bg-zinc-950/95 pb-[env(safe-area-inset-bottom,0px)] shadow-2xl sm:max-w-5xl sm:border-white/15 sm:bg-[#09090b]/80 sm:pb-0" onClick={(e) => e.stopPropagation()}>
+        {/* Drag handle for mobile */}
+        <div className="w-12 h-1.5 bg-zinc-300 dark:bg-zinc-700 rounded-full mx-auto mt-3 mb-1 shrink-0 sm:hidden" />
+        <button onClick={onClose} className="absolute right-3 top-3 z-20 flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white/50 transition active:scale-95 active:bg-white/20 active:scale-[0.98] md:hover:bg-white/20 md:hover:text-white sm:right-4 sm:top-4" type="button"><X className="h-5 w-5" /></button>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[7fr_3fr] max-h-[85vh]">
+        <div className="grid max-h-[88dvh] grid-cols-1 lg:max-h-[85vh] lg:grid-cols-[7fr_3fr]">
           {/* Left: Form */}
-          <div className="overflow-y-auto max-h-[85vh] p-6 sm:p-8">
-            <h2 className="text-xl font-heading italic text-white mb-6">
-              {mode === "folder" ? "编辑板块" : "编辑帖子"}
+          <div className="max-h-[88dvh] overflow-y-auto p-4 sm:p-6 lg:max-h-[85vh] lg:p-8">
+            <h2 className="mb-4 text-base font-heading italic text-white sm:mb-6 sm:text-xl">
+              {mode === "folder" ? "编辑板块" : "编辑分享"}
             </h2>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-xs text-white/40 font-body mb-1.5">{mode === "folder" ? "板块名称" : "标题"}</label>
-                <input className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none placeholder:text-white/25 focus:border-white/30 transition font-body"
+                <label className="block text-xs text-white/40 font-body mb-1.5">{mode === "folder" ? "板块名称" : "分享标题"}</label>
+                <input className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-[13px] text-white outline-none placeholder:text-white/25 transition focus:border-white/30 font-body sm:px-4 sm:py-3 sm:text-sm"
                   value={name} onChange={(e) => setName(e.target.value)} />
               </div>
               <div>
-                <label className="block text-xs text-white/40 font-body mb-1.5">简介</label>
-                <textarea className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none placeholder:text-white/25 focus:border-white/30 transition font-body resize-none"
+                <label className="block text-xs text-white/40 font-body mb-1.5">{mode === "folder" ? "板块说明" : "分享简介"}</label>
+                <textarea className="w-full resize-none rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-[13px] text-white outline-none placeholder:text-white/25 transition focus:border-white/30 font-body sm:px-4 sm:py-3 sm:text-sm"
                   rows={2} value={desc} onChange={(e) => setDesc(e.target.value)} />
               </div>
               {mode === "post" && (
                 <>
                   <div>
-                    <label className="block text-xs text-white/40 font-body mb-1.5">链接</label>
-                    <input className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none placeholder:text-white/25 focus:border-white/30 transition font-body"
+                    <label className="block text-xs text-white/40 font-body mb-1.5">分享链接</label>
+                    <input className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-[13px] text-white outline-none placeholder:text-white/25 transition focus:border-white/30 font-body sm:px-4 sm:py-3 sm:text-sm"
                       value={link} onChange={(e) => setLink(e.target.value)} placeholder="例如: 官网: https://a.com ;; 备用: https://b.com" />
-                    <p className="mt-1.5 flex items-center gap-1 text-[11px] font-light tracking-wider text-white/30">
+                    <p className="mt-1.5 flex items-center gap-1 text-[10px] font-light text-white/30 sm:text-[11px]">
                       <span className="text-white/50">*</span>
-                      选填。如需放置多个链接，请使用双分号 <span className="rounded bg-emerald-500/10 px-1 font-mono text-emerald-500/50">;;</span> 隔开
+                      选填，多个链接用 <span className="rounded bg-emerald-500/10 px-1 font-mono text-emerald-500/50">;;</span> 分隔
                     </p>
                   </div>
                   <div>
                     <div className="flex items-center justify-between mb-1.5">
-                      <label className="text-xs text-white/40 font-body">正文</label>
+                      <label className="text-xs text-white/40 font-body">分享正文</label>
                       <button
                         type="button"
                         onClick={triggerUpload}
                         disabled={uploading}
-                        className="inline-flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-200 transition-colors disabled:opacity-40 font-body"
+                        className="inline-flex items-center gap-1 text-xs text-zinc-500 transition-colors disabled:opacity-40 font-body active:text-zinc-200 active:scale-[0.98] md:hover:text-zinc-200"
                         title="上传图片 (Ctrl+V 粘贴)"
                       >
                         {uploading ? (
@@ -137,12 +139,12 @@ export function EditPanelModal({ open, mode, targetId, initialName, initialDesc,
                     </div>
                     <textarea
                       ref={textareaRef}
-                      className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none placeholder:text-white/25 focus:border-white/30 transition font-body resize-none"
+                      className="w-full resize-none rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-[13px] text-white outline-none placeholder:text-white/25 transition focus:border-white/30 font-body sm:px-4 sm:py-3 sm:text-sm"
                       rows={8}
                       value={body}
                       onChange={(e) => setBody(e.target.value)}
                       onPaste={onPaste}
-                      placeholder="详细介绍该项目的特点... (Ctrl+V 粘贴截图)"
+                      placeholder="特点、体验、教程都可以写。支持粘贴截图"
                     />
                   </div>
                 </>
@@ -152,17 +154,17 @@ export function EditPanelModal({ open, mode, targetId, initialName, initialDesc,
             <FileInput />
             {error && <p className="mt-4 text-sm text-red-400 font-body">{error}</p>}
 
-            <div className="mt-6 flex items-center gap-3">
+            <div className="mt-5 flex items-center gap-2 sm:mt-6 sm:gap-3" style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 16px)' }}>
               <button onClick={handleSave} disabled={saving}
-                className="rounded-full bg-white/15 px-5 py-2.5 text-sm font-medium text-white hover:bg-white/25 disabled:opacity-50 transition font-body">
+                className="rounded-full bg-white/15 px-4 py-2 text-xs font-medium text-white transition active:scale-[0.98] active:bg-white/25 md:hover:bg-white/25 disabled:opacity-50 font-body sm:px-5 sm:py-2.5 sm:text-sm">
                 {saving ? "保存中..." : "保存修改"}
               </button>
-              <button onClick={onClose} className="rounded-full px-4 py-2.5 text-sm text-white/40 hover:text-white transition font-body">取消</button>
+              <button onClick={onClose} className="rounded-full px-4 py-2 text-xs text-white/40 transition active:text-white active:scale-[0.98] md:hover:text-white font-body sm:py-2.5 sm:text-sm">取消</button>
             </div>
           </div>
 
           {/* Right: Edit History */}
-          <div className="overflow-y-auto max-h-[85vh] bg-white/[0.02] border-l border-white/10 p-6">
+          <div className="max-h-[40vh] overflow-y-auto border-t border-white/10 bg-white/[0.02] p-4 sm:p-6 lg:max-h-[85vh] lg:border-l lg:border-t-0">
             <div className="flex items-center gap-2 mb-6">
               <Clock className="h-4 w-4 text-white/40" />
               <h3 className="text-sm font-heading italic text-white/70">修改日志</h3>
@@ -175,7 +177,7 @@ export function EditPanelModal({ open, mode, targetId, initialName, initialDesc,
               <div className="relative pl-6 border-l border-white/10">
                 {editLogs.map((log) => (
                   <div key={log.id} className="relative pb-6 last:pb-0">
-                    <div className="absolute -left-[9px] top-1 h-[18px] w-[18px] rounded-full border-2 border-white/20 bg-black" />
+                    <div className="absolute -left-[9px] top-1 h-[18px] w-[18px] rounded-full border-2 border-white/20 bg-[#09090b]" />
                     <div className="space-y-1.5">
                       <span className="text-[11px] text-white/30 font-body">{relativeTime(log.createdAt)}</span>
                       <div className="flex items-center gap-2">

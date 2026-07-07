@@ -7,9 +7,16 @@
     "start:named-tunnel": "powershell -ExecutionPolicy Bypass -File .\\scripts\\start-timin-named-tunnel.ps1",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "mobile:build": "next build && node scripts/flatten-mobile-css.mjs && cap sync android",
+    "mobile:android": "npm run mobile:build && cap open android",
+    "mobile:apk:debug": "npm run mobile:build && cd android && gradlew assembleDebug",
+    "mobile:apk:release": "npm run mobile:build && cd android && gradlew assembleRelease",
+    "mobile:check": "powershell -ExecutionPolicy Bypass -File .\\scripts\\check-android-env.ps1"
   },
   "dependencies": {
+    "@capacitor/core": "^8.4.1",
+    "@capacitor/local-notifications": "^8.2.0",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.6.1",
     "@supabase/supabase-js": "^2.108.2",
@@ -17,13 +24,15 @@
     "hls.js": "^1.6.16",
     "lucide-react": "^0.462.0",
     "motion": "^12.42.0",
-    "next": "16.2.9",
+    "next": "16.2.10",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "three": "^0.185.0",
     "zustand": "^5.0.14"
   },
   "devDependencies": {
+    "@capacitor/android": "^8.4.1",
+    "@capacitor/cli": "^8.4.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

@@ -13,14 +13,15 @@ import { PwaInstallButton } from "@/components/pwa-install-prompt";
 import { OnlineIndicator } from "@/components/online-indicator";
 import { useForumAuth } from "@/lib/forum-auth";
 import { getSupabaseClient, isSupabaseConfigured } from "@/lib/supabase";
+import { showNativeNotification } from "@/lib/native-notifications";
 
 const links = [
-  { label: "首页", href: "/" },
+  { label: "分享", href: "/" },
   { label: "中转站榜单", href: "/stations" },
   { label: "论坛入口", href: "/community" },
   { label: "模型择优", href: "/models" },
   { label: "福利Drop", href: "/drops" },
-  { label: "热门有趣项目Share", href: "/guides" },
+  { label: "分享", href: "/guides" },
 ];
 
 type IncomingDirectMessageRow = {
@@ -96,10 +97,19 @@ export function Navbar() {
             avatarUrl: String((senderProfile as Record<string, unknown> | null)?.avatar_url ?? ""),
           };
 
+          const message = getMessageContent(newMessage);
+
           setIncomingPopup({
             id: newMessage.id ?? `${newMessage.sender_id}-${Date.now()}`,
-            message: getMessageContent(newMessage),
+            message,
             sender,
+          });
+
+          void showNativeNotification({
+            title: `${sender.displayName} 发来一条私信`,
+            body: message,
+            tag: newMessage.id ?? `dm-${newMessage.sender_id}`,
+            url: "/profile",
           });
 
           if (popupTimerRef.current) {
@@ -125,7 +135,7 @@ export function Navbar() {
   const incomingPopupPortal = mounted && incomingPopup ? createPortal(
     <div className="fixed right-4 top-20 z-[99999] animate-in fade-in slide-in-from-top-10 duration-300 md:right-8">
       <div
-        className="group w-80 cursor-pointer rounded-2xl border border-emerald-500/30 bg-zinc-900/95 p-4 shadow-[0_0_30px_rgba(16,185,129,0.15)] backdrop-blur-xl transition-all hover:bg-zinc-800"
+        className="group w-80 cursor-pointer rounded-2xl border border-emerald-500/30 bg-zinc-900/95 p-4 shadow-[0_0_30px_rgba(16,185,129,0.15)] backdrop-blur-xl transition-all active:bg-zinc-800 active:scale-[0.98] md:hover:bg-zinc-800"
         onClick={() => {
           setActiveChatUser(incomingPopup.sender);
           setIncomingPopup(null);
@@ -166,7 +176,7 @@ export function Navbar() {
 
           <button
             aria-label="关闭私信提醒"
-            className="shrink-0 rounded-md p-1 text-zinc-500 transition-colors hover:text-white"
+            className="shrink-0 rounded-md p-2.5 text-zinc-500 transition-colors active:text-white active:scale-[0.98] md:hover:text-white"
             onClick={(event) => {
               event.stopPropagation();
               setIncomingPopup(null);
@@ -194,14 +204,14 @@ export function Navbar() {
           className="group flex shrink-0 items-center transition-all duration-300"
         >
           <span
-            className="text-2xl tracking-wide font-extrabold bg-clip-text text-transparent bg-gradient-to-b from-white via-gray-100 to-gray-400"
-            style={{ filter: "drop-shadow(0 0 10px rgba(255,255,255,0.25))" }}
+            className="text-2xl tracking-wide font-extrabold text-[var(--mobile-app-ink)] lg:bg-gradient-to-b lg:from-white lg:via-gray-100 lg:to-gray-400 lg:bg-clip-text lg:text-transparent"
+            style={{ filter: "drop-shadow(0 0 10px color-mix(in srgb, var(--mobile-app-primary, white) 26%, transparent))" }}
           >
             Ti
           </span>
           <span
-            className="text-2xl tracking-wide font-light bg-clip-text text-transparent bg-gradient-to-b from-white via-gray-200 to-gray-500"
-            style={{ filter: "drop-shadow(0 0 8px rgba(255,255,255,0.15))" }}
+            className="text-2xl tracking-wide font-light text-[var(--mobile-app-muted)] lg:bg-gradient-to-b lg:from-white lg:via-gray-200 lg:to-gray-500 lg:bg-clip-text lg:text-transparent"
+            style={{ filter: "drop-shadow(0 0 8px color-mix(in srgb, var(--mobile-app-primary, white) 18%, transparent))" }}
           >
             Mix
           </span>
@@ -228,7 +238,7 @@ export function Navbar() {
                 className={`rounded-full px-3.5 py-2 text-sm font-medium transition-all duration-200 font-body ${
                   active
                     ? "bg-white/18 text-white shadow-[inset_0_0.5px_0_rgba(255,255,255,0.15)]"
-                    : "text-white/65 hover:text-white hover:bg-white/6"
+                    : "text-white/65 active:text-white active:bg-white/6 active:scale-[0.98] md:hover:text-white md:hover:bg-white/6"
                 }`}
               >
                 {link.label}
@@ -255,7 +265,7 @@ export function Navbar() {
           <PwaInstallButton />
           <button
             aria-label="我的私信"
-            className="relative hidden h-10 w-10 items-center justify-center rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] text-[var(--color-muted)] transition hover:border-emerald-500/40 hover:bg-emerald-500/10 hover:text-emerald-300 sm:flex"
+            className="relative flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-zinc-400 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition active:bg-white/[0.08] active:text-zinc-100 active:scale-[0.98] md:hover:bg-white/[0.08] md:hover:text-zinc-100 sm:h-10 sm:w-10"
             onClick={() => setIsInboxOpen(true)}
             title="我的私信"
             type="button"

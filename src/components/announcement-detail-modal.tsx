@@ -48,7 +48,7 @@ export function AnnouncementDetailModal({ notice, onClose }: Props) {
   return createPortal(
     <div
       aria-modal="true"
-      className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/80 p-4 backdrop-blur-md transition-all sm:p-6"
+      className="fixed inset-0 z-[99999] flex items-center justify-center bg-[#09090b]/80 p-4 backdrop-blur-md transition-all sm:p-6"
       onClick={onClose}
       role="dialog"
     >

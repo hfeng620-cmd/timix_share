@@ -116,8 +116,8 @@ export function EmojiPickerButton({
                   key={item.insertText}
                   className={`group flex items-center gap-3 rounded-2xl border px-3.5 py-3 text-left text-xs transition ${
                     item.insertText === "[狗头]"
-                      ? "border-amber-300/20 bg-amber-400/10 text-amber-50 hover:border-amber-200/40 hover:bg-amber-300/15"
-                      : "border-white/10 bg-white/[0.04] text-zinc-300 hover:border-white/20 hover:bg-white/[0.08] hover:text-white"
+                      ? "border-amber-300/20 bg-amber-400/10 text-amber-50 active:border-amber-200/40 active:scale-[0.98] active:bg-amber-300/15 md:hover:border-amber-200/40 md:hover:bg-amber-300/15"
+                      : "border-white/10 bg-white/[0.04] text-zinc-300 active:border-white/20 active:scale-[0.98] active:bg-white/[0.08] active:text-white md:hover:border-white/20 md:hover:bg-white/[0.08] md:hover:text-white"
                   }`}
                   onClick={() => {
                     onEmojiSelect(item.insertText);
@@ -136,7 +136,7 @@ export function EmojiPickerButton({
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block text-sm font-medium">{item.label}</span>
-                    <span className="mt-0.5 block text-[10px] text-zinc-500 transition group-hover:text-zinc-300">
+                    <span className="mt-0.5 block text-[10px] text-zinc-500 transition active:text-zinc-300 md:group-hover:text-zinc-300">
                       {(HOT_EMOJI_HINTS[item.insertText] ?? []).join("  ")}
                     </span>
                   </span>
@@ -148,7 +148,7 @@ export function EmojiPickerButton({
             <div className="mb-3 flex items-center justify-between gap-3">
               <p className="text-[11px] font-medium tracking-[0.18em] text-zinc-500">常用原生</p>
               <button
-                className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[10px] text-zinc-400 transition hover:border-white/20 hover:text-white"
+                className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[10px] text-zinc-400 transition active:border-white/20 active:scale-[0.98] active:text-white md:hover:border-white/20 md:hover:text-white"
                 onClick={() => setShowNativePicker((current) => !current)}
                 type="button"
               >
@@ -160,7 +160,7 @@ export function EmojiPickerButton({
               {COMMON_NATIVE_EMOJIS.map((emoji) => (
                 <button
                   key={emoji}
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-lg transition hover:border-white/20 hover:bg-white/[0.08]"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-lg transition active:border-white/20 active:scale-[0.98] active:bg-white/[0.08] md:hover:border-white/20 md:hover:bg-white/[0.08]"
                   onClick={() => {
                     onEmojiSelect(emoji);
                     onClose();

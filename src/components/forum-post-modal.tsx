@@ -27,7 +27,6 @@ type ForumPostModalProps = {
   post: DiscussionPost;
   comments?: DiscussionReply[];
   commentsLoading: boolean;
-  currentUserId?: string;
   adminUserIds: Set<string>;
   ownerUserIds: Set<string>;
   isConnected: boolean;
@@ -104,7 +103,6 @@ export function ForumPostModal({
   post,
   comments,
   commentsLoading,
-  currentUserId,
   adminUserIds,
   ownerUserIds,
   isConnected,
@@ -291,25 +289,28 @@ export function ForumPostModal({
     <div
       ref={overlayRef}
       aria-modal="true"
-      className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center px-4 py-5"
+      className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-[#09090b]/80 px-0 py-0 backdrop-blur-md sm:px-4 sm:py-5"
       onClick={onClose}
       role="dialog"
       tabIndex={-1}
     >
       <div
-        className="relative w-[90vw] max-w-6xl h-[85vh] bg-zinc-950 border border-white/10 rounded-2xl shadow-2xl flex overflow-hidden"
+        className="fixed inset-x-0 bottom-0 top-12 sm:top-auto sm:inset-auto sm:relative w-full sm:w-[90vw] sm:max-w-6xl h-[90dvh] sm:h-[85vh] max-h-[90dvh] bg-white dark:bg-zinc-950 sm:bg-zinc-950 rounded-t-3xl sm:rounded-2xl flex flex-col sm:flex-row overflow-hidden border border-white/10 shadow-2xl"
         onClick={(event) => event.stopPropagation()}
       >
+        {/* Mobile drag handle */}
+        <div className="w-12 h-1.5 bg-zinc-300 dark:bg-zinc-700 rounded-full mx-auto mt-3 mb-1 shrink-0 sm:hidden" />
+
         <button
           aria-label="关闭帖子详情"
-          className="absolute right-5 top-5 z-10 inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-black/30 text-zinc-400 transition hover:text-white"
+          className="absolute right-3 top-3 z-10 inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-[#09090b]/55 text-zinc-400 transition active:text-white active:scale-95 md:right-5 md:top-5 md:hover:text-white"
           onClick={onClose}
           type="button"
         >
           <X className="h-5 w-5" />
         </button>
 
-        <div className="forum-post-modal-scrollbar flex-1 overflow-y-auto p-8 lg:p-12">
+        <div className="forum-post-modal-scrollbar flex-1 overflow-y-auto p-4 pr-12 md:p-8 lg:p-12">
           <div className="flex flex-wrap items-center gap-2">
             {post.tags.map((tag) => (
               <span
@@ -320,7 +321,7 @@ export function ForumPostModal({
               </span>
             ))}
             {post.station ? (
-              <span className="rounded-full border border-white/10 bg-sky-500/10 px-3 py-1 text-[11px] font-medium text-sky-200">
+              <span className="rounded-full border border-white/10 bg-white/[0.05] px-3 py-1 text-[11px] font-medium text-zinc-300">
                 {post.station}
               </span>
             ) : null}
@@ -331,7 +332,7 @@ export function ForumPostModal({
             ) : null}
           </div>
 
-          <h2 className="mt-5 text-3xl font-medium text-zinc-100 tracking-tight leading-snug">
+          <h2 className="mt-3 text-xl font-semibold leading-snug tracking-tight text-zinc-100 md:mt-5 md:text-3xl md:font-medium">
             {post.station || "论坛讨论帖"}
           </h2>
 
@@ -381,12 +382,12 @@ export function ForumPostModal({
                   </span>
                 ) : null}
                 {post.authorId && !ownerUserIds.has(post.authorId) && adminUserIds.has(post.authorId) ? (
-                  <span className="rounded border border-blue-500/20 bg-blue-500/10 px-2 py-0.5 text-xs font-bold text-blue-400">
+                  <span className="rounded border border-white/10 bg-white/[0.06] px-2 py-0.5 text-xs font-bold text-zinc-300">
                     管理员
                   </span>
                 ) : null}
                 {post.authorCustomTitle ? (
-                  <span className="rounded-md border border-purple-500/20 bg-purple-500/10 px-2 py-0.5 text-xs font-bold text-purple-400">
+                  <span className="rounded-md border border-white/10 bg-white/[0.06] px-2 py-0.5 text-xs font-bold text-zinc-300">
                     {post.authorCustomTitle}
                   </span>
                 ) : null}
@@ -399,7 +400,7 @@ export function ForumPostModal({
             </div>
           </div>
 
-          <div className="mt-8 whitespace-pre-wrap break-words text-[15px] leading-8 text-zinc-200">
+          <div className="mt-4 whitespace-pre-wrap break-words text-sm leading-7 text-zinc-200 md:mt-8 md:text-[15px] md:leading-8">
             <MarkdownContent
               text={post.body}
               imageClassName="my-3 max-h-[420px] w-auto max-w-full cursor-zoom-in rounded-xl border border-white/10 object-cover transition-opacity hover:opacity-90"
@@ -407,10 +408,10 @@ export function ForumPostModal({
             />
           </div>
 
-          <div className="mt-10 flex flex-wrap items-center gap-3 border-t border-white/10 pt-5">
+          <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-white/10 pt-3 md:mt-10 md:gap-3 md:pt-5">
             <button
               className={`inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm transition ${
-                postLiked ? "bg-rose-500/10 text-rose-300" : "bg-white/5 text-zinc-400 hover:text-zinc-100"
+                postLiked ? "bg-rose-500/10 text-rose-300" : "bg-white/5 text-zinc-400 active:text-zinc-100 active:scale-[0.98] md:hover:text-zinc-100"
               }`}
               onClick={() => onTogglePostLike(post.issueNumber)}
               type="button"
@@ -424,7 +425,7 @@ export function ForumPostModal({
             </div>
             <button
               className={`inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm transition ${
-                postBookmarked ? "bg-amber-500/10 text-amber-300" : "bg-white/5 text-zinc-400 hover:text-zinc-100"
+                postBookmarked ? "bg-amber-500/10 text-amber-300" : "bg-white/5 text-zinc-400 active:text-zinc-100 active:scale-[0.98] md:hover:text-zinc-100"
               }`}
               onClick={() => onToggleBookmark(post.issueNumber)}
               type="button"
@@ -435,22 +436,22 @@ export function ForumPostModal({
           </div>
         </div>
 
-        <aside className="w-[380px] flex flex-col border-l border-white/10 bg-zinc-900/20">
-          <div className="py-4 border-b border-white/10 text-center text-sm text-zinc-300 font-medium">💬 评论</div>
+        <aside className="flex h-[50vh] min-h-0 w-full shrink-0 flex-col border-t border-white/10 bg-zinc-900/20 md:h-auto md:w-[380px] md:border-l md:border-t-0">
+          <div className="shrink-0 border-b border-white/10 py-2.5 text-center text-xs font-medium text-zinc-300 md:py-4 md:text-sm">评论</div>
 
-          <div className="forum-post-modal-scrollbar flex-1 overflow-y-auto p-4">
+          <div className="forum-post-modal-scrollbar flex-1 overflow-y-auto overscroll-contain p-3 md:p-4">
             {commentsLoading ? (
               <div className="flex items-center justify-center py-16 text-zinc-500">
                 <Loader2 className="h-5 w-5 animate-spin" />
               </div>
             ) : renderedComments.length === 0 ? (
-              <p className="py-14 text-center text-sm text-zinc-500">暂无评论, 来抢个沙发吧 ✨</p>
+              <p className="py-14 text-center text-sm text-zinc-500">暂无评论</p>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-0 md:space-y-4">
                 {renderedComments.map((reply) => {
                   const liked = likedReplies.has(reply.id);
                   return (
-                    <div key={reply.id} className="rounded-2xl border border-white/6 bg-white/[0.03] p-3.5">
+                    <div key={reply.id} className="border-b border-zinc-100 dark:border-white/5 pb-4 last:border-b-0 md:rounded-2xl md:border md:border-white/6 md:bg-white/[0.03] md:p-3.5 md:pb-3.5">
                       <div className="flex gap-3">
                         {reply.authorId ? (
                           <Link
@@ -493,19 +494,19 @@ export function ForumPostModal({
                               </span>
                             ) : null}
                             {reply.authorId && !ownerUserIds.has(reply.authorId) && adminUserIds.has(reply.authorId) ? (
-                              <span className="rounded border border-blue-500/20 bg-blue-500/10 px-2 py-0.5 text-[10px] font-bold text-blue-400">
+                              <span className="rounded border border-white/10 bg-white/[0.06] px-2 py-0.5 text-[10px] font-bold text-zinc-300">
                                 管理员
                               </span>
                             ) : null}
                             {reply.authorCustomTitle ? (
-                              <span className="rounded-md border border-purple-500/20 bg-purple-500/10 px-2 py-0.5 text-[10px] font-bold text-purple-400">
+                              <span className="rounded-md border border-white/10 bg-white/[0.06] px-2 py-0.5 text-[10px] font-bold text-zinc-300">
                                 {reply.authorCustomTitle}
                               </span>
                             ) : null}
                             <span>{formatRelativeTime(reply.postedAt)}</span>
                           </div>
 
-                          <div className="mt-2 whitespace-pre-wrap break-words text-sm leading-7 text-zinc-300">
+                          <div className="mt-1.5 whitespace-pre-wrap break-words text-xs leading-6 text-zinc-300 md:mt-2 md:text-sm md:leading-7">
                             <MarkdownContent
                               text={reply.body}
                               imageClassName="mt-2 max-h-52 w-auto cursor-zoom-in rounded-lg border border-white/10 object-cover transition-opacity hover:opacity-90"
@@ -516,7 +517,7 @@ export function ForumPostModal({
                           <div className="mt-2 flex items-center gap-4">
                             <button
                               className={`inline-flex items-center gap-1 text-xs transition ${
-                                liked ? "text-rose-400" : "text-zinc-500 hover:text-zinc-300"
+                                liked ? "text-rose-400" : "text-zinc-500 active:text-zinc-300 active:scale-[0.98] md:hover:text-zinc-300"
                               }`}
                               onClick={() => onToggleReplyLike(post.issueNumber, reply.id)}
                               type="button"
@@ -525,7 +526,7 @@ export function ForumPostModal({
                               <span>{reply.likes > 0 ? reply.likes : "点赞"}</span>
                             </button>
                             <button
-                              className="text-xs text-zinc-500 transition hover:text-zinc-300"
+                              className="text-xs text-zinc-500 transition active:text-zinc-300 active:scale-[0.98] md:hover:text-zinc-300"
                               onClick={() => focusComposerWithMention(reply.author, reply)}
                               type="button"
                             >
@@ -541,11 +542,14 @@ export function ForumPostModal({
             )}
           </div>
 
-          <div className="shrink-0 border-t border-white/10 bg-zinc-950/90 p-4">
+          <div
+            className="shrink-0 border-t border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-zinc-900 p-3 md:p-4"
+            style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 12px)' }}
+          >
             {replyTarget ? (
               <div className="mb-2 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2">
                 <p className="text-[11px] font-medium text-zinc-400">
-                  回复 <span className="text-sky-300">@{replyTarget}</span>
+                  回复 <span className="text-zinc-300">@{replyTarget}</span>
                 </p>
                 {replyQuote ? (
                   <p className="mt-1 line-clamp-2 text-[11px] leading-5 text-zinc-500">{replyQuote.body}</p>
@@ -567,7 +571,7 @@ export function ForumPostModal({
                         className={`rounded-full border px-2.5 py-1 text-[11px] transition ${
                           activeSlashEmoji.exactMatch?.insertText === item.insertText
                             ? "border-amber-300/25 bg-amber-300/12 text-amber-100"
-                            : "border-white/10 bg-white/[0.04] text-zinc-400 hover:border-white/20 hover:text-white"
+                            : "border-white/10 bg-white/[0.04] text-zinc-400 active:border-white/20 active:text-white active:scale-[0.98] md:hover:border-white/20 md:hover:text-white"
                         }`}
                         onClick={() => {
                           applySlashEmoji(item, true);
@@ -579,80 +583,103 @@ export function ForumPostModal({
                     ))}
                   </div>
                 ) : null}
-                <textarea
-                  ref={composerRef}
-                  className="min-h-[88px] w-full resize-none rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 pr-32 text-sm leading-6 text-zinc-100 outline-none transition placeholder:text-zinc-500 focus:border-white/25"
-                  onChange={(event) => {
-                    setComposerValue(event.target.value);
-                    setComposerCursor(event.currentTarget.selectionStart ?? event.target.value.length);
-                  }}
-                  onKeyDown={(event) => {
-                    if (event.nativeEvent.isComposing) return;
-                    const activeSlash = getActiveSlashEmoji(composerValue, event.currentTarget.selectionStart ?? composerValue.length);
-                    if (activeSlash?.matches.length) {
-                      if (event.key === "Tab" || (event.key === "Enter" && !event.shiftKey)) {
-                        event.preventDefault();
-                        applySlashEmoji(activeSlash.matches[0], true);
-                        return;
-                      }
-
-                      if (event.key === " " && activeSlash.exactMatch) {
-                        event.preventDefault();
-                        applySlashEmoji(activeSlash.exactMatch, true);
-                        return;
-                      }
-                    }
-
-                    if (event.key === "Enter" && !event.shiftKey) {
-                      event.preventDefault();
-                      void handleSubmit();
-                    }
-                  }}
-                  onPaste={handlePaste}
-                  onSelect={(event) => setComposerCursor(event.currentTarget.selectionStart ?? composerValue.length)}
-                  placeholder={replyTarget ? `回复 @${replyTarget}...` : "说点什么... (Enter 发送, Shift+Enter 换行)"}
-                  rows={3}
-                  value={composerValue}
-                />
-                <input
-                  ref={fileInputRef}
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(event) => {
-                    void handleComposerImageChange(event);
-                  }}
-                  type="file"
-                />
-                <div className="absolute bottom-3 right-4 flex items-center gap-2.5">
-                  <button
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-full text-zinc-500 transition hover:text-zinc-200 disabled:opacity-40"
-                    disabled={uploadingImage}
-                    onClick={() => fileInputRef.current?.click()}
-                    title="上传图片"
-                    type="button"
-                  >
-                    {uploadingImage ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImageIcon className="h-4 w-4" />}
-                  </button>
-                  <EmojiPickerButton
-                    align="right"
-                    buttonClassName="inline-flex h-9 w-9 items-center justify-center rounded-full text-zinc-500 transition hover:text-zinc-200 disabled:opacity-40"
-                    disabled={replySubmitting}
-                    iconClassName="h-4 w-4"
-                    onClose={() => setShowEmojiPicker(false)}
-                    onEmojiSelect={insertEmojiAtCursor}
-                    onToggle={() => setShowEmojiPicker((current) => !current)}
-                    open={showEmojiPicker}
-                  />
-                  <button
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-zinc-200 transition hover:bg-white/20 disabled:opacity-40"
-                    disabled={replySubmitting || !composerValue.trim()}
-                    onClick={() => {
-                      void handleSubmit();
+                <div className="flex items-center gap-2">
+                  <textarea
+                    ref={composerRef}
+                    className="min-h-10 flex-1 resize-none rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-sm leading-6 text-zinc-100 outline-none transition placeholder:text-zinc-500 focus:border-white/25 md:min-h-[88px] md:rounded-2xl md:px-4 md:py-3"
+                    onChange={(event) => {
+                      setComposerValue(event.target.value);
+                      setComposerCursor(event.currentTarget.selectionStart ?? event.target.value.length);
                     }}
-                    type="button"
-                  >
-                    {replySubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                  </button>
+                    onKeyDown={(event) => {
+                      if (event.nativeEvent.isComposing) return;
+                      const activeSlash = getActiveSlashEmoji(composerValue, event.currentTarget.selectionStart ?? composerValue.length);
+                      if (activeSlash?.matches.length) {
+                        if (event.key === "Tab" || (event.key === "Enter" && !event.shiftKey)) {
+                          event.preventDefault();
+                          applySlashEmoji(activeSlash.matches[0], true);
+                          return;
+                        }
+
+                        if (event.key === " " && activeSlash.exactMatch) {
+                          event.preventDefault();
+                          applySlashEmoji(activeSlash.exactMatch, true);
+                          return;
+                        }
+                      }
+
+                      if (event.key === "Enter" && !event.shiftKey) {
+                        event.preventDefault();
+                        void handleSubmit();
+                      }
+                    }}
+                    onPaste={handlePaste}
+                    onSelect={(event) => setComposerCursor(event.currentTarget.selectionStart ?? composerValue.length)}
+                    placeholder={replyTarget ? `回复 @${replyTarget}...` : "说点什么..."}
+                    rows={1}
+                    value={composerValue}
+                  />
+                  <input
+                    ref={fileInputRef}
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(event) => {
+                      void handleComposerImageChange(event);
+                    }}
+                    type="file"
+                  />
+                  <div className="flex shrink-0 items-center gap-1.5 md:hidden">
+                    <button
+                      className="inline-flex h-11 w-11 items-center justify-center rounded-full text-zinc-500 transition active:text-zinc-200 active:scale-[0.98] disabled:opacity-40"
+                      disabled={uploadingImage}
+                      onClick={() => fileInputRef.current?.click()}
+                      title="上传图片"
+                      type="button"
+                    >
+                      {uploadingImage ? <Loader2 className="h-5 w-5 animate-spin" /> : <ImageIcon className="h-5 w-5" />}
+                    </button>
+                    <button
+                      className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-zinc-200 transition active:bg-white/20 active:scale-[0.98] disabled:opacity-40"
+                      disabled={replySubmitting || !composerValue.trim()}
+                      onClick={() => {
+                        void handleSubmit();
+                      }}
+                      type="button"
+                    >
+                      {replySubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
+                    </button>
+                  </div>
+                  <div className="absolute bottom-3 right-4 hidden items-center gap-2.5 md:flex">
+                    <button
+                      className="inline-flex h-11 w-11 items-center justify-center rounded-full text-zinc-500 transition active:text-zinc-200 active:scale-[0.98] disabled:opacity-40 md:hover:text-zinc-200"
+                      disabled={uploadingImage}
+                      onClick={() => fileInputRef.current?.click()}
+                      title="上传图片"
+                      type="button"
+                    >
+                      {uploadingImage ? <Loader2 className="h-5 w-5 animate-spin" /> : <ImageIcon className="h-5 w-5" />}
+                    </button>
+                    <EmojiPickerButton
+                      align="right"
+                      buttonClassName="inline-flex h-11 w-11 items-center justify-center rounded-full text-zinc-500 transition active:text-zinc-200 active:scale-[0.98] disabled:opacity-40 md:hover:text-zinc-200"
+                      disabled={replySubmitting}
+                      iconClassName="h-5 w-5"
+                      onClose={() => setShowEmojiPicker(false)}
+                      onEmojiSelect={insertEmojiAtCursor}
+                      onToggle={() => setShowEmojiPicker((current) => !current)}
+                      open={showEmojiPicker}
+                    />
+                    <button
+                      className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-zinc-200 transition active:bg-white/20 active:scale-[0.98] disabled:opacity-40 md:hover:bg-white/20"
+                      disabled={replySubmitting || !composerValue.trim()}
+                      onClick={() => {
+                        void handleSubmit();
+                      }}
+                      type="button"
+                    >
+                      {replySubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
+                    </button>
+                  </div>
                 </div>
               </div>
             )}

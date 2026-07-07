@@ -9,11 +9,11 @@ import { loadCampaigns, type Campaign } from "@/lib/drop-storage";
 
 function CampaignCardSkeleton() {
   return (
-    <div className="rounded-2xl border border-white/6 bg-zinc-900/40 p-6 backdrop-blur-md">
-      <div className="h-4 w-28 animate-pulse rounded-full bg-white/5" />
-      <div className="mt-3 h-6 w-48 animate-pulse rounded-full bg-white/8" />
-      <div className="mt-5 h-2 w-full rounded-full bg-white/5" />
-      <div className="mt-4 h-10 w-full animate-pulse rounded-xl bg-white/5" />
+    <div className="rounded-2xl border border-white/80 bg-white/60 p-6 shadow-sm backdrop-blur-md">
+      <div className="h-4 w-28 animate-pulse rounded-full bg-zinc-200/70" />
+      <div className="mt-3 h-6 w-48 animate-pulse rounded-full bg-zinc-200/80" />
+      <div className="mt-5 h-2 w-full rounded-full bg-zinc-200/70" />
+      <div className="mt-4 h-10 w-full animate-pulse rounded-xl bg-zinc-200/70" />
     </div>
   );
 }
@@ -21,10 +21,10 @@ function CampaignCardSkeleton() {
 function EmptyState() {
   return (
     <div className="flex flex-col items-center py-24 text-center">
-      <div className="flex h-20 w-20 items-center justify-center rounded-full border border-white/6 bg-white/[0.02]">
+      <div className="flex h-20 w-20 items-center justify-center rounded-full border border-white/80 bg-white/70 shadow-sm">
         <Gift className="h-9 w-9 text-zinc-500" />
       </div>
-      <h2 className="mt-6 text-xl font-bold text-white">暂无福利活动</h2>
+      <h2 className="mt-6 text-xl font-bold text-zinc-900">暂无福利活动</h2>
       <p className="mt-2 max-w-md text-sm text-zinc-500">
         当前没有进行中的福利 Drop 活动。请稍后再来看看，
         <br />
@@ -66,20 +66,18 @@ export default function DropsPage() {
   }, []);
 
   return (
-    <div className="min-h-screen text-white">
-      <Navbar />
-
-      <section className="relative z-10 mx-auto max-w-[1680px] px-4 pt-28 sm:px-5 lg:px-8">
+    <div className="mobile-tab-scroll flex-1 min-h-0 h-full overflow-y-auto overscroll-y-contain pb-24 text-zinc-900">
+      <section className="relative z-10 mx-auto max-w-[1680px] px-4 pt-4 sm:px-5">
         {/* ── Header ── */}
         <div className="mb-8">
-          <div className="liquid-glass mb-3 inline-flex items-center gap-1.5 rounded-full px-3.5 py-1 text-xs font-medium text-white font-body">
+          <div className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-white/80 bg-white/60 px-3.5 py-1 text-xs font-semibold text-zinc-700 shadow-sm backdrop-blur-md font-body">
             <Sparkles className="h-3 w-3" />
             福利 Drop
           </div>
-          <h1 className="text-3xl font-heading italic leading-[1.15] text-white md:text-4xl">
+          <h1 className="text-3xl font-heading italic leading-[1.15] text-zinc-950 md:text-4xl">
             福利 Drop
           </h1>
-          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/55 md:text-base font-body">
+          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-zinc-700 md:text-base font-body">
             限量中转站福利，先到先得。完成赞助商注册并提交真实体验反馈，即可自动领取专属兑换码。
           </p>
         </div>
@@ -91,13 +89,13 @@ export default function DropsPage() {
             { icon: FormHint, label: "第 2 步", desc: "回来填写简短体验反馈" },
             { icon: Gift, label: "第 3 步", desc: "自动领取专属兑换码" },
           ].map((item) => (
-            <div key={item.label} className="liquid-glass rounded-2xl px-4 py-3 flex items-center gap-3">
+            <div key={item.label} className="flex items-center gap-3 rounded-2xl border border-white/80 bg-white/60 px-4 py-3 shadow-sm backdrop-blur-md">
               <item.icon />
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/50 font-body">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-500 font-body">
                   {item.label}
                 </p>
-                <p className="mt-0.5 text-sm text-white/80 font-body">{item.desc}</p>
+                <p className="mt-0.5 text-sm font-semibold text-zinc-900 font-body">{item.desc}</p>
               </div>
             </div>
           ))}
@@ -126,33 +124,33 @@ export default function DropsPage() {
               return (
                 <article
                   key={campaign.id}
-                  className={`relative flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-zinc-900/40 p-6 backdrop-blur-xl transition-all hover:bg-zinc-800/50 hover:border-white/20 ${
+                  className={`relative flex flex-col overflow-hidden rounded-3xl border border-zinc-200 bg-white/90 p-6 text-zinc-900 shadow-xl backdrop-blur-xl transition-all hover:border-zinc-300 hover:bg-white ${
                     isPaused ? "opacity-60 grayscale-[30%]" : ""
                   }`}
                 >
                   {/* Sponsor badge */}
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-cyan-300">
+                    <span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-emerald-700">
                       {campaign.sponsor_name}
                     </span>
                     {isSoldOut && (
-                      <span className="rounded-full border border-rose-400/20 bg-rose-400/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-rose-300">
+                      <span className="rounded-full border border-rose-400/20 bg-rose-400/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-rose-600">
                         已抢空
                       </span>
                     )}
                     {isPaused && (
-                      <span className="rounded-full border border-zinc-500/20 bg-zinc-500/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-300">
+                      <span className="rounded-full border border-zinc-300 bg-zinc-100 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-600">
                         已暂停
                       </span>
                     )}
                   </div>
 
-                  <h3 className="mt-3 text-lg font-bold text-white leading-tight">
+                  <h3 className="mt-3 text-lg font-bold leading-tight text-zinc-900">
                     {campaign.title}
                   </h3>
 
                   {campaign.description && (
-                    <p className="mt-2 text-sm leading-relaxed text-zinc-400 line-clamp-2 font-body">
+                    <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-zinc-600 font-body">
                       {campaign.description}
                     </p>
                   )}
@@ -161,15 +159,15 @@ export default function DropsPage() {
                   <div className="mt-5 space-y-2">
                     <div className="flex items-center justify-between text-xs font-body">
                       <span className="text-zinc-500">
-                        剩余 <span className="text-white font-bold">{remaining}</span> / {total}
+                        剩余 <span className="font-bold text-zinc-900">{remaining}</span> / {total}
                       </span>
                       <span className="text-zinc-600">
                         {Math.round(progressPct)}% 已领
                       </span>
                     </div>
-                    <div className="h-1.5 w-full overflow-hidden rounded-full bg-zinc-800">
+                    <div className="h-1.5 w-full overflow-hidden rounded-full bg-zinc-200">
                       <div
-                        className="h-full rounded-full bg-gradient-to-r from-blue-500 to-cyan-400 transition-all duration-700"
+                        className="h-full rounded-full bg-emerald-500/80 transition-all duration-700"
                         style={{ width: `${Math.min(progressPct, 100)}%` }}
                       />
                     </div>
@@ -179,8 +177,8 @@ export default function DropsPage() {
                   <button
                     className={`mt-5 flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-bold transition font-body ${
                       isDisabled
-                        ? "cursor-not-allowed border border-white/5 bg-white/[0.02] text-zinc-600"
-                        : "bg-cyan-300 text-black shadow-[0_0_24px_rgba(34,211,238,0.18)] hover:bg-cyan-200"
+                        ? "cursor-not-allowed border border-zinc-200 bg-zinc-100 text-zinc-400"
+                        : "bg-zinc-100 text-zinc-950 shadow-[0_12px_28px_rgba(255,255,255,0.08)] active:scale-[0.98] active:opacity-90 hover:bg-white"
                     }`}
                     disabled={isDisabled}
                     onClick={() => {
@@ -229,7 +227,7 @@ function ExternalLinkHint() {
   return (
     <svg
       aria-hidden="true"
-      className="h-5 w-5 shrink-0 text-white/40"
+      className="h-5 w-5 shrink-0 text-emerald-600"
       fill="none"
       stroke="currentColor"
       strokeWidth={1.5}
@@ -250,7 +248,7 @@ function FormHint() {
   return (
     <svg
       aria-hidden="true"
-      className="h-5 w-5 shrink-0 text-white/40"
+      className="h-5 w-5 shrink-0 text-emerald-600"
       fill="none"
       stroke="currentColor"
       strokeWidth={1.5}

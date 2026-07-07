@@ -36,8 +36,6 @@ export async function uploadPostImage(file: File): Promise<string> {
   const ext = getExtension(file.type);
   const fileName = `${userData.user.id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
 
-  console.log("即将请求上传，目标Bucket为: [", BUCKET, "]，如果是未定义或拼写错误请立刻拦截");
-
   const { error } = await supabase.storage
     .from(BUCKET)
     .upload(fileName, file, { upsert: false, contentType: file.type });

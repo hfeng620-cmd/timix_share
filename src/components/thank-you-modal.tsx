@@ -1,7 +1,7 @@
 "use client";
 
 import { lockBodyScroll } from "@/lib/body-scroll-lock";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { motion } from "motion/react";
 import { X, Shield, Star, User } from "lucide-react";
 import type { CoCreator } from "@/components/co-creators-wall";
@@ -31,7 +31,7 @@ export function ThankYouModal({ open, onClose, creators }: Props) {
 
   function roleIcon(role: string) {
     if (role === "founder") return <Star className="h-3 w-3 text-amber-400" />;
-    if (role === "admin") return <Shield className="h-3 w-3 text-blue-400" />;
+    if (role === "admin") return <Shield className="h-3 w-3 text-zinc-300" />;
     return <User className="h-3 w-3 text-zinc-500" />;
   }
 
@@ -47,7 +47,7 @@ export function ThankYouModal({ open, onClose, creators }: Props) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.7, ease: "easeInOut" }}
-      className="fixed inset-0 z-[150] flex items-center justify-center bg-black/60 backdrop-blur-xl px-4"
+      className="fixed inset-0 z-[150] flex items-end sm:items-center justify-center bg-[#09090b]/60 backdrop-blur-xl px-4"
       onClick={onClose}
     >
       <motion.div
@@ -55,9 +55,11 @@ export function ThankYouModal({ open, onClose, creators }: Props) {
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
         transition={{ duration: 0.7, ease: "easeInOut" }}
-        className="relative w-full max-w-2xl max-h-[80vh] overflow-y-auto rounded-3xl border border-white/10 bg-zinc-950/90 p-8 sm:p-10 shadow-2xl"
+        className="relative w-full max-w-2xl max-h-[80vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl border border-white/10 bg-zinc-950/90 p-8 sm:p-10 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Drag handle for mobile */}
+        <div className="w-12 h-1.5 bg-zinc-300 dark:bg-zinc-700 rounded-full mx-auto mt-3 mb-1 shrink-0 sm:hidden" />
         <button onClick={onClose} className="absolute top-4 right-4 p-2 text-white/30 hover:text-white transition-colors" type="button">
           <X className="h-5 w-5" />
         </button>

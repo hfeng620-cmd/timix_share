@@ -3,9 +3,10 @@ import type { Metadata, Viewport } from "next";
 import { AnnouncementModal } from "@/components/announcement-modal";
 import { BackgroundSliderWrapper } from "@/components/background-slider-wrapper";
 import { ErrorBoundary } from "@/components/error-boundary";
-import { PageTransition } from "@/components/page-transition";
 import { MobileDock } from "@/components/mobile-dock";
+import { MobileAppSplash } from "@/components/mobile-app-splash";
 import { RegisterCounter } from "@/components/register-counter";
+import { ScrollLockJanitor } from "@/components/scroll-lock-janitor";
 import { FloatingQuickPanel } from "@/components/floating-quick-panel";
 import { ToastContainer } from "@/components/toast-container";
 import { VpsFallbackBanner } from "@/components/vps-fallback-banner";
@@ -70,10 +71,10 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
-      <body className="min-h-[100dvh]">
+      <body className="h-[100dvh] w-full flex flex-col overflow-hidden bg-zinc-950">
         <BackgroundSliderWrapper />
         <a
-          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-full focus:bg-white focus:px-5 focus:py-3 focus:text-sm focus:font-bold focus:text-black"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-full focus:bg-white focus:px-5 focus:py-3 focus:text-sm focus:font-bold focus:text-zinc-950"
           href="#main-content"
         >
           跳到主内容
@@ -81,18 +82,20 @@ export default function RootLayout({
         <ForumAuthProvider>
           <SystemMonitorProvider>
             <ToastProvider>
-              <main id="main-content" className="relative z-10 flex min-h-[100dvh] flex-col">
-                <ErrorBoundary><PageTransition>{children}</PageTransition></ErrorBoundary>
+              <main id="main-content" className="relative z-10 flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden bg-zinc-950">
+                <ErrorBoundary>{children}</ErrorBoundary>
               </main>
               <ToastContainer />
             </ToastProvider>
             <FloatingQuickPanel />
             <MobileDock />
+            <ScrollLockJanitor />
           </SystemMonitorProvider>
         </ForumAuthProvider>
         <AnnouncementModal />
         <RegisterCounter />
         <VpsFallbackBanner />
+        <MobileAppSplash />
         <script
           dangerouslySetInnerHTML={{
             __html: `

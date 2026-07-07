@@ -29,9 +29,10 @@
   --glass-border: rgba(255, 255, 255, 0.12);
   --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
   --glass-highlight: inset 0 0.5px 0.5px rgba(255, 255, 255, 0.12);
+  --ease-premium: cubic-bezier(0.23, 1, 0.32, 1);
 
   /* Compatibility tokens — old var(--color-*) mapped to dark */
-  --color-bg: #000000;
+  --color-bg: #09090b;
   --color-ink: #ffffff;
   --color-muted: rgba(255, 255, 255, 0.55);
   --color-line: rgba(255, 255, 255, 0.1);
@@ -49,7 +50,7 @@
   --color-row-alt: rgba(255, 255, 255, 0.025);
   --color-input: rgba(255, 255, 255, 0.06);
   --surface-gradient: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
-  --shadow-card: 0 1px 2px rgba(0,0,0,0.3), 0 8px 32px rgba(0,0,0,0.4);
+  --shadow-card: inset 0 1px 0 rgba(255,255,255,0.08), 0 18px 48px rgba(0,0,0,0.32);
   --theme-glow-rgb: 255, 255, 255;
   --theme-secondary-rgb: 200, 200, 200;
   --theme-surface-rgb: 0, 0, 0;
@@ -59,6 +60,7 @@
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-left: env(safe-area-inset-left, 0px);
   --safe-right: env(safe-area-inset-right, 0px);
+  --mobile-dock-height: 66px;
 }
 
 /* ═══════════════════════════════════════════
@@ -69,15 +71,15 @@
 
 /* 极光赛博 (默认) */
 :root, [data-theme="cyber"] {
-  --dt-primary: #22d3ee;
-  --dt-primary-glow: rgba(34, 211, 238, 0.2);
-  --dt-accent: #d946ef;
+  --dt-primary: #f4f4f5;
+  --dt-primary-glow: rgba(255, 255, 255, 0.08);
+  --dt-accent: #a1a1aa;
   --dt-bg-base: #09090b;
   --dt-bg-card: rgba(24, 24, 27, 0.4);
   --dt-border: rgba(255, 255, 255, 0.08);
   --dt-text-main: #f4f4f5;
   --dt-text-sub: #a1a1aa;
-  --dt-gradient-bar: linear-gradient(135deg, #22d3ee, #d946ef);
+  --dt-gradient-bar: linear-gradient(135deg, #f4f4f5, #a1a1aa);
 }
 
 /* 永恒工业 */
@@ -235,10 +237,10 @@ input, textarea, button { font: inherit; }
     backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
     -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
     border: 1px solid rgba(255, 255, 255, 0.06);
-    box-shadow: var(--glass-highlight), var(--glass-shadow);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.10), 0 18px 48px rgba(0,0,0,0.18);
     position: relative;
     overflow: hidden;
-    transition: backdrop-filter 0.3s ease, box-shadow 0.3s ease;
+    transition: transform 300ms var(--ease-premium), background-color 300ms var(--ease-premium), border-color 300ms var(--ease-premium), backdrop-filter 300ms var(--ease-premium), box-shadow 300ms var(--ease-premium);
   }
   .liquid-glass::before {
     content: '';
@@ -258,10 +260,10 @@ input, textarea, button { font: inherit; }
     backdrop-filter: blur(var(--glass-blur-strong)) saturate(var(--glass-saturate));
     -webkit-backdrop-filter: blur(var(--glass-blur-strong)) saturate(var(--glass-saturate));
     border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: var(--glass-highlight), 0 4px 24px rgba(0, 0, 0, 0.10);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 20px 56px rgba(0, 0, 0, 0.22);
     position: relative;
     overflow: hidden;
-    transition: backdrop-filter 0.3s ease, box-shadow 0.3s ease;
+    transition: transform 300ms var(--ease-premium), background-color 300ms var(--ease-premium), border-color 300ms var(--ease-premium), backdrop-filter 300ms var(--ease-premium), box-shadow 300ms var(--ease-premium);
   }
   .liquid-glass-strong::before {
     content: '';
@@ -280,7 +282,7 @@ input, textarea, button { font: inherit; }
     position: absolute;
     top: 0; left: 0; right: 0;
     height: 200px;
-    background: linear-gradient(to bottom, black, transparent);
+    background: linear-gradient(to bottom, #09090b, transparent);
     pointer-events: none;
     z-index: 1;
   }
@@ -289,9 +291,27 @@ input, textarea, button { font: inherit; }
     position: absolute;
     bottom: 0; left: 0; right: 0;
     height: 200px;
-    background: linear-gradient(to top, black, transparent);
+    background: linear-gradient(to top, #09090b, transparent);
     pointer-events: none;
     z-index: 1;
+  }
+  .surface-in,
+  .card-lift {
+    box-shadow: var(--shadow-card);
+    transition: transform 300ms var(--ease-premium), background-color 300ms var(--ease-premium), border-color 300ms var(--ease-premium), box-shadow 300ms var(--ease-premium), opacity 300ms var(--ease-premium);
+  }
+
+  .btn-press,
+  .touch-press {
+    transform: translateZ(0);
+    transition: transform 220ms var(--ease-premium), opacity 220ms var(--ease-premium), background-color 220ms var(--ease-premium), border-color 220ms var(--ease-premium), color 220ms var(--ease-premium);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .btn-press:active,
+  .touch-press:active {
+    transform: scale(0.96) translateZ(0);
+    opacity: 0.86;
   }
 }
 
@@ -304,11 +324,12 @@ button[aria-label="Open Next.js Dev Tools"] { display: none !important; }
 
 /* Touch press feedback */
 .touch-press {
-  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 220ms var(--ease-premium), opacity 220ms var(--ease-premium);
   -webkit-tap-highlight-color: transparent;
 }
 .touch-press:active {
-  transform: scale(0.94);
+  transform: scale(0.96);
+  opacity: 0.86;
 }
 
 @media (hover: none) and (pointer: coarse) {
@@ -316,8 +337,9 @@ button[aria-label="Open Next.js Dev Tools"] { display: none !important; }
     -webkit-tap-highlight-color: transparent;
   }
   button:active, a:active, [role="button"]:active {
-    transform: scale(0.94);
-    transition: transform 0.1s ease;
+    transform: scale(0.96);
+    opacity: 0.86;
+    transition: transform 180ms var(--ease-premium), opacity 180ms var(--ease-premium), background-color 180ms var(--ease-premium);
   }
 }
 
@@ -354,10 +376,25 @@ a, button, [role="button"], input, select, textarea {
   touch-action: manipulation;
 }
 
+/* Modal scroll lock: outranks mobile root auto-scroll rules while preserving the saved position. */
+html[data-scroll-locked],
+html[data-scroll-locked] body {
+  overflow: hidden !important;
+  overscroll-behavior: none !important;
+}
+
+html[data-scroll-locked] body {
+  touch-action: none !important;
+}
+
+html[data-scroll-locked] [role="dialog"],
+html[data-scroll-locked] [aria-modal="true"] {
+  touch-action: pan-y !important;
+}
 /* Page content bottom padding for MobileDock */
 @media (max-width: 1023px) {
   main#main-content {
-    padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(var(--mobile-dock-height, 66px) + env(safe-area-inset-bottom, 0px));
   }
 }
 
@@ -412,3 +449,967 @@ nav.fixed {
     scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
   }
 }
+
+/* Premium interaction layer: restrained motion and tactile mobile surfaces. */
+@media (hover: hover) and (pointer: fine) {
+  .liquid-glass:hover,
+  .liquid-glass-strong:hover,
+  .card-lift:hover {
+    transform: translateY(-1px);
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .liquid-glass,
+  .liquid-glass-strong,
+  .surface-in,
+  .card-lift,
+  .share-post-row,
+  .share-folder-list > div,
+  .mobile-station-row,
+  .community-mobile-app article,
+  .community-compose-trigger,
+  .profile-mobile-app section {
+    transition: transform 220ms var(--ease-premium), opacity 220ms var(--ease-premium), background-color 220ms var(--ease-premium), border-color 220ms var(--ease-premium), box-shadow 220ms var(--ease-premium);
+    will-change: transform;
+  }
+
+  .share-post-row:active,
+  .share-folder-list > div:active,
+  .mobile-station-row:active,
+  .community-mobile-app article:active,
+  .community-compose-trigger:active,
+  .profile-mobile-app section:active {
+    transform: scale(0.992);
+  }
+}
+
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.22);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    scroll-behavior: auto !important;
+    transition-duration: 1ms !important;
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+/* ═══════════════════════════════════════════
+   TiMix Mobile App System — mint / cyber themes
+   ═══════════════════════════════════════════ */
+@media (max-width: 767px) {
+  :root {
+    --mobile-app-bg: #edf8f5;
+    --mobile-app-panel: rgba(255, 255, 255, 0.84);
+    --mobile-app-panel-strong: rgba(255, 255, 255, 0.94);
+    --mobile-app-line: rgba(36, 108, 116, 0.13);
+    --mobile-app-muted: rgba(54, 79, 88, 0.62);
+    --mobile-app-ink: #20323a;
+    --mobile-app-primary: #1fa9a5;
+    --mobile-app-accent: #7fd36f;
+    --mobile-app-button-ink: #ffffff;
+    --mobile-app-shadow: 0 10px 26px rgba(53, 116, 126, 0.11);
+    --mobile-app-header:
+      linear-gradient(180deg, rgba(118, 212, 207, 0.98) 0%, rgba(223, 246, 244, 0.95) 100%);
+    --mobile-app-surface:
+      radial-gradient(circle at 18% -8%, rgba(127, 211, 111, 0.34), transparent 32%),
+      radial-gradient(circle at 88% 12%, rgba(31, 169, 165, 0.24), transparent 34%),
+      linear-gradient(180deg, #79d4cf 0, #dff6f4 90px, #f7fcfb 34%, #edf8f5 100%);
+    --mobile-dock-bg: rgba(249, 255, 253, 0.90);
+    --mobile-nav-muted: rgba(47, 73, 81, 0.44);
+  }
+
+  html[data-mobile-theme="cyber"] {
+    --mobile-app-bg: #09090b;
+    --mobile-app-panel: rgba(255, 255, 255, 0.035);
+    --mobile-app-panel-strong: rgba(18, 18, 20, 0.82);
+    --mobile-app-line: rgba(255, 255, 255, 0.075);
+    --mobile-app-muted: rgba(161, 161, 170, 0.76);
+    --mobile-app-ink: rgba(244, 244, 245, 0.94);
+    --mobile-app-primary: #f4f4f5;
+    --mobile-app-accent: #ffffff;
+    --mobile-app-button-ink: #09090b;
+    --mobile-app-shadow: 0 16px 44px rgba(0, 0, 0, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.055);
+    --mobile-app-header: rgba(9, 9, 11, 0.78);
+    --mobile-app-surface:
+      radial-gradient(ellipse 90% 54% at 50% -16%, rgba(255, 255, 255, 0.075), transparent 58%),
+      linear-gradient(180deg, #121214 0%, #09090b 46%, #0c0c0e 100%);
+    --mobile-dock-bg: rgba(9, 9, 11, 0.80);
+    --mobile-nav-muted: rgba(161, 161, 170, 0.62);
+  }
+
+  .timix-mobile-shell,
+  .profile-mobile-app,
+  .community-mobile-app,
+  .stations-mobile-app {
+    background: var(--mobile-app-surface) !important;
+    color: var(--mobile-app-ink) !important;
+  }
+
+  .timix-mobile-shell > header,
+  .profile-mobile-app header,
+  .stations-mobile-app section > div:first-child,
+  .community-mobile-app header {
+    border-color: var(--mobile-app-line) !important;
+    background: var(--mobile-app-header) !important;
+    color: var(--mobile-app-ink) !important;
+    box-shadow: var(--mobile-app-shadow), inset 0 1px 0 rgba(255,255,255,0.16) !important;
+    backdrop-filter: blur(24px) saturate(170%) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(170%) !important;
+  }
+
+  .timix-mobile-shell .timix-share-app,
+  .profile-mobile-app main,
+  .stations-mobile-app section,
+  .community-mobile-app > div {
+    color: var(--mobile-app-ink) !important;
+    font-size: 12px;
+    line-height: 1.45;
+  }
+
+  .timix-share-app h1,
+  .timix-share-app h2,
+  .timix-share-app h3,
+  .profile-mobile-app h1,
+  .profile-mobile-app h2,
+  .community-mobile-app h1,
+  .community-mobile-app h2,
+  .stations-mobile-app h1,
+  .stations-mobile-app h2 {
+    letter-spacing: 0;
+  }
+
+  .timix-mobile-shell [class*="bg-white"],
+  .profile-mobile-app [class*="bg-white"],
+  .stations-mobile-app [class*="bg-white"],
+  .community-mobile-app [class*="bg-white"] {
+    background-color: var(--mobile-app-panel) !important;
+  }
+
+  .timix-mobile-shell [class*="bg-zinc"],
+  .profile-mobile-app [class*="bg-zinc"],
+  .stations-mobile-app [class*="bg-zinc"],
+  .community-mobile-app [class*="bg-zinc"],
+  .community-mobile-app [class*="bg-cyan"],
+  .profile-mobile-app [class*="bg-teal"],
+  .profile-mobile-app [class*="bg-cyan"],
+  .community-mobile-app [class*="bg-[#"],
+  .stations-mobile-app .mobile-never-match {
+    background-color: color-mix(in srgb, var(--mobile-app-panel) 74%, transparent) !important;
+  }
+
+  .timix-mobile-shell .text-white,
+  .timix-mobile-shell [class*="text-slate"],
+  .timix-mobile-shell [class*="text-zinc"],
+  .profile-mobile-app .text-white,
+  .profile-mobile-app [class*="text-zinc"],
+  .profile-mobile-app [class*="text-teal"],
+  .profile-mobile-app [class*="text-cyan"],
+  .stations-mobile-app [class*="text-[var(--color-ink)]"],
+  .community-mobile-app [class*="text-[#"],
+  .community-mobile-app [class*="text-zinc"] {
+    color: var(--mobile-app-ink) !important;
+  }
+
+  .timix-mobile-shell [class*="text-white/"],
+  .timix-mobile-shell [class*="text-slate-4"],
+  .timix-mobile-shell [class*="text-slate-5"],
+  .profile-mobile-app [class*="text-white/"],
+  .profile-mobile-app [class*="text-zinc-4"],
+  .profile-mobile-app [class*="text-zinc-5"],
+  .community-mobile-app [class*="text-white/"],
+  .stations-mobile-app [class*="text-[var(--color-muted)]"],
+  .community-mobile-app [class*="text-[#5"],
+  .community-mobile-app .mobile-never-match {
+    color: var(--mobile-app-muted) !important;
+  }
+
+  .timix-mobile-shell [class*="border-cyan"],
+  .timix-mobile-shell [class*="border-white"],
+  .profile-mobile-app [class*="border-zinc"],
+  .profile-mobile-app [class*="ring-zinc"],
+  .profile-mobile-app [class*="ring-teal"],
+  .stations-mobile-app [class*="border-black"],
+  .stations-mobile-app [class*="border-[var(--color-line)]"],
+  .community-mobile-app .mobile-never-match {
+    border-color: var(--mobile-app-line) !important;
+    --tw-ring-color: var(--mobile-app-line) !important;
+  }
+
+  .timix-mobile-shell .rounded-\[22px\],
+  .timix-mobile-shell .rounded-\[20px\],
+  .profile-mobile-app .rounded-\[22px\],
+  .profile-mobile-app .rounded-\[24px\],
+  .stations-mobile-app .rounded-\[22px\],
+  .community-mobile-app .rounded-\[18px\] {
+    box-shadow: 0 16px 44px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255,255,255,0.055) !important;
+  }
+
+  .timix-mobile-shell button[class*="bg-white"],
+  .community-mobile-app a[class*="bg-cyan"],
+  .community-mobile-app button[class*="bg-cyan"],
+  .profile-mobile-app button[class*="bg-cyan"],
+  .profile-mobile-app button[class*="bg-teal"],
+  .community-mobile-app a[class*="bg-[#1fa9a5]"],
+  .stations-mobile-app button[class*="bg-[var(--color-brand)]"] {
+    background: linear-gradient(135deg, var(--mobile-app-primary), var(--mobile-app-accent)) !important;
+    color: var(--mobile-app-button-ink) !important;
+    font-weight: 800 !important;
+    box-shadow: 0 12px 30px color-mix(in srgb, var(--mobile-app-primary) 22%, transparent) !important;
+  }
+
+  .mobile-theme-toggle {
+    border: 1px solid var(--mobile-app-line);
+    background: var(--mobile-app-panel);
+    color: var(--mobile-app-ink);
+    box-shadow: var(--mobile-app-shadow);
+    backdrop-filter: blur(22px) saturate(160%);
+    -webkit-backdrop-filter: blur(22px) saturate(160%);
+  }
+
+  .profile-mobile-app input,
+  .profile-mobile-app textarea,
+  .community-mobile-app input,
+  .community-mobile-app textarea,
+  .timix-mobile-shell input,
+  .timix-mobile-shell textarea,
+  .stations-mobile-app input,
+  .stations-mobile-app select {
+    border-color: var(--mobile-app-line) !important;
+    background: rgba(255, 255, 255, 0.055) !important;
+    color: var(--mobile-app-ink) !important;
+  }
+}
+@media (max-width: 767px) {
+  .timix-mobile-shell .share-post-row,
+  .timix-mobile-shell .share-folder-list,
+  .stations-mobile-app .mobile-station-filter,
+  .stations-mobile-app .mobile-station-table {
+    box-shadow: 0 8px 20px rgba(42, 106, 116, 0.08) !important;
+  }
+
+  html[data-mobile-theme="cyber"] .timix-mobile-shell .share-post-row,
+  html[data-mobile-theme="cyber"] .timix-mobile-shell .share-folder-list,
+  html[data-mobile-theme="cyber"] .stations-mobile-app .mobile-station-filter,
+  html[data-mobile-theme="cyber"] .stations-mobile-app .mobile-station-table {
+    box-shadow: 0 14px 38px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255,255,255,0.045) !important;
+  }
+
+  .stations-mobile-app .mobile-station-row {
+    min-height: 48px;
+    box-shadow: none !important;
+  }
+
+  .stations-mobile-app .mobile-station-feed {
+    background: color-mix(in srgb, var(--mobile-app-panel) 84%, transparent) !important;
+  }
+
+  .timix-mobile-shell .share-folder-list > div:last-child,
+  .stations-mobile-app .mobile-station-feed > div:last-child .mobile-station-row {
+    border-bottom: 0 !important;
+  }
+}
+/* Premium Linear/Vercel mobile dark theme overrides */
+@media (max-width: 767px) {
+  html[data-mobile-theme="cyber"] body,
+  html[data-mobile-theme="cyber"] .timix-mobile-shell,
+  html[data-mobile-theme="cyber"] .profile-mobile-app,
+  html[data-mobile-theme="cyber"] .community-mobile-app,
+  html[data-mobile-theme="cyber"] .stations-mobile-app {
+    background: var(--mobile-app-surface) !important;
+  }
+
+  html[data-mobile-theme="cyber"] .timix-mobile-shell > header,
+  html[data-mobile-theme="cyber"] .profile-mobile-app header,
+  html[data-mobile-theme="cyber"] .stations-mobile-app section > div:first-child,
+  html[data-mobile-theme="cyber"] .community-mobile-app header {
+    background: rgba(9, 9, 11, 0.72) !important;
+    border-color: rgba(255, 255, 255, 0.06) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045), 0 10px 34px rgba(0, 0, 0, 0.36) !important;
+    backdrop-filter: blur(24px) saturate(130%) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(130%) !important;
+  }
+
+  html[data-mobile-theme="cyber"] .timix-mobile-shell [class*="bg-white"],
+  html[data-mobile-theme="cyber"] .profile-mobile-app [class*="bg-white"],
+  html[data-mobile-theme="cyber"] .stations-mobile-app [class*="bg-white"],
+  html[data-mobile-theme="cyber"] .community-mobile-app [class*="bg-white"],
+  html[data-mobile-theme="cyber"] .timix-mobile-shell [class*="bg-zinc"],
+  html[data-mobile-theme="cyber"] .profile-mobile-app [class*="bg-zinc"],
+  html[data-mobile-theme="cyber"] .stations-mobile-app [class*="bg-zinc"],
+  html[data-mobile-theme="cyber"] .community-mobile-app [class*="bg-zinc"] {
+    background-color: rgba(255, 255, 255, 0.025) !important;
+  }
+
+  html[data-mobile-theme="cyber"] .timix-mobile-shell .share-post-row,
+  html[data-mobile-theme="cyber"] .timix-mobile-shell .share-folder-list,
+  html[data-mobile-theme="cyber"] .timix-mobile-shell .share-folder-list > div,
+  html[data-mobile-theme="cyber"] .stations-mobile-app .mobile-station-filter,
+  html[data-mobile-theme="cyber"] .stations-mobile-app .mobile-station-table,
+  html[data-mobile-theme="cyber"] .stations-mobile-app .mobile-station-row,
+  html[data-mobile-theme="cyber"] .community-mobile-app article,
+  html[data-mobile-theme="cyber"] .profile-mobile-app section {
+    background: rgba(255, 255, 255, 0.025) !important;
+    border-color: rgba(255, 255, 255, 0.06) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045) !important;
+  }
+
+  html[data-mobile-theme="cyber"] .stations-mobile-app .mobile-station-feed {
+    background: rgba(255, 255, 255, 0.018) !important;
+  }
+
+  html[data-mobile-theme="cyber"] .timix-mobile-shell button[class*="bg-white"],
+  html[data-mobile-theme="cyber"] .community-mobile-app a[class*="bg-cyan"],
+  html[data-mobile-theme="cyber"] .community-mobile-app button[class*="bg-cyan"],
+  html[data-mobile-theme="cyber"] .profile-mobile-app button[class*="bg-cyan"],
+  html[data-mobile-theme="cyber"] .profile-mobile-app button[class*="bg-teal"],
+  html[data-mobile-theme="cyber"] .community-mobile-app a[class*="bg-[#1fa9a5]"],
+  html[data-mobile-theme="cyber"] .stations-mobile-app button[class*="bg-[var(--color-brand)]"] {
+    background: #f4f4f5 !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    color: #09090b !important;
+    box-shadow: 0 0 18px rgba(255, 255, 255, 0.10), inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+  }
+
+
+  html[data-mobile-theme="cyber"] .timix-mobile-shell .mobile-secondary-action {
+    background: rgba(255, 255, 255, 0.025) !important;
+    border: 1px solid rgba(255, 255, 255, 0.075) !important;
+    color: rgba(161, 161, 170, 0.82) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045) !important;
+  }
+
+  html[data-mobile-theme="cyber"] .timix-mobile-shell .mobile-secondary-action:active {
+    background: rgba(255, 255, 255, 0.055) !important;
+    color: rgba(244, 244, 245, 0.94) !important;
+  }
+  html[data-mobile-theme="cyber"] .mobile-theme-toggle,
+  html[data-mobile-theme="cyber"] .mobile-dock,
+  html[data-mobile-theme="cyber"] nav.fixed.bottom-0 {
+    background: rgba(9, 9, 11, 0.76) !important;
+    border-color: rgba(255, 255, 255, 0.075) !important;
+    color: rgba(244, 244, 245, 0.90) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045), 0 18px 48px rgba(0, 0, 0, 0.42) !important;
+    backdrop-filter: blur(24px) saturate(130%) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(130%) !important;
+  }
+
+  html[data-mobile-theme="cyber"] .timix-mobile-shell [class*="border-cyan"],
+  html[data-mobile-theme="cyber"] .timix-mobile-shell [class*="border-white"],
+  html[data-mobile-theme="cyber"] .profile-mobile-app [class*="border-zinc"],
+  html[data-mobile-theme="cyber"] .profile-mobile-app [class*="ring-zinc"],
+  html[data-mobile-theme="cyber"] .profile-mobile-app [class*="ring-teal"],
+  html[data-mobile-theme="cyber"] .stations-mobile-app [class*="border-black"],
+  html[data-mobile-theme="cyber"] .stations-mobile-app [class*="border-[var(--color-line)]"] {
+    border-color: rgba(255, 255, 255, 0.06) !important;
+    --tw-ring-color: rgba(255, 255, 255, 0.08) !important;
+  }
+
+  html[data-mobile-theme="cyber"] .timix-mobile-shell .text-white,
+  html[data-mobile-theme="cyber"] .profile-mobile-app .text-white,
+  html[data-mobile-theme="cyber"] .stations-mobile-app [class*="text-[var(--color-ink)]"],
+  html[data-mobile-theme="cyber"] .community-mobile-app [class*="text-[#"] {
+    color: rgba(244, 244, 245, 0.92) !important;
+  }
+
+  html[data-mobile-theme="cyber"] .timix-mobile-shell [class*="text-white/"],
+  html[data-mobile-theme="cyber"] .timix-mobile-shell [class*="text-slate-4"],
+  html[data-mobile-theme="cyber"] .timix-mobile-shell [class*="text-slate-5"],
+  html[data-mobile-theme="cyber"] .profile-mobile-app [class*="text-zinc-4"],
+  html[data-mobile-theme="cyber"] .profile-mobile-app [class*="text-zinc-5"],
+  html[data-mobile-theme="cyber"] .community-mobile-app [class*="text-white/"],
+  html[data-mobile-theme="cyber"] .stations-mobile-app [class*="text-[var(--color-muted)]"] {
+    color: rgba(161, 161, 170, 0.72) !important;
+  }
+
+  html[data-mobile-theme="cyber"] input,
+  html[data-mobile-theme="cyber"] textarea,
+  html[data-mobile-theme="cyber"] select {
+    background: rgba(255, 255, 255, 0.025) !important;
+    border-color: rgba(255, 255, 255, 0.075) !important;
+    color: rgba(244, 244, 245, 0.92) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+  }
+}
+@media (max-width: 767px) {
+  html[data-mobile-theme="cyber"] .timix-mobile-shell button.mobile-secondary-action[class*="bg-white"] {
+    background: rgba(255, 255, 255, 0.025) !important;
+    border: 1px solid rgba(255, 255, 255, 0.075) !important;
+    color: rgba(161, 161, 170, 0.82) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045) !important;
+  }
+}
+@media (max-width: 767px) {
+  html[data-mobile-theme="cyber"]::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.032;
+    mix-blend-mode: screen;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 160 160' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+    background-size: 140px 140px;
+  }
+}
+@media (max-width: 767px) {
+  html[data-mobile-theme="cyber"] body .timix-mobile-shell > header,
+  html[data-mobile-theme="cyber"] body .profile-mobile-app > header,
+  html[data-mobile-theme="cyber"] body .community-mobile-app > header,
+  html[data-mobile-theme="cyber"] body .stations-mobile-app section > div:first-child {
+    background: rgba(9, 9, 11, 0.72) !important;
+    border-color: rgba(255, 255, 255, 0.06) !important;
+    color: rgba(244, 244, 245, 0.92) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 10px 34px rgba(0, 0, 0, 0.36) !important;
+    backdrop-filter: blur(24px) saturate(135%) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(135%) !important;
+  }
+
+  html[data-mobile-theme="cyber"] body .timix-mobile-shell > header *,
+  html[data-mobile-theme="cyber"] body .profile-mobile-app > header *,
+  html[data-mobile-theme="cyber"] body .community-mobile-app > header *,
+  html[data-mobile-theme="cyber"] body .stations-mobile-app section > div:first-child * {
+    color: inherit !important;
+  }
+
+  html[data-mobile-theme="cyber"] body button.mobile-primary-action,
+  html[data-mobile-theme="cyber"] body .timix-mobile-shell button.mobile-primary-action[class*="bg-white"] {
+    background: #f4f4f5 !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    color: #09090b !important;
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.10), inset 0 1px 0 rgba(255, 255, 255, 0.62) !important;
+  }
+
+  html[data-mobile-theme="cyber"] body button.mobile-secondary-action,
+  html[data-mobile-theme="cyber"] body .timix-mobile-shell button.mobile-secondary-action[class*="bg-white"] {
+    background: rgba(255, 255, 255, 0.028) !important;
+    border: 1px solid rgba(255, 255, 255, 0.075) !important;
+    color: rgba(161, 161, 170, 0.84) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+  }
+}
+/* Premium neutral mobile dark theme overrides */
+@media (max-width: 767px) {
+  html[data-mobile-theme="cyber"] body,
+  html[data-mobile-theme="cyber"] .timix-mobile-shell,
+  html[data-mobile-theme="cyber"] .profile-mobile-app,
+  html[data-mobile-theme="cyber"] .community-mobile-app,
+  html[data-mobile-theme="cyber"] .stations-mobile-app {
+    background: var(--mobile-app-surface) !important;
+    color: rgba(244, 244, 245, 0.94) !important;
+    overflow-x: hidden;
+    overscroll-behavior-y: auto;
+  }
+
+  html[data-mobile-theme="cyber"] body .timix-mobile-shell > header,
+  html[data-mobile-theme="cyber"] body .profile-mobile-app > header,
+  html[data-mobile-theme="cyber"] body .community-mobile-app > header,
+  html[data-mobile-theme="cyber"] body .stations-mobile-app section > div:first-child {
+    background: rgba(9, 9, 11, 0.80) !important;
+    border-color: rgba(255, 255, 255, 0.06) !important;
+    color: rgba(244, 244, 245, 0.94) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 14px 42px rgba(0, 0, 0, 0.34) !important;
+    backdrop-filter: blur(24px) saturate(130%) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(130%) !important;
+  }
+
+  html[data-mobile-theme="cyber"] .timix-mobile-shell .share-post-row,
+  html[data-mobile-theme="cyber"] .timix-mobile-shell .share-folder-list,
+  html[data-mobile-theme="cyber"] .timix-mobile-shell .share-folder-list > div,
+  html[data-mobile-theme="cyber"] .stations-mobile-app .mobile-station-filter,
+  html[data-mobile-theme="cyber"] .stations-mobile-app .mobile-station-table,
+  html[data-mobile-theme="cyber"] .stations-mobile-app .mobile-station-row,
+  html[data-mobile-theme="cyber"] .community-mobile-app article,
+  html[data-mobile-theme="cyber"] .community-mobile-app .community-compose-trigger,
+  html[data-mobile-theme="cyber"] .profile-mobile-app section {
+    background: rgba(255, 255, 255, 0.035) !important;
+    border-color: rgba(255, 255, 255, 0.06) !important;
+    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.26), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(18px) saturate(125%) !important;
+    -webkit-backdrop-filter: blur(18px) saturate(125%) !important;
+  }
+
+  html[data-mobile-theme="cyber"] .stations-mobile-app .mobile-station-feed,
+  html[data-mobile-theme="cyber"] .community-mobile-app .community-feed-shell section[data-selection-comments="off"] > div.grid {
+    background: transparent !important;
+  }
+
+  html[data-mobile-theme="cyber"] body button.mobile-primary-action,
+  html[data-mobile-theme="cyber"] body .timix-mobile-shell button.mobile-primary-action[class*="bg-white"],
+  html[data-mobile-theme="cyber"] .timix-mobile-shell button[class*="bg-white"],
+  html[data-mobile-theme="cyber"] .community-mobile-app a[class*="bg-cyan"],
+  html[data-mobile-theme="cyber"] .community-mobile-app button[class*="bg-cyan"],
+  html[data-mobile-theme="cyber"] .profile-mobile-app button[class*="bg-cyan"],
+  html[data-mobile-theme="cyber"] .profile-mobile-app button[class*="bg-teal"],
+  html[data-mobile-theme="cyber"] .community-mobile-app a[class*="bg-[#1fa9a5]"],
+  html[data-mobile-theme="cyber"] .stations-mobile-app button[class*="bg-[var(--color-brand)]"],
+  html[data-mobile-theme="cyber"] .community-mobile-app .community-compose-trigger span:last-child {
+    background: #f4f4f5 !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    color: #09090b !important;
+    box-shadow: 0 10px 24px rgba(255, 255, 255, 0.055), inset 0 1px 0 rgba(255, 255, 255, 0.58) !important;
+  }
+
+  html[data-mobile-theme="cyber"] body button.mobile-secondary-action,
+  html[data-mobile-theme="cyber"] body .timix-mobile-shell button.mobile-secondary-action[class*="bg-white"],
+  html[data-mobile-theme="cyber"] .community-mobile-app nav[aria-label="社区快捷入口"] button,
+  html[data-mobile-theme="cyber"] .community-mobile-app nav[aria-label="社区快捷入口"] a {
+    background: rgba(255, 255, 255, 0.04) !important;
+    border: 1px solid rgba(255, 255, 255, 0.075) !important;
+    color: rgba(212, 212, 216, 0.86) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045) !important;
+  }
+
+  html[data-mobile-theme="cyber"] .mobile-theme-toggle,
+  html[data-mobile-theme="cyber"] .mobile-dock,
+  html[data-mobile-theme="cyber"] nav.fixed.bottom-0 {
+    background: rgba(9, 9, 11, 0.80) !important;
+    border-color: rgba(255, 255, 255, 0.075) !important;
+    color: rgba(244, 244, 245, 0.92) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 18px 48px rgba(0, 0, 0, 0.40) !important;
+    backdrop-filter: blur(24px) saturate(130%) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(130%) !important;
+  }
+
+  html[data-mobile-theme="cyber"] .timix-mobile-shell [class*="border-cyan"],
+  html[data-mobile-theme="cyber"] .timix-mobile-shell [class*="border-white"],
+  html[data-mobile-theme="cyber"] .profile-mobile-app [class*="border-zinc"],
+  html[data-mobile-theme="cyber"] .profile-mobile-app [class*="ring-zinc"],
+  html[data-mobile-theme="cyber"] .profile-mobile-app [class*="ring-teal"],
+  html[data-mobile-theme="cyber"] .stations-mobile-app [class*="border-black"],
+  html[data-mobile-theme="cyber"] .stations-mobile-app [class*="border-[var(--color-line)]"] {
+    border-color: rgba(255, 255, 255, 0.06) !important;
+    --tw-ring-color: rgba(255, 255, 255, 0.08) !important;
+  }
+
+  html[data-mobile-theme="cyber"] input,
+  html[data-mobile-theme="cyber"] textarea,
+  html[data-mobile-theme="cyber"] select {
+    background: rgba(255, 255, 255, 0.035) !important;
+    border-color: rgba(255, 255, 255, 0.075) !important;
+    color: rgba(244, 244, 245, 0.94) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045) !important;
+  }
+}
+/* Final guardrail: premium neutral dark mobile app, no purple/neon/blue bleed-through. */
+@media (max-width: 767px) {
+  html[data-mobile-theme="cyber"] {
+    --mobile-app-bg: #09090b;
+    --mobile-app-panel: rgba(255, 255, 255, 0.035);
+    --mobile-app-panel-strong: rgba(18, 18, 20, 0.86);
+    --mobile-app-line: rgba(255, 255, 255, 0.075);
+    --mobile-app-muted: rgba(161, 161, 170, 0.76);
+    --mobile-app-ink: rgba(244, 244, 245, 0.94);
+    --mobile-app-primary: #f4f4f5;
+    --mobile-app-accent: #d4d4d8;
+    --mobile-app-button-ink: #09090b;
+    --mobile-app-shadow: 0 14px 38px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    --mobile-app-header: rgba(9, 9, 11, 0.82);
+    --mobile-app-surface:
+      radial-gradient(ellipse 88% 48% at 50% -18%, rgba(255, 255, 255, 0.065), transparent 58%),
+      linear-gradient(180deg, #121214 0%, #09090b 48%, #0c0c0e 100%);
+  }
+
+  html[data-mobile-theme="cyber"] body,
+  html[data-mobile-theme="cyber"] .timix-mobile-shell,
+  html[data-mobile-theme="cyber"] .profile-mobile-app,
+  html[data-mobile-theme="cyber"] .community-mobile-app,
+  html[data-mobile-theme="cyber"] .stations-mobile-app {
+    min-height: 100dvh;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    touch-action: pan-y !important;
+    background: var(--mobile-app-surface) !important;
+    color: var(--mobile-app-ink) !important;
+  }
+
+  html[data-mobile-theme="cyber"] .timix-mobile-shell > header,
+  html[data-mobile-theme="cyber"] .profile-mobile-app > header,
+  html[data-mobile-theme="cyber"] .community-mobile-app > header,
+  html[data-mobile-theme="cyber"] .stations-mobile-app section > div:first-child {
+    background: rgba(9, 9, 11, 0.82) !important;
+    border-color: rgba(255, 255, 255, 0.06) !important;
+    color: rgba(244, 244, 245, 0.94) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 14px 42px rgba(0, 0, 0, 0.34) !important;
+    backdrop-filter: blur(24px) saturate(130%) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(130%) !important;
+  }
+
+  html[data-mobile-theme="cyber"] .timix-mobile-shell [class*="bg-cyan"],
+  html[data-mobile-theme="cyber"] .timix-mobile-shell [class*="bg-sky"],
+  html[data-mobile-theme="cyber"] .timix-mobile-shell [class*="bg-blue"],
+  html[data-mobile-theme="cyber"] .timix-mobile-shell [class*="bg-purple"],
+  html[data-mobile-theme="cyber"] .timix-mobile-shell [class*="bg-indigo"],
+  html[data-mobile-theme="cyber"] .timix-mobile-shell [class*="bg-fuchsia"],
+  html[data-mobile-theme="cyber"] .timix-mobile-shell [class*="bg-violet"],
+  html[data-mobile-theme="cyber"] .community-mobile-app [class*="bg-cyan"],
+  html[data-mobile-theme="cyber"] .community-mobile-app [class*="bg-sky"],
+  html[data-mobile-theme="cyber"] .community-mobile-app [class*="bg-blue"],
+  html[data-mobile-theme="cyber"] .community-mobile-app [class*="bg-purple"],
+  html[data-mobile-theme="cyber"] .community-mobile-app [class*="bg-indigo"],
+  html[data-mobile-theme="cyber"] .community-mobile-app [class*="bg-fuchsia"],
+  html[data-mobile-theme="cyber"] .community-mobile-app [class*="bg-violet"],
+  html[data-mobile-theme="cyber"] .profile-mobile-app [class*="bg-cyan"],
+  html[data-mobile-theme="cyber"] .profile-mobile-app [class*="bg-sky"],
+  html[data-mobile-theme="cyber"] .profile-mobile-app [class*="bg-blue"],
+  html[data-mobile-theme="cyber"] .profile-mobile-app [class*="bg-purple"],
+  html[data-mobile-theme="cyber"] .profile-mobile-app [class*="bg-indigo"],
+  html[data-mobile-theme="cyber"] .profile-mobile-app [class*="bg-fuchsia"],
+  html[data-mobile-theme="cyber"] .profile-mobile-app [class*="bg-violet"],
+  html[data-mobile-theme="cyber"] .stations-mobile-app [class*="bg-cyan"],
+  html[data-mobile-theme="cyber"] .stations-mobile-app [class*="bg-sky"],
+  html[data-mobile-theme="cyber"] .stations-mobile-app [class*="bg-blue"],
+  html[data-mobile-theme="cyber"] .stations-mobile-app [class*="bg-purple"],
+  html[data-mobile-theme="cyber"] .stations-mobile-app [class*="bg-indigo"],
+  html[data-mobile-theme="cyber"] .stations-mobile-app [class*="bg-fuchsia"],
+  html[data-mobile-theme="cyber"] .stations-mobile-app [class*="bg-violet"] {
+    background: rgba(255, 255, 255, 0.04) !important;
+    background-image: none !important;
+    border-color: rgba(255, 255, 255, 0.075) !important;
+  }
+
+  html[data-mobile-theme="cyber"] .timix-mobile-shell [class*="text-cyan"],
+  html[data-mobile-theme="cyber"] .timix-mobile-shell [class*="text-sky"],
+  html[data-mobile-theme="cyber"] .timix-mobile-shell [class*="text-blue"],
+  html[data-mobile-theme="cyber"] .timix-mobile-shell [class*="text-purple"],
+  html[data-mobile-theme="cyber"] .timix-mobile-shell [class*="text-indigo"],
+  html[data-mobile-theme="cyber"] .timix-mobile-shell [class*="text-fuchsia"],
+  html[data-mobile-theme="cyber"] .timix-mobile-shell [class*="text-violet"],
+  html[data-mobile-theme="cyber"] .community-mobile-app [class*="text-cyan"],
+  html[data-mobile-theme="cyber"] .community-mobile-app [class*="text-sky"],
+  html[data-mobile-theme="cyber"] .community-mobile-app [class*="text-blue"],
+  html[data-mobile-theme="cyber"] .community-mobile-app [class*="text-purple"],
+  html[data-mobile-theme="cyber"] .community-mobile-app [class*="text-indigo"],
+  html[data-mobile-theme="cyber"] .community-mobile-app [class*="text-fuchsia"],
+  html[data-mobile-theme="cyber"] .community-mobile-app [class*="text-violet"],
+  html[data-mobile-theme="cyber"] .profile-mobile-app [class*="text-cyan"],
+  html[data-mobile-theme="cyber"] .profile-mobile-app [class*="text-sky"],
+  html[data-mobile-theme="cyber"] .profile-mobile-app [class*="text-blue"],
+  html[data-mobile-theme="cyber"] .profile-mobile-app [class*="text-purple"],
+  html[data-mobile-theme="cyber"] .profile-mobile-app [class*="text-indigo"],
+  html[data-mobile-theme="cyber"] .profile-mobile-app [class*="text-fuchsia"],
+  html[data-mobile-theme="cyber"] .profile-mobile-app [class*="text-violet"],
+  html[data-mobile-theme="cyber"] .stations-mobile-app [class*="text-cyan"],
+  html[data-mobile-theme="cyber"] .stations-mobile-app [class*="text-sky"],
+  html[data-mobile-theme="cyber"] .stations-mobile-app [class*="text-blue"],
+  html[data-mobile-theme="cyber"] .stations-mobile-app [class*="text-purple"],
+  html[data-mobile-theme="cyber"] .stations-mobile-app [class*="text-indigo"],
+  html[data-mobile-theme="cyber"] .stations-mobile-app [class*="text-fuchsia"],
+  html[data-mobile-theme="cyber"] .stations-mobile-app [class*="text-violet"] {
+    color: rgba(212, 212, 216, 0.88) !important;
+  }
+
+  html[data-mobile-theme="cyber"] .timix-mobile-shell [class*="border-cyan"],
+  html[data-mobile-theme="cyber"] .timix-mobile-shell [class*="border-sky"],
+  html[data-mobile-theme="cyber"] .timix-mobile-shell [class*="border-blue"],
+  html[data-mobile-theme="cyber"] .timix-mobile-shell [class*="border-purple"],
+  html[data-mobile-theme="cyber"] .timix-mobile-shell [class*="border-indigo"],
+  html[data-mobile-theme="cyber"] .timix-mobile-shell [class*="border-fuchsia"],
+  html[data-mobile-theme="cyber"] .timix-mobile-shell [class*="border-violet"],
+  html[data-mobile-theme="cyber"] .community-mobile-app [class*="border-cyan"],
+  html[data-mobile-theme="cyber"] .community-mobile-app [class*="border-sky"],
+  html[data-mobile-theme="cyber"] .community-mobile-app [class*="border-blue"],
+  html[data-mobile-theme="cyber"] .community-mobile-app [class*="border-purple"],
+  html[data-mobile-theme="cyber"] .community-mobile-app [class*="border-indigo"],
+  html[data-mobile-theme="cyber"] .community-mobile-app [class*="border-fuchsia"],
+  html[data-mobile-theme="cyber"] .community-mobile-app [class*="border-violet"],
+  html[data-mobile-theme="cyber"] .profile-mobile-app [class*="border-cyan"],
+  html[data-mobile-theme="cyber"] .profile-mobile-app [class*="border-sky"],
+  html[data-mobile-theme="cyber"] .profile-mobile-app [class*="border-blue"],
+  html[data-mobile-theme="cyber"] .profile-mobile-app [class*="border-purple"],
+  html[data-mobile-theme="cyber"] .profile-mobile-app [class*="border-indigo"],
+  html[data-mobile-theme="cyber"] .profile-mobile-app [class*="border-fuchsia"],
+  html[data-mobile-theme="cyber"] .profile-mobile-app [class*="border-violet"],
+  html[data-mobile-theme="cyber"] .stations-mobile-app [class*="border-cyan"],
+  html[data-mobile-theme="cyber"] .stations-mobile-app [class*="border-sky"],
+  html[data-mobile-theme="cyber"] .stations-mobile-app [class*="border-blue"],
+  html[data-mobile-theme="cyber"] .stations-mobile-app [class*="border-purple"],
+  html[data-mobile-theme="cyber"] .stations-mobile-app [class*="border-indigo"],
+  html[data-mobile-theme="cyber"] .stations-mobile-app [class*="border-fuchsia"],
+  html[data-mobile-theme="cyber"] .stations-mobile-app [class*="border-violet"] {
+    border-color: rgba(255, 255, 255, 0.075) !important;
+  }
+}
+/* Mobile native touch ergonomics pass: keep desktop hover, make app shells feel tappable. */
+@media (max-width: 767px) {
+  .timix-mobile-shell :where(a, button, [role="button"]),
+  .profile-mobile-app :where(a, button, [role="button"]),
+  .community-mobile-app :where(a, button, [role="button"]),
+  .stations-mobile-app :where(a, button, [role="button"]) {
+    min-height: 44px;
+    min-width: 44px;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    transition: all 300ms var(--ease-premium);
+  }
+
+  .timix-mobile-shell :where(a, button, [role="button"]):active,
+  .profile-mobile-app :where(a, button, [role="button"]):active,
+  .community-mobile-app :where(a, button, [role="button"]):active,
+  .stations-mobile-app :where(a, button, [role="button"]):active {
+    transform: scale(0.98) translateZ(0);
+    opacity: 0.82;
+  }
+
+  .timix-mobile-shell :where(.share-post-row, .share-folder-list > div, .mobile-station-row),
+  .profile-mobile-app :where(section, nav[aria-label="个人主页内容切换"]),
+  .community-mobile-app :where(article, .community-compose-trigger),
+  .stations-mobile-app :where(.mobile-station-row, .mobile-station-filter, .mobile-station-table) {
+    transition: transform 300ms var(--ease-premium), opacity 300ms var(--ease-premium), background-color 300ms var(--ease-premium), border-color 300ms var(--ease-premium), box-shadow 300ms var(--ease-premium);
+  }
+
+  .timix-mobile-shell :where(.share-post-row, .share-folder-list > div, .mobile-station-row):active,
+  .profile-mobile-app :where(section):active,
+  .community-mobile-app :where(article, .community-compose-trigger):active,
+  .stations-mobile-app :where(.mobile-station-row):active {
+    transform: scale(0.992) translateZ(0);
+  }
+}
+/* Mobile app refinement: raise feed density without changing the app-shell scroll container. */
+@media (max-width: 767px) {
+  .community-mobile-app .community-mobile-header {
+    margin-bottom: 6px !important;
+    padding-bottom: 8px !important;
+  }
+
+  .community-mobile-app > div {
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+  }
+
+  .community-mobile-app .community-mobile-compose,
+  .community-mobile-app nav[aria-label="社区快捷入口"] {
+    margin-bottom: 8px !important;
+  }
+
+  .community-mobile-app .community-compose-trigger {
+    border-radius: 14px !important;
+    padding: 10px 12px !important;
+  }
+
+  .community-mobile-app .community-compose-trigger span:first-child span:first-child {
+    font-size: 13px !important;
+  }
+
+  .community-mobile-app .community-compose-trigger span:first-child span:last-child {
+    display: none !important;
+  }
+
+  .community-mobile-app .community-composer-shell > div > div:first-child {
+    padding-bottom: 6px !important;
+  }
+
+  .community-mobile-app .community-composer-shell > div > div:first-child p,
+  .community-mobile-app .community-composer-shell > div > div:first-child a,
+  .community-mobile-app .community-composer-shell div:has(> span.text-xs.font-semibold) {
+    display: none !important;
+  }
+
+  .community-mobile-app .community-composer-shell textarea {
+    min-height: 92px !important;
+    padding: 10px 12px !important;
+  }
+
+  .community-mobile-app .community-feed-shell article {
+    border-radius: 14px !important;
+    margin-bottom: 7px !important;
+    padding: 9px 10px !important;
+  }
+
+  .community-mobile-app .community-feed-shell article .mobile-admin-chip {
+    min-height: 26px !important;
+    min-width: 0 !important;
+    padding: 2px 7px !important;
+    gap: 2px !important;
+    font-size: 10px !important;
+    line-height: 1 !important;
+  }
+
+  .community-mobile-app .community-feed-shell article .mobile-admin-chip svg {
+    height: 12px !important;
+    width: 12px !important;
+  }
+
+  .community-mobile-app .community-feed-shell article [title="编辑"],
+  .community-mobile-app .community-feed-shell article [title="删除"],
+  .community-mobile-app .community-feed-shell article [title="置顶"],
+  .community-mobile-app .community-feed-shell article [title="取消置顶"] {
+    min-height: 26px !important;
+    min-width: 0 !important;
+    padding: 2px 7px !important;
+  }
+
+  .community-mobile-app .community-feed-shell article .mt-3.flex.flex-wrap,
+  .community-mobile-app .community-feed-shell article .mt-4.flex.flex-wrap {
+    display: none !important;
+  }
+
+  .community-mobile-app .community-feed-shell article .line-clamp-3 {
+    -webkit-line-clamp: 2 !important;
+    line-height: 1.42 !important;
+    max-height: 34px !important;
+  }
+
+  .community-mobile-app .community-feed-shell article .mt-5.grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 2px !important;
+    margin-top: 4px !important;
+    padding-top: 4px !important;
+  }
+
+  .community-mobile-app .community-feed-shell article .mt-5.grid > button:first-child {
+    display: none !important;
+  }
+
+  .community-mobile-app .community-feed-shell article .mt-5.grid :where(button, a) {
+    min-height: 34px !important;
+    min-width: 0 !important;
+    padding: 4px 6px !important;
+    font-size: 11px !important;
+  }
+}
+
+/* Final mobile app guardrails: dense TiMix feeds only; app-shell owns scrolling below. */
+@media (max-width: 767px) {
+  .community-mobile-app .community-feed-shell article {
+    border-radius: 14px !important;
+    margin-bottom: 7px !important;
+    padding: 8px 9px !important;
+  }
+
+  .community-mobile-app .community-feed-shell article .mobile-admin-chip {
+    min-height: 24px !important;
+    min-width: 0 !important;
+    padding: 1px 6px !important;
+    font-size: 10px !important;
+  }
+
+  .community-mobile-app .community-feed-shell article .mt-5.grid {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    overflow-x: auto !important;
+    border-top: 0 !important;
+    padding-top: 2px !important;
+    scrollbar-width: none;
+  }
+
+  .community-mobile-app .community-feed-shell article .mt-5.grid::-webkit-scrollbar {
+    display: none;
+  }
+
+  .community-mobile-app .community-feed-shell article .mt-5.grid > button:first-child,
+  .community-mobile-app .community-feed-shell article .mt-5.grid > button:last-child {
+    display: none !important;
+  }
+
+  .community-mobile-app .community-feed-shell article .mt-5.grid :where(button, a) {
+    flex: 0 0 auto !important;
+    min-height: 34px !important;
+    min-width: 34px !important;
+    padding: 4px 7px !important;
+  }
+
+  .forum-post-modal-scrollbar {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+html[data-scroll-locked],
+html[data-scroll-locked] body {
+  overflow: hidden !important;
+  overscroll-behavior: none !important;
+}
+
+html[data-scroll-locked] body {
+  touch-action: none !important;
+}
+
+.post-detail-modal-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  transform: translateZ(0);
+}
+/* Ironclad APK WebView App-Shell: root is fixed, each tab is the only scroll container. */
+@media (max-width: 1023px) {
+  html,
+  body {
+    height: 100% !important;
+    width: 100% !important;
+    overflow: hidden !important;
+    overscroll-behavior-y: none !important;
+    touch-action: pan-x pan-y !important;
+    background: var(--mobile-app-bg, #09090b) !important;
+  }
+
+  body {
+    position: static !important;
+    top: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  main#main-content {
+    display: flex !important;
+    flex: 1 1 auto !important;
+    flex-direction: column !important;
+    height: 100dvh !important;
+    min-height: 0 !important;
+    width: 100% !important;
+    overflow: hidden !important;
+    padding-bottom: 0 !important;
+    background: var(--mobile-app-bg, #09090b) !important;
+  }
+
+  .mobile-page-transition {
+    display: flex !important;
+    flex: 1 1 auto !important;
+    flex-direction: column !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    width: 100% !important;
+    overflow: hidden !important;
+    touch-action: pan-y !important;
+  }
+
+  .mobile-tab-scroll,
+  .timix-mobile-shell,
+  .community-mobile-app,
+  .stations-mobile-app,
+  .profile-mobile-app {
+    display: block !important;
+    flex: 1 1 auto !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    max-height: 100% !important;
+    width: 100% !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior-y: contain !important;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y !important;
+    padding-bottom: calc(6rem + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  html[data-scroll-locked] body {
+    touch-action: pan-y !important;
+  }
+
+  html[data-scroll-locked] .mobile-tab-scroll,
+  html[data-scroll-locked] .timix-mobile-shell,
+  html[data-scroll-locked] .community-mobile-app,
+  html[data-scroll-locked] .stations-mobile-app,
+  html[data-scroll-locked] .profile-mobile-app {
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y !important;
+  }
+}
+

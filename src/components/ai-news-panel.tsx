@@ -180,10 +180,10 @@ export function AiNewsPanel() {
             news.map((item, i) => (
               <article
                 key={`${item.title}-${i}`}
-                className="group rounded-[14px] border border-[var(--color-line)] bg-[var(--color-soft)] p-4 transition-all duration-300 hover:border-[var(--color-brand)] hover:bg-[var(--color-brand-soft)]"
+                className="group rounded-[14px] border border-[var(--color-line)] bg-[var(--color-soft)] p-4 transition-all duration-300 active:border-[var(--color-brand)] active:scale-[0.98] active:bg-[var(--color-brand-soft)] md:hover:border-[var(--color-brand)] md:hover:bg-[var(--color-brand-soft)]"
               >
                 <div className="flex items-start justify-between gap-2">
-                  <h3 className="text-sm font-bold leading-6 text-[var(--color-ink)] group-hover:text-[var(--color-brand-deep)]">
+                  <h3 className="text-sm font-bold leading-6 text-[var(--color-ink)] active:text-[var(--color-brand-deep)] md:group-hover:text-[var(--color-brand-deep)]">
                     {item.title}
                   </h3>
                   {item.source_type === "user" && (
@@ -208,7 +208,7 @@ export function AiNewsPanel() {
           <button
             type="button"
             onClick={openSubmit}
-            className="flex w-full items-center justify-center gap-1 rounded-xl bg-[var(--color-soft)] py-2.5 text-xs font-semibold text-[var(--color-muted)] transition-all duration-300 hover:bg-[var(--color-brand-soft)] hover:text-[var(--color-brand)]"
+            className="flex w-full items-center justify-center gap-1 rounded-xl bg-[var(--color-soft)] py-2.5 text-xs font-semibold text-[var(--color-muted)] transition-all duration-300 active:bg-[var(--color-brand-soft)] active:scale-[0.98] active:text-[var(--color-brand)] md:hover:bg-[var(--color-brand-soft)] md:hover:text-[var(--color-brand)]"
           >
             投稿AI新闻
             <span aria-hidden="true">&rarr;</span>

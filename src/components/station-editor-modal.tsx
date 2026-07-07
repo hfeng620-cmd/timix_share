@@ -163,11 +163,13 @@ export function StationEditorModal({ open, onClose }: StationEditorModalProps) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-[#09090b]/50 p-4 backdrop-blur-sm" onClick={onClose}>
       <div
-        className="relative flex max-h-[90vh] w-full max-w-5xl flex-col rounded-3xl border border-white/10 bg-black/70 shadow-2xl backdrop-blur-xl"
+        className="relative flex max-h-[90vh] w-full max-w-5xl flex-col rounded-t-3xl sm:rounded-3xl border border-white/10 bg-[#09090b]/70 shadow-2xl backdrop-blur-xl"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Drag handle for mobile */}
+        <div className="w-12 h-1.5 bg-zinc-300 dark:bg-zinc-700 rounded-full mx-auto mt-3 mb-1 shrink-0 sm:hidden" />
         {/* Header */}
         <div className="flex shrink-0 items-center justify-between border-b border-white/10 px-6 py-4">
           <div>
@@ -176,7 +178,7 @@ export function StationEditorModal({ open, onClose }: StationEditorModalProps) {
               {stations.length} 个站点 · 拖拽或点击箭头排序 · 点击行展开编辑
             </p>
           </div>
-          <button onClick={onClose} className="rounded-full px-4 py-2 text-sm text-white/50 hover:bg-white/10 hover:text-white transition font-body">
+          <button onClick={onClose} className="rounded-full px-4 py-2 text-sm text-white/50 active:bg-white/10 active:text-white active:scale-[0.98] md:hover:bg-white/10 md:hover:text-white transition font-body">
             关闭
           </button>
         </div>
@@ -214,7 +216,7 @@ export function StationEditorModal({ open, onClose }: StationEditorModalProps) {
                           ? "opacity-30"
                           : isEditing
                             ? "bg-white/10 border border-white/20"
-                            : "hover:bg-white/[0.04]"
+                            : "active:bg-white/[0.04] md:hover:bg-white/[0.04]"
                       }`}
                     >
                       {/* Drag handle */}
@@ -224,13 +226,13 @@ export function StationEditorModal({ open, onClose }: StationEditorModalProps) {
                       <span className="shrink-0 w-6 text-center font-mono text-xs text-white/30">{idx + 1}</span>
                       <div className="flex shrink-0 flex-col items-center leading-none">
                         <button
-                          className="text-xs text-white/25 hover:text-white disabled:opacity-10 transition"
+                          className="text-xs text-white/25 active:text-white active:scale-[0.98] md:hover:text-white disabled:opacity-10 transition"
                           disabled={idx === 0 || reorderingId === s.id}
                           onClick={(e) => { e.stopPropagation(); handleMove(s.id, -1); }}
                           type="button"
                         >▲</button>
                         <button
-                          className="text-xs text-white/25 hover:text-white disabled:opacity-10 transition"
+                          className="text-xs text-white/25 active:text-white active:scale-[0.98] md:hover:text-white disabled:opacity-10 transition"
                           disabled={idx === stations.length - 1 || reorderingId === s.id}
                           onClick={(e) => { e.stopPropagation(); handleMove(s.id, 1); }}
                           type="button"
@@ -285,7 +287,7 @@ export function StationEditorModal({ open, onClose }: StationEditorModalProps) {
                         </div>
                         <div className="mt-4 flex items-center gap-3">
                           <button
-                            className="rounded-full bg-white/15 px-5 py-2 text-sm font-medium text-white hover:bg-white/25 disabled:opacity-50 transition font-body"
+                            className="rounded-full bg-white/15 px-5 py-2 text-sm font-medium text-white active:bg-white/25 active:scale-[0.98] md:hover:bg-white/25 disabled:opacity-50 transition font-body"
                             disabled={saving}
                             onClick={saveEdit}
                             type="button"
@@ -293,7 +295,7 @@ export function StationEditorModal({ open, onClose }: StationEditorModalProps) {
                             {saving ? "保存中..." : "保存修改"}
                           </button>
                           <button
-                            className="rounded-full px-4 py-2 text-sm text-white/40 hover:text-white transition font-body"
+                            className="rounded-full px-4 py-2 text-sm text-white/40 active:text-white active:scale-[0.98] md:hover:text-white transition font-body"
                             onClick={cancelEdit}
                             type="button"
                           >
@@ -310,10 +312,10 @@ export function StationEditorModal({ open, onClose }: StationEditorModalProps) {
         </div>
 
         {/* Footer */}
-        <div className="shrink-0 border-t border-white/10 px-6 py-3 flex items-center justify-between">
+        <div className="shrink-0 border-t border-white/10 px-6 py-3 flex items-center justify-between" style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 12px)' }}>
           <span className="text-xs text-white/25 font-body">拖拽⠿手柄或点击▲▼排序 · 点击行编辑字段</span>
           <button
-            className="rounded-full bg-white/10 px-4 py-1.5 text-xs text-white/50 hover:bg-white/20 transition font-body"
+            className="rounded-full bg-white/10 px-4 py-1.5 text-xs text-white/50 active:bg-white/20 active:scale-[0.98] md:hover:bg-white/20 transition font-body"
             onClick={refresh}
             type="button"
           >

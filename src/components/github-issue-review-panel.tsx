@@ -89,17 +89,17 @@ export function GithubIssueReviewPanel() {
   }
 
   return (
-    <section className="rounded-[24px] border border-[var(--color-line)] bg-white/[0.04] p-6 shadow-[0_18px_60px_rgba(13,25,48,0.07)]">
+    <section className="rounded-2xl border border-zinc-200 bg-white shadow-sm p-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-muted)]">
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-zinc-500">
             Supabase 论坛审核
           </p>
-          <h2 className="mt-2 text-2xl font-black">论坛待审核帖子</h2>
+          <h2 className="mt-2 text-2xl font-black text-zinc-900">论坛待审核帖子</h2>
         </div>
         <div className="flex flex-wrap gap-3">
           <button
-            className="rounded-full border border-[var(--color-line)] bg-white/[0.06] px-4 py-2 text-sm font-bold text-white transition hover:bg-[var(--color-soft)]"
+            className="rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2 text-sm font-bold text-zinc-700 transition active:bg-zinc-100 active:scale-[0.98] md:hover:bg-zinc-100"
             onClick={() => (isConnected ? void loadPending() : showAuthModal())}
             type="button"
           >
@@ -107,7 +107,7 @@ export function GithubIssueReviewPanel() {
           </button>
           {isConnected && posts.length > 0 && (
             <button
-              className="rounded-full bg-[#15803d] px-4 py-2 text-sm font-bold text-white transition hover:bg-[#166534] disabled:opacity-50"
+              className="rounded-xl bg-zinc-900 px-4 py-2 text-sm font-bold text-white transition active:bg-zinc-800 active:scale-[0.98] md:hover:bg-zinc-800 disabled:opacity-50"
               onClick={async () => {
                 if (!window.confirm(`确定要通过全部 ${posts.length} 条待审核帖子吗？`)) return;
                 setStatus("正在批量通过...");
@@ -132,63 +132,63 @@ export function GithubIssueReviewPanel() {
         </div>
       </div>
 
-      <p className="mt-4 text-sm leading-7 text-[var(--color-muted)]">{status}</p>
+      <p className="mt-4 text-sm leading-7 text-zinc-500">{status}</p>
 
       <div className="mt-5 space-y-4">
         {!isConnected ? (
-          <div className="rounded-[18px] bg-[var(--color-soft)] px-4 py-5 text-sm leading-7 text-[var(--color-muted)]">
+          <div className="rounded-xl bg-zinc-50 px-4 py-5 text-sm leading-7 text-zinc-600">
             普通访客不需要进这里。管理员登录后可通过或驳回站内待审核帖子。
           </div>
         ) : null}
 
         {isConnected && loading ? (
-          <div className="rounded-[18px] bg-[var(--color-soft)] px-4 py-5 text-sm leading-7 text-[var(--color-muted)]">
+          <div className="rounded-xl bg-zinc-50 px-4 py-5 text-sm leading-7 text-zinc-600">
             正在加载...
           </div>
         ) : null}
 
         {isConnected && !loading && posts.length === 0 ? (
-          <div className="rounded-[18px] bg-[var(--color-soft)] px-4 py-5 text-sm leading-7 text-[var(--color-muted)]">
+          <div className="rounded-xl bg-zinc-50 px-4 py-5 text-sm leading-7 text-zinc-600">
             暂无待审核帖子。
           </div>
         ) : null}
 
         {posts.map((post) => (
           <article
-            className="rounded-[18px] border border-[var(--color-line)] bg-[var(--color-soft)] p-5"
+            className="rounded-xl border border-zinc-200 bg-zinc-50 p-5"
             key={post.issueNumber}
           >
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="text-lg font-black">{post.author}</h3>
+                  <h3 className="text-lg font-black text-zinc-900">{post.author}</h3>
                   {post.station ? (
-                    <span className="rounded-full bg-white/[0.1] px-3 py-1 text-xs font-bold text-white/80">
+                    <span className="rounded-full bg-zinc-200 px-3 py-1 text-xs font-bold text-zinc-700">
                       {post.station}
                     </span>
                   ) : null}
                 </div>
-                <p className="mt-2 text-sm text-[var(--color-muted)]">
+                <p className="mt-2 text-sm text-zinc-500">
                   {post.handle} · {post.postedAt}
                 </p>
               </div>
-              <span className="text-xs font-bold text-[var(--color-muted)]">待审核</span>
+              <span className="text-xs font-bold text-zinc-500">待审核</span>
             </div>
 
             {editingId === post.issueNumber ? (
               <textarea
-                className="mt-4 w-full rounded-2xl border border-[var(--color-line)] bg-white/[0.06] px-4 py-3 text-sm leading-7 text-white"
+                className="mt-4 w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm leading-7 text-zinc-900"
                 onChange={(e) => setEditedBody(e.target.value)}
                 rows={6}
                 value={editedBody}
               />
             ) : (
               <div className="mt-4 flex items-start gap-2">
-                <p className="flex-1 whitespace-pre-wrap text-sm leading-7 text-[var(--color-ink)]">
+                <p className="flex-1 whitespace-pre-wrap text-sm leading-7 text-zinc-700">
                   {post.body}
                 </p>
                 <button
-                  className="shrink-0 rounded-full border border-[var(--color-line)] bg-white px-3 py-1 text-xs font-bold text-[var(--color-muted)] transition hover:bg-[var(--color-soft)]"
+                  className="shrink-0 rounded-lg border border-zinc-200 bg-white px-3 py-1 text-xs font-bold text-zinc-600 transition active:bg-zinc-50 active:scale-[0.98] md:hover:bg-zinc-50"
                   onClick={() => toggleEdit(post)}
                   type="button"
                 >
@@ -200,7 +200,7 @@ export function GithubIssueReviewPanel() {
             {post.tags.length > 0 ? (
               <div className="mt-3 flex flex-wrap gap-2">
                 {post.tags.map((tag) => (
-                  <span className="text-xs font-semibold text-[var(--color-muted)]" key={`${post.issueNumber}-${tag}`}>
+                  <span className="text-xs font-semibold text-zinc-500" key={`${post.issueNumber}-${tag}`}>
                     #{tag}
                   </span>
                 ))}
@@ -210,7 +210,7 @@ export function GithubIssueReviewPanel() {
             <div className="mt-5 flex flex-wrap gap-3">
               {editingId === post.issueNumber ? (
                 <button
-                  className="rounded-full bg-[var(--color-brand)] px-5 py-2.5 text-sm font-bold text-white transition hover:bg-[var(--color-brand-deep)]"
+                  className="rounded-xl bg-[var(--color-brand)] px-5 py-2.5 text-sm font-bold text-white transition active:bg-[var(--color-brand-deep)] active:scale-[0.98] md:hover:bg-[var(--color-brand-deep)]"
                   onClick={() => void updateAndApprove(post.issueNumber)}
                   type="button"
                 >
@@ -218,7 +218,7 @@ export function GithubIssueReviewPanel() {
                 </button>
               ) : (
                 <button
-                  className="rounded-full bg-[var(--color-brand)] px-5 py-2.5 text-sm font-bold text-white transition hover:bg-[var(--color-brand-deep)]"
+                  className="rounded-xl bg-[var(--color-brand)] px-5 py-2.5 text-sm font-bold text-white transition active:bg-[var(--color-brand-deep)] active:scale-[0.98] md:hover:bg-[var(--color-brand-deep)]"
                   onClick={() => void review(post.issueNumber, "approve")}
                   type="button"
                 >
@@ -227,7 +227,7 @@ export function GithubIssueReviewPanel() {
               )}
               {editingId === post.issueNumber ? (
                 <button
-                  className="rounded-full border border-[var(--color-line)] bg-white px-5 py-2.5 text-sm font-bold text-[var(--color-ink)] transition hover:bg-[var(--color-soft)]"
+                  className="rounded-xl border border-zinc-200 bg-white px-5 py-2.5 text-sm font-bold text-zinc-700 transition active:bg-zinc-50 active:scale-[0.98] md:hover:bg-zinc-50"
                   onClick={() => toggleEdit(post)}
                   type="button"
                 >
@@ -235,7 +235,7 @@ export function GithubIssueReviewPanel() {
                 </button>
               ) : null}
               <button
-                className="rounded-full bg-red-500/10 px-5 py-2.5 text-sm font-bold text-red-400 transition hover:bg-red-500/20"
+                className="rounded-xl bg-red-500/10 px-5 py-2.5 text-sm font-bold text-red-600 transition active:bg-red-500/20 active:scale-[0.98] md:hover:bg-red-500/20"
                 onClick={() => void review(post.issueNumber, "reject")}
                 type="button"
               >

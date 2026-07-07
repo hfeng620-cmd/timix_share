@@ -418,7 +418,7 @@ export function ThemeToggleInline({ view = "all", compact = false }: ThemeToggle
                 className={`rounded-[16px] border px-3 py-3 text-left transition ${
                   active
                     ? "border-[var(--color-brand)] bg-[var(--color-brand-soft)] shadow-[0_10px_26px_var(--color-panel-glow)]"
-                    : "border-[var(--color-line)] bg-[var(--color-panel-strong)] hover:border-[var(--color-brand)] hover:bg-[var(--color-soft)]"
+                    : "border-[var(--color-line)] bg-[var(--color-panel-strong)] active:border-[var(--color-brand)] active:scale-[0.98] active:bg-[var(--color-soft)] md:hover:border-[var(--color-brand)] md:hover:bg-[var(--color-soft)]"
                 }`}
                 onClick={() => handlePresetChange(item.mode, item.palette)}
                 type="button"
@@ -465,7 +465,7 @@ export function ThemeToggleInline({ view = "all", compact = false }: ThemeToggle
                 className={`flex items-center gap-3 rounded-[16px] border px-3 py-3 text-left transition ${
                   active
                     ? "border-[var(--color-brand)] bg-[var(--color-brand-soft)] shadow-[0_10px_26px_var(--color-panel-glow)]"
-                    : "border-[var(--color-line)] bg-[var(--color-panel-strong)] hover:border-[var(--color-brand)] hover:bg-[var(--color-soft)]"
+                    : "border-[var(--color-line)] bg-[var(--color-panel-strong)] active:border-[var(--color-brand)] active:scale-[0.98] active:bg-[var(--color-soft)] md:hover:border-[var(--color-brand)] md:hover:bg-[var(--color-soft)]"
                 }`}
                 onClick={() => handleModeChange(item.id)}
                 type="button"
@@ -518,7 +518,7 @@ export function ThemeToggleInline({ view = "all", compact = false }: ThemeToggle
                   className={`rounded-[16px] border px-3 py-3 text-left transition ${
                     active
                       ? "border-[var(--color-brand)] bg-[var(--color-brand-soft)] shadow-[0_10px_26px_var(--color-panel-glow)]"
-                      : "border-[var(--color-line)] bg-[var(--color-panel-strong)] hover:border-[var(--color-brand)] hover:bg-[var(--color-soft)]"
+                      : "border-[var(--color-line)] bg-[var(--color-panel-strong)] active:border-[var(--color-brand)] active:scale-[0.98] active:bg-[var(--color-soft)] md:hover:border-[var(--color-brand)] md:hover:bg-[var(--color-soft)]"
                   }`}
                   onClick={() => handlePaletteChange(item.id)}
                   type="button"
@@ -558,7 +558,7 @@ export function ThemeToggleInline({ view = "all", compact = false }: ThemeToggle
                     className={`rounded-[15px] border px-3 py-2.5 text-left transition ${
                       active
                         ? "border-[var(--color-brand)] bg-[var(--color-brand-soft)] shadow-[0_10px_26px_var(--color-panel-glow)]"
-                        : "border-[var(--color-line)] bg-[var(--color-panel-strong)] hover:border-[var(--color-brand)] hover:bg-[var(--color-soft)]"
+                        : "border-[var(--color-line)] bg-[var(--color-panel-strong)] active:border-[var(--color-brand)] active:scale-[0.98] active:bg-[var(--color-soft)] md:hover:border-[var(--color-brand)] md:hover:bg-[var(--color-soft)]"
                     }`}
                     onClick={() => handlePaletteChange(item.id)}
                     type="button"

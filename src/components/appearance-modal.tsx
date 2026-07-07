@@ -54,11 +54,8 @@ type Props = { open: boolean; onClose: () => void };
 
 export function AppearanceModal({ open, onClose }: Props) {
   const [active, setActive] = useState<ThemeId>("cyber");
-  const [mounted, setMounted] = useState(false);
-
   /* 挂载时从 localStorage 恢复主题 */
   useEffect(() => {
-    setMounted(true);
     const stored = localStorage.getItem("timix-theme-v2") as ThemeId | null;
     if (stored && THEMES.some((t) => t.id === stored)) {
       setActive(stored);
@@ -90,22 +87,24 @@ export function AppearanceModal({ open, onClose }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-[90] flex items-center justify-center bg-black/60 backdrop-blur-xl p-4 sm:p-6"
+      className="fixed inset-0 z-[90] flex items-end sm:items-center justify-center bg-[#09090b]/60 backdrop-blur-xl p-4 sm:p-6"
       onClick={onClose}
     >
       {/* 主容器 — 宽屏 Apple 风格 */}
       <div
-        className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-3xl border border-white/10 bg-zinc-950/90 p-6 sm:p-8 shadow-2xl"
+        className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl border border-white/10 bg-zinc-950/90 p-6 sm:p-8 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Drag handle for mobile */}
+        <div className="w-12 h-1.5 bg-zinc-300 dark:bg-zinc-700 rounded-full mx-auto mt-3 mb-1 shrink-0 sm:hidden" />
         {/* 关闭按钮 */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/30 hover:text-white hover:bg-white/10 transition-colors"
+          className="absolute top-4 right-4 flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/30 transition-colors active:text-white active:scale-[0.98] active:bg-white/10 md:hover:text-white md:hover:bg-white/10"
           type="button"
           aria-label="关闭"
         >
-          <X className="h-4 w-4" />
+          <X className="h-5 w-5" />
         </button>
 
         {/* 标题区 */}
@@ -126,7 +125,7 @@ export function AppearanceModal({ open, onClose }: Props) {
               <button
                 key={theme.id}
                 onClick={() => handleSelect(theme.id)}
-                className={`group relative text-left rounded-2xl border p-5 transition-all duration-300 hover:-translate-y-1 hover:bg-white/[0.02] ${
+                className={`group relative text-left rounded-2xl border p-5 transition-all duration-300 active:-translate-y-1 active:scale-[0.98] active:bg-white/[0.02] md:hover:-translate-y-1 md:hover:bg-white/[0.02] ${
                   isActive
                     ? "ring-2 ring-primary border-primary/30 bg-bg-card shadow-[0_8px_32px_var(--dt-primary-glow)]"
                     : "border-white/10 bg-white/[0.03]"
@@ -135,7 +134,7 @@ export function AppearanceModal({ open, onClose }: Props) {
               >
                 {/* 颜色条 — 三色渐变 */}
                 <div
-                  className="h-2.5 rounded-full mb-4 opacity-90 group-hover:opacity-100 transition-opacity"
+                  className="h-2.5 rounded-full mb-4 opacity-90 transition-opacity active:opacity-100 md:group-hover:opacity-100"
                   style={{ background: theme.gradient }}
                 />
 
@@ -156,7 +155,7 @@ export function AppearanceModal({ open, onClose }: Props) {
                     <Check className="h-3.5 w-3.5 text-primary" />
                   </span>
                 ) : (
-                  <span className="absolute top-3 right-3 flex h-6 w-6 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span className="absolute top-3 right-3 flex h-6 w-6 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] opacity-0 transition-opacity active:opacity-100 md:group-hover:opacity-100">
                     <span className="text-[10px] text-white/20">✓</span>
                   </span>
                 )}

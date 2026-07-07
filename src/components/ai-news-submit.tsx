@@ -204,7 +204,7 @@ export function AiNewsSubmit({ open, onClose }: AiNewsSubmitProps) {
   return (
     <dialog
       ref={dialogRef}
-      className="fixed inset-0 z-50 m-0 h-full w-full max-w-none border-0 bg-transparent p-0 backdrop:bg-black/40"
+      className="fixed inset-0 z-50 m-0 h-full w-full max-w-none border-0 bg-transparent p-0 backdrop:bg-[#09090b]/40"
       onClick={handleBackdropClick}
     >
       <div className="flex min-h-full items-center justify-center p-6">
@@ -216,7 +216,7 @@ export function AiNewsSubmit({ open, onClose }: AiNewsSubmitProps) {
             </p>
             <button
               type="button"
-              className="flex h-8 w-8 items-center justify-center rounded-full text-[var(--color-muted)] transition hover:bg-[var(--color-soft)] hover:text-[var(--color-ink)]"
+              className="flex h-11 w-11 items-center justify-center rounded-full text-[var(--color-muted)] transition active:bg-[var(--color-soft)] active:scale-[0.98] active:text-[var(--color-ink)] md:hover:bg-[var(--color-soft)] md:hover:text-[var(--color-ink)]"
               disabled={submitting}
               onClick={onClose}
             >
@@ -263,7 +263,7 @@ export function AiNewsSubmit({ open, onClose }: AiNewsSubmitProps) {
                 </p>
                 <button
                   type="button"
-                  className="mt-6 rounded-full bg-[var(--color-brand)] px-5 py-2.5 text-sm font-bold text-[var(--color-on-brand)] transition hover:scale-105 hover:bg-[var(--color-brand-deep)]"
+                  className="mt-6 rounded-full bg-[var(--color-brand)] px-5 py-2.5 text-sm font-bold text-[var(--color-on-brand)] transition active:scale-105 active:bg-[var(--color-brand-deep)] md:hover:scale-105 md:hover:bg-[var(--color-brand-deep)]"
                   onClick={onClose}
                 >
                   关闭
@@ -294,7 +294,7 @@ export function AiNewsSubmit({ open, onClose }: AiNewsSubmitProps) {
                 </p>
                 <button
                   type="button"
-                  className="mt-6 rounded-full bg-[var(--color-brand)] px-5 py-2.5 text-sm font-bold text-[var(--color-on-brand)] transition hover:scale-105 hover:bg-[var(--color-brand-deep)]"
+                  className="mt-6 rounded-full bg-[var(--color-brand)] px-5 py-2.5 text-sm font-bold text-[var(--color-on-brand)] transition active:scale-105 active:bg-[var(--color-brand-deep)] md:hover:scale-105 md:hover:bg-[var(--color-brand-deep)]"
                   onClick={() => {
                     showAuthModal();
                     onClose();
@@ -388,7 +388,7 @@ export function AiNewsSubmit({ open, onClose }: AiNewsSubmitProps) {
                 <div className="flex items-center justify-end gap-3 pt-2">
                   <button
                     type="button"
-                    className="rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-2.5 text-sm font-semibold text-[var(--color-muted)] transition hover:bg-[var(--color-soft)] hover:text-[var(--color-ink)]"
+                    className="rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-2.5 text-sm font-semibold text-[var(--color-muted)] transition active:bg-[var(--color-soft)] active:scale-[0.98] active:text-[var(--color-ink)] md:hover:bg-[var(--color-soft)] md:hover:text-[var(--color-ink)]"
                     disabled={submitting}
                     onClick={onClose}
                   >
@@ -396,7 +396,7 @@ export function AiNewsSubmit({ open, onClose }: AiNewsSubmitProps) {
                   </button>
                   <button
                     type="submit"
-                    className="rounded-full bg-[var(--color-brand)] px-5 py-2.5 text-sm font-bold text-[var(--color-on-brand)] shadow-[0_8px_20px_var(--color-panel-glow)] transition hover:scale-105 hover:bg-[var(--color-brand-deep)] disabled:opacity-50 disabled:hover:scale-100"
+                    className="rounded-full bg-[var(--color-brand)] px-5 py-2.5 text-sm font-bold text-[var(--color-on-brand)] shadow-[0_8px_20px_var(--color-panel-glow)] transition active:scale-105 active:bg-[var(--color-brand-deep)] md:hover:scale-105 md:hover:bg-[var(--color-brand-deep)] disabled:opacity-50 disabled:active:scale-100 disabled:md:hover:scale-100"
                     disabled={submitting}
                   >
                     {submitting ? "提交中..." : "提交新闻"}

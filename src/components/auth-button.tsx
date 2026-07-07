@@ -41,7 +41,7 @@ export function AuthButton() {
       <div className="flex items-center gap-2">
         {needsPassword ? (
           <button
-            className="flex min-h-11 min-w-11 items-center justify-center rounded-full bg-white text-xs font-bold text-black transition hover:bg-white/80"
+            className="flex min-h-11 min-w-11 items-center justify-center rounded-full bg-white text-xs font-bold text-zinc-950 transition active:bg-white/80 active:scale-[0.98] md:hover:bg-white/80"
             onClick={showAuthModal}
             title="设置密码和昵称"
             type="button"
@@ -50,7 +50,7 @@ export function AuthButton() {
           </button>
         ) : null}
         <Link
-          className="flex h-8 w-8 flex-shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-white/20 transition hover:border-white/50"
+          className="flex h-11 w-11 flex-shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-white/20 transition active:border-white/50 active:scale-[0.98] md:hover:border-white/50"
           href="/profile"
           title={email ?? undefined}
         >
@@ -65,11 +65,11 @@ export function AuthButton() {
         {(isAdmin || isOwner) && (
           <Link
             aria-label="打开管理面板"
-            className="flex h-8 w-8 flex-shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/25 bg-white/10 text-white/70 transition hover:border-white/50 hover:bg-white/20 hover:text-white"
+            className="flex h-11 w-11 flex-shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/25 bg-white/10 text-white/70 transition active:border-white/50 active:scale-[0.98] active:bg-white/20 active:text-white md:hover:border-white/50 md:hover:bg-white/20 md:hover:text-white"
             href="/admin"
             title="管理面板"
           >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
               <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
@@ -77,7 +77,7 @@ export function AuthButton() {
         )}
         <button
           aria-label="退出登录"
-          className="hidden min-h-11 min-w-11 items-center justify-center rounded-full border border-white/20 bg-white/5 text-xs font-bold text-white/50 transition hover:bg-white/10 hover:text-white sm:flex"
+          className="hidden min-h-11 min-w-11 items-center justify-center rounded-full border border-white/20 bg-white/5 text-xs font-bold text-white/50 transition active:bg-white/10 active:scale-[0.98] active:text-white md:hover:bg-white/10 md:hover:text-white sm:flex"
           onClick={() => signOut()}
           title="退出登录"
           type="button"
@@ -91,7 +91,7 @@ export function AuthButton() {
   return (
     <button
       aria-label="登录"
-      className="flex min-h-11 min-w-11 items-center justify-center rounded-full bg-white text-sm font-bold text-black transition hover:bg-white/80"
+      className="flex min-h-11 min-w-11 items-center justify-center rounded-full bg-white text-sm font-bold text-zinc-950 transition active:bg-white/80 active:scale-[0.98] md:hover:bg-white/80"
       onClick={showAuthModal}
       title="登录"
       type="button"

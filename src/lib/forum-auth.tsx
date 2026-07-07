@@ -98,6 +98,8 @@ interface ForumAuthState {
   sendPasswordReset: (email: string) => Promise<AuthResult>;
   verifyOtp: (email: string, token: string) => Promise<AuthResult>;
   signInWithPassword: (email: string, password: string) => Promise<AuthResult>;
+  sendPasswordReset: (email: string) => Promise<AuthResult>;
+  passwordRecoveryMode: boolean;
   setPassword: (password: string, displayName?: string) => Promise<AuthResult>;
   setDisplayName: (name: string) => Promise<void>;
   updateProfile: (data: { bio?: string; tags?: string[] }) => Promise<void>;
@@ -128,6 +130,8 @@ const defaultState: ForumAuthState = {
   sendPasswordReset: async () => ({ ok: false, error: "认证服务未配置。" }),
   verifyOtp: async () => ({ ok: false, error: "认证服务未配置。" }),
   signInWithPassword: async () => ({ ok: false, error: "认证服务未配置。" }),
+  sendPasswordReset: async () => ({ ok: false, error: "认证服务未配置。" }),
+  passwordRecoveryMode: false,
   setPassword: async () => ({ ok: false, error: "认证服务未配置。" }),
   setDisplayName: async () => {},
   updateProfile: async () => {},
@@ -193,6 +197,7 @@ export function ForumAuthProvider({ children }: { children: React.ReactNode }) {
   const [adminUserIds, setAdminUserIds] = useState<Set<string>>(new Set());
   const [ownerUserIds, setOwnerUserIds] = useState<Set<string>>(new Set());
   const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [passwordRecoveryMode, setPasswordRecoveryMode] = useState(false);
 
   const adminLoadedRef = useRef(false);
   const ownerLoadedRef = useRef(false);
@@ -335,7 +340,11 @@ export function ForumAuthProvider({ children }: { children: React.ReactNode }) {
     const { data: listener } = supabase.auth.onAuthStateChange(
       (event, nextSession) => {
         if (event === "PASSWORD_RECOVERY") {
+<<<<<<< HEAD
           setIsPasswordRecovery(true);
+=======
+          setPasswordRecoveryMode(true);
+>>>>>>> apk-build/debug-20260705-2005
           setAuthModalOpen(true);
         }
         setSession(nextSession);
@@ -475,6 +484,7 @@ export function ForumAuthProvider({ children }: { children: React.ReactNode }) {
 
       if (error) return { ok: false, error: getAuthErrorMessage(error.message) };
 
+      setPasswordRecoveryMode(false);
       getSupabaseClient().auth.updateUser({
         data: { registration_incomplete: false, password_set: true },
       }).catch(() => {
@@ -485,6 +495,27 @@ export function ForumAuthProvider({ children }: { children: React.ReactNode }) {
     [configured],
   );
 
+  const sendPasswordReset = useCallback(
+    async (email: string): Promise<AuthResult> => {
+      if (!configured) return { ok: false, error: "认证服务未配置。" };
+
+      const normalizedEmail = email.trim().toLowerCase();
+      if (!normalizedEmail) return { ok: false, error: "请输入邮箱。" };
+      if (!isValidEmail(normalizedEmail)) {
+        return { ok: false, error: "请输入有效的邮箱地址。" };
+      }
+
+      const redirectTo = typeof window === "undefined" ? undefined : window.location.origin;
+      const { error } = await getSupabaseClient().auth.resetPasswordForEmail(normalizedEmail, {
+        redirectTo,
+      });
+
+      return error
+        ? { ok: false, error: getAuthErrorMessage(error.message) }
+        : { ok: true };
+    },
+    [configured],
+  );
   const setPassword = useCallback(
     async (password: string, displayName?: string): Promise<AuthResult> => {
       if (!configured) return { ok: false, error: "认证服务未配置。" };
@@ -525,7 +556,12 @@ export function ForumAuthProvider({ children }: { children: React.ReactNode }) {
         return { ok: false, error: getAuthErrorMessage(error.message) };
       }
 
+<<<<<<< HEAD
       setIsPasswordRecovery(false);
+=======
+      setPasswordRecoveryMode(false);
+
+>>>>>>> apk-build/debug-20260705-2005
       if (profileWarning) {
         const retryResult = await supabase
           .from("forum_profiles")
@@ -652,12 +688,18 @@ export function ForumAuthProvider({ children }: { children: React.ReactNode }) {
       sendPasswordReset,
       verifyOtp,
       signInWithPassword,
+      sendPasswordReset,
+      passwordRecoveryMode,
       setPassword,
       setDisplayName,
       updateProfile,
       signOut,
     };
+<<<<<<< HEAD
   }, [configured, displayName, bio, tags, isLoading, isAdmin, isOwner, isPasswordRecovery, adminUserIds, ownerUserIds, sendEmailCode, sendPasswordReset, verifyOtp, session, setDisplayName, setPassword, signInWithPassword, updateProfile, signOut, authModalOpen, showAuthModal, hideAuthModal]);
+=======
+  }, [configured, displayName, bio, tags, isLoading, isAdmin, isOwner, adminUserIds, ownerUserIds, sendEmailCode, verifyOtp, session, setDisplayName, setPassword, signInWithPassword, sendPasswordReset, passwordRecoveryMode, updateProfile, signOut, authModalOpen, showAuthModal, hideAuthModal]);
+>>>>>>> apk-build/debug-20260705-2005
 
   return (
     <ForumAuthContext.Provider value={value}>

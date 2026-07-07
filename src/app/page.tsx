@@ -1,49 +1,7 @@
-import type { Metadata } from "next";
-import Link from "next/link";
-import { ArrowUpRight, Play, Zap, Palette, BarChart3, Shield } from "lucide-react";
-
-import { BlurIn, BlurText } from "@/components/blur-text";
-import { CoCreatorsWall } from "@/components/co-creators-wall";
-import { Navbar } from "@/components/navbar";
-import { VideoBackground } from "@/components/video-background";
-import { AiNewsPanel } from "@/components/ai-news-panel";
-
-export const metadata: Metadata = {
-  alternates: { canonical: "/" },
-  openGraph: { url: "/" },
-};
-
-const partners = ["OpenAI", "Claude", "Gemini", "DeepSeek", "Qwen"];
-
-const testimonials = [
-  {
-    quote: "以前选站要翻群聊和散帖，现在榜单把价格、倍率、入口叠在同一张判断面上，十分钟就锁定了主力站。",
-    name: "陈工",
-    role: "独立开发者",
-  },
-  {
-    quote: "社区反馈比厂商自己说的靠谱太多。哪个站最近不稳、哪个偷偷改倍率，讨论区翻一翻就知道了。",
-    name: "张远",
-    role: "AI 产品经理",
-  },
-  {
-    quote: "从试用门槛到主力站，整个判断链一目了然。不只是榜单，更像一个情报过滤层。",
-    name: "林嘉",
-    role: "全栈工程师",
-  },
-];
-
-const featureCards = [
-  { icon: Zap, title: "实时倍率追踪", body: "GPT、Claude、Grok 各模型倍率分开展示，一眼看出谁在悄悄涨价。" },
-  { icon: Palette, title: "社区交叉验证", body: "反馈、避坑、价格变化，从真实用户处同步，不靠软文判断。" },
-  { icon: BarChart3, title: "数据驱动对比", body: "价格、稳定性、模型覆盖三维并排，决策有据可依。" },
-  { icon: Shield, title: "安全备案", body: "收录站点经过社区验证，减少被钓鱼站或临时站坑的风险。" },
-];
-
-const HERO_VIDEO =
-  "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260307_083826_e938b29f-a43a-41ec-a153-3d4730578ab8.mp4";
+import GuidesPage from "@/app/guides/page";
 
 export default function Home() {
+<<<<<<< HEAD
   return (
     <div className="bg-black text-white">
       <Navbar />
@@ -326,3 +284,7 @@ export default function Home() {
     </div>
   );
 }
+=======
+  return <GuidesPage />;
+}
+>>>>>>> apk-build/debug-20260705-2005

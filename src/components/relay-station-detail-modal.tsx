@@ -1,6 +1,8 @@
 ﻿"use client";
 
 import { lockBodyScroll } from "@/lib/body-scroll-lock";
+import { haptic } from "@/lib/haptic";
+import { useBackButtonClose } from "@/lib/use-back-button-close";
 import { X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
@@ -104,6 +106,8 @@ export function RelayStationDetailModal({ station, open, onClose }: RelayStation
   const [mounted, setMounted] = useState(false);
   const [metrics, setMetrics] = useState<StationMonitorMetric[]>([]);
 
+  useBackButtonClose(open, onClose);
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -157,7 +161,7 @@ export function RelayStationDetailModal({ station, open, onClose }: RelayStation
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 sm:p-6"
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#09090b]/80 backdrop-blur-md p-4 sm:p-6"
       onClick={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}
@@ -172,12 +176,15 @@ export function RelayStationDetailModal({ station, open, onClose }: RelayStation
       </style>
 
       <div
-        className="relative flex h-[90vh] w-full max-w-[1200px] flex-col overflow-hidden rounded-2xl border border-white/10 bg-zinc-950/95 shadow-2xl md:h-[85vh] md:grid md:grid-cols-12"
+        className="fixed inset-x-0 bottom-0 top-12 md:top-auto md:inset-auto md:relative w-full md:max-w-[1200px] h-[90dvh] md:h-[85vh] max-h-[90dvh] bg-white dark:bg-zinc-950 md:bg-zinc-950/95 rounded-t-3xl md:rounded-2xl flex flex-col md:grid md:grid-cols-12 overflow-hidden border border-white/10 shadow-2xl"
         onClick={(event) => event.stopPropagation()}
       >
+        {/* Mobile drag handle */}
+        <div className="block md:hidden w-12 h-1.5 bg-zinc-300 dark:bg-zinc-700 rounded-full mx-auto mt-3 mb-1 shrink-0" />
+
         <button
           aria-label="关闭"
-          className="absolute right-4 top-4 z-50 rounded-full bg-zinc-900/80 p-2 text-zinc-400 backdrop-blur-sm transition-colors hover:text-white"
+          className="absolute right-4 top-4 z-50 rounded-full bg-zinc-900/80 p-2 text-zinc-400 backdrop-blur-sm transition-colors active:text-white active:scale-[0.98] md:hover:text-white"
           onClick={onClose}
           type="button"
         >
@@ -198,7 +205,8 @@ export function RelayStationDetailModal({ station, open, onClose }: RelayStation
               </p>
             </div>
             <button
-              className="shrink-0 rounded-lg bg-emerald-500 px-4 py-2 font-bold text-white shadow-lg shadow-emerald-500/20 transition-all hover:bg-emerald-600"
+              className="shrink-0 rounded-lg bg-emerald-500 px-4 py-2 font-bold text-white shadow-lg shadow-emerald-500/20 transition-all active:bg-emerald-600 active:scale-[0.98] md:hover:bg-emerald-600"
+              onClick={() => haptic("medium")}
               type="button"
             >
               开始检测
@@ -221,7 +229,7 @@ export function RelayStationDetailModal({ station, open, onClose }: RelayStation
           </div>
 
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            <DashboardCard accent="text-cyan-300" hint={multiplierValue} label="价格 Price" value={priceValue} />
+            <DashboardCard accent="text-emerald-300" hint={multiplierValue} label="价格 Price" value={priceValue} />
             <DashboardCard label="Token Usage" value={tokenCostLabel(liveMetric, station)} />
             <DashboardCard label="Fidelity" value={fidelityLabel(liveMetric, station)} />
             <DashboardCard label="Model Support" value={liveMetric?.modelName || station.models || "待补"} />

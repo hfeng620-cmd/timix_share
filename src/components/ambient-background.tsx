@@ -42,7 +42,7 @@ export function AmbientBackground({ variant = "void", className = "" }: AmbientB
         style={{ background: `radial-gradient(circle, ${c.accent2}, transparent 65%)` }} />
       <div className="absolute left-[50%] top-[70%] h-64 w-64 rounded-full blur-3xl opacity-25"
         style={{ background: `radial-gradient(circle, ${c.accent}, transparent 70%)` }} />
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#09090b] to-transparent" />
     </div>
   );
 }

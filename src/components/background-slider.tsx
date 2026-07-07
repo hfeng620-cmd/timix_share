@@ -38,7 +38,7 @@ export function BackgroundSlider() {
           style={{ transition: "opacity 2s ease-in-out" }}
         />
       ))}
-      <div className="pointer-events-none absolute inset-0 bg-black/60" />
+      <div className="pointer-events-none absolute inset-0 bg-[#09090b]/60" />
     </div>
   );
 }

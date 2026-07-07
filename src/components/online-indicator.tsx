@@ -138,7 +138,7 @@ export function OnlineIndicator() {
         const now = new Date().toISOString();
 
         // Use upsert directly - simpler and more reliable
-        const { data, error } = await supabase
+        const { error } = await supabase
           .from("user_presence")
           .upsert(
             { user_id: user!.id, last_seen: now },

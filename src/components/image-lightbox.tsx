@@ -34,7 +34,7 @@ export function ImageLightbox({ src, imageUrl, alt = "全屏大图", onClose }: 
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[99999] flex h-screen w-screen items-center justify-center overscroll-none bg-black/85 backdrop-blur-md"
+      className="fixed inset-0 z-[99999] flex min-h-[100dvh] w-full items-center justify-center overscroll-none bg-[#09090b]/85 p-4 backdrop-blur-md"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
@@ -49,7 +49,7 @@ export function ImageLightbox({ src, imageUrl, alt = "全屏大图", onClose }: 
 
       <img
         alt={alt}
-        className="max-h-[90vh] max-w-[90vw] rounded-md object-contain shadow-2xl"
+        className="max-h-[calc(100dvh_-_2rem_-_var(--safe-bottom))] max-w-[calc(100vw-2rem)] rounded-md object-contain shadow-2xl"
         src={resolvedSrc}
         onClick={(event) => event.stopPropagation()}
       />

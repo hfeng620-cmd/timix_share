@@ -1,6 +1,8 @@
 "use client";
 
 import { lockBodyScroll } from "@/lib/body-scroll-lock";
+import { haptic, hapticSuccess } from "@/lib/haptic";
+import { useBackButtonClose } from "@/lib/use-back-button-close";
 import { Check, Copy, ExternalLink, Gift, Loader2, PartyPopper, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
@@ -93,6 +95,8 @@ function parseCampaignQuestionnaire(campaign: Campaign | null): SurveyQuestion[]
 
 export function DropClaimModal({ campaign, onClaimed, open, onClose }: DropClaimModalProps) {
   const { user } = useForumAuth();
+
+  useBackButtonClose(open, onClose);
 
   // ── Form state ──
   const [registeredAccount, setRegisteredAccount] = useState("");
@@ -200,6 +204,7 @@ export function DropClaimModal({ campaign, onClaimed, open, onClose }: DropClaim
 
     if (result.ok) {
       setClaimedCode(result.code);
+      hapticSuccess();
       onClaimed?.();
     } else {
       setError(result.error);
@@ -232,19 +237,21 @@ export function DropClaimModal({ campaign, onClaimed, open, onClose }: DropClaim
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center overscroll-none bg-black/85 backdrop-blur-xl"
+      className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center overscroll-none bg-[#09090b]/85 backdrop-blur-xl"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <div
-        className="relative flex max-h-[90vh] w-[90vw] max-w-2xl flex-col overflow-hidden rounded-2xl border border-white/10 bg-zinc-950 shadow-2xl"
+        className="relative flex max-h-[90vh] w-[90vw] max-w-2xl flex-col overflow-hidden rounded-t-3xl sm:rounded-2xl border border-white/10 bg-zinc-950 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Drag Handle */}
+        <div className="w-12 h-1.5 bg-zinc-300 dark:bg-zinc-700 rounded-full mx-auto mt-3 mb-1 shrink-0 sm:hidden" />
         {/* ── Close button ── */}
         <button
           aria-label="关闭"
-          className="absolute right-4 top-4 z-50 flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/10 text-zinc-300 backdrop-blur transition hover:bg-white/15 hover:text-white"
+          className="absolute right-4 top-4 z-50 flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/10 text-zinc-300 backdrop-blur transition active:bg-white/15 active:text-white active:scale-[0.98] md:hover:bg-white/15 md:hover:text-white"
           onClick={onClose}
           type="button"
         >
@@ -273,7 +280,7 @@ export function DropClaimModal({ campaign, onClaimed, open, onClose }: DropClaim
               </code>
               <button
                 aria-label={copied ? "已复制" : "复制兑换码"}
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-zinc-300 transition hover:bg-white/10 hover:text-white"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-zinc-300 transition active:bg-white/10 active:text-white active:scale-[0.98] md:hover:bg-white/10 md:hover:text-white"
                 onClick={handleCopy}
                 type="button"
               >
@@ -290,7 +297,7 @@ export function DropClaimModal({ campaign, onClaimed, open, onClose }: DropClaim
             </p>
 
             <button
-              className="mt-8 rounded-full bg-white px-8 py-3 text-sm font-bold text-black transition hover:bg-zinc-200"
+              className="mt-8 rounded-full bg-white px-8 py-3 text-sm font-bold text-zinc-950 transition active:bg-zinc-200 active:scale-[0.98] md:hover:bg-zinc-200"
               onClick={onClose}
               type="button"
             >
@@ -315,7 +322,7 @@ export function DropClaimModal({ campaign, onClaimed, open, onClose }: DropClaim
                 领取前：请先前往目标平台注册账号
               </p>
               <a
-                className="mt-3 flex items-center gap-2 rounded-xl border border-white/10 bg-zinc-900 px-5 py-4 text-base font-bold text-cyan-300 transition hover:border-cyan-400/30 hover:bg-zinc-900/80"
+                className="mt-3 flex items-center gap-2 rounded-xl border border-white/10 bg-zinc-900 px-5 py-4 text-base font-bold text-emerald-300 transition active:border-emerald-400/25 active:bg-zinc-900/80 active:scale-[0.98] md:hover:border-emerald-400/25 md:hover:bg-zinc-900/80"
                 href={campaign.sponsor_url}
                 rel="noopener noreferrer"
                 target="_blank"
@@ -414,8 +421,8 @@ export function DropClaimModal({ campaign, onClaimed, open, onClose }: DropClaim
                                   key={item.value}
                                   className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
                                     selectedAnswer === item.value
-                                      ? "border-cyan-300/60 bg-cyan-300/10 text-cyan-100 shadow-[0_0_20px_rgba(34,211,238,0.12)]"
-                                      : "border-white/10 bg-white/5 text-zinc-400 hover:border-white/20 hover:text-zinc-200"
+                                      ? "border-emerald-300/35 bg-emerald-300/10 text-emerald-100 shadow-[0_0_20px_rgba(16,185,129,0.12)]"
+                                      : "border-white/10 bg-white/5 text-zinc-400 active:border-white/20 active:text-zinc-200 active:scale-[0.98] md:hover:border-white/20 md:hover:text-zinc-200"
                                   }`}
                                   disabled={submitting}
                                   onClick={() => setSurveyAnswers((next) => ({ ...next, [answerKey]: item.value }))}
@@ -467,9 +474,12 @@ export function DropClaimModal({ campaign, onClaimed, open, onClose }: DropClaim
 
                   {/* Submit */}
                   <button
-                    className="flex w-full items-center justify-center gap-2 rounded-full bg-white py-3 text-sm font-bold text-black transition hover:bg-zinc-200 disabled:opacity-40"
+                    className="flex w-full items-center justify-center gap-2 rounded-full bg-white py-3 text-sm font-bold text-zinc-950 transition active:bg-zinc-200 active:scale-[0.98] md:hover:bg-zinc-200 disabled:opacity-40"
                     disabled={submitting}
-                    onClick={handleSubmit}
+                    onClick={() => {
+                      haptic("medium");
+                      handleSubmit();
+                    }}
                     type="button"
                   >
                     {submitting ? (

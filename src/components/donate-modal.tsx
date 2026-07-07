@@ -71,7 +71,7 @@ export function DonateModal({ onClose }: DonateModalProps) {
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/80 p-4 backdrop-blur-md sm:p-6"
+      className="fixed inset-0 z-[99999] flex items-center justify-center bg-[#09090b]/80 p-4 backdrop-blur-md sm:p-6"
       onClick={onClose}
     >
       <div
@@ -92,7 +92,7 @@ export function DonateModal({ onClose }: DonateModalProps) {
 
         <div className="px-8 pb-10">
           <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
-            <div className="group flex flex-col items-center rounded-2xl border border-[#07C160]/20 bg-zinc-900/50 p-6 transition-colors hover:border-[#07C160]/50">
+            <div className="group flex flex-col items-center rounded-2xl border border-[#07C160]/20 bg-zinc-900/50 p-6 transition-colors active:border-[#07C160]/50 active:scale-[0.98] md:hover:border-[#07C160]/50">
               <div className="mb-4 aspect-square w-full overflow-hidden rounded-xl bg-white p-2 shadow-inner">
                 <DonateQrImage alt="微信赞助" jpgSrc="/wechat-pay.jpg" pngSrc="/wechat-pay.png" />
               </div>
@@ -102,7 +102,7 @@ export function DonateModal({ onClose }: DonateModalProps) {
               </span>
             </div>
 
-            <div className="group flex flex-col items-center rounded-2xl border border-[#1677FF]/20 bg-zinc-900/50 p-6 transition-colors hover:border-[#1677FF]/50">
+            <div className="group flex flex-col items-center rounded-2xl border border-[#1677FF]/20 bg-zinc-900/50 p-6 transition-colors active:border-[#1677FF]/50 active:scale-[0.98] md:hover:border-[#1677FF]/50">
               <div className="mb-4 aspect-square w-full overflow-hidden rounded-xl bg-white p-2 shadow-inner">
                 <DonateQrImage alt="支付宝赞助" jpgSrc="/alipay.jpg" pngSrc="/alipay.png" />
               </div>
@@ -116,7 +116,7 @@ export function DonateModal({ onClose }: DonateModalProps) {
 
         <button
           aria-label="关闭赞助弹窗"
-          className="absolute right-4 top-4 rounded-full bg-zinc-900/50 p-2 text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white"
+          className="absolute right-4 top-4 rounded-full bg-zinc-900/50 p-2.5 text-zinc-400 transition-colors active:bg-zinc-800 active:scale-[0.98] active:text-white md:hover:bg-zinc-800 md:hover:text-white"
           onClick={onClose}
           type="button"
         >

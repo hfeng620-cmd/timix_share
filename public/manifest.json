@@ -37,14 +37,14 @@
   ],
   "screenshots": [
     {
-      "src": "/previews/home-ranking.png",
+      "src": "/previews/home-ranking-v1.png",
       "sizes": "1280x720",
       "type": "image/png",
       "form_factor": "wide",
       "label": "AI 中转站榜单首页"
     },
     {
-      "src": "/previews/community-feed.png",
+      "src": "/previews/community-feed-v1.png",
       "sizes": "1280x720",
       "type": "image/png",
       "form_factor": "wide",
