@@ -24,7 +24,6 @@ import {
   loadAllSubmissions,
   updateSubmissionReviewSupabase,
   type StationSubmission,
-  updateSubmissionReview,
 } from "@/lib/submission-storage";
 import {
   deleteDiscussionPost,
@@ -113,6 +112,45 @@ function getErrorMessage(error: unknown, fallback: string) {
     return error.message;
   }
   return fallback;
+}
+
+function stationSubmissionToCreateInput(submission: StationSubmission): Parameters<typeof createStation>[0] {
+  const priceParts = submission.priceOrRate
+    .split("/")
+    .map((part) => part.trim())
+    .filter(Boolean);
+  const noteParts = [
+    submission.note.trim(),
+    submission.contact.trim() ? `提交人/联系方式：${submission.contact.trim()}` : "",
+  ].filter(Boolean);
+
+  return {
+    name: submission.stationName.trim(),
+    url: submission.url.trim(),
+    price: priceParts[0] ?? submission.priceOrRate.trim(),
+    multiplier: priceParts[1] ?? "",
+    packageType: priceParts[2] ?? "待补",
+    status: "审核通过，待复核",
+    models: "待补",
+    uptime: "待补",
+    latency: "待补",
+    source: submission.contact.trim() ? `社区提交：${submission.contact.trim()}` : "社区提交",
+    verdict: "管理员审核通过",
+    note: noteParts.join("\n\n"),
+    badge: "社区提交",
+  };
+}
+
+function isSameSubmittedStation(station: Station, submission: StationSubmission) {
+  const stationName = station.name.trim().toLowerCase();
+  const submissionName = submission.stationName.trim().toLowerCase();
+  const stationUrl = station.url.trim().toLowerCase().replace(/\/+$/, "");
+  const submissionUrl = submission.url.trim().toLowerCase().replace(/\/+$/, "");
+
+  return (
+    (submissionUrl.length > 0 && stationUrl === submissionUrl) ||
+    (submissionName.length > 0 && stationName === submissionName)
+  );
 }
 
 function formatLastSeen(lastSeen: string): string {
@@ -827,27 +865,62 @@ export default function AdminPage() {
     mode: "direct" | "edited" = "direct",
   ) {
     const target = submissions.find((item) => item.id === id);
+    if (!target) {
+      setStatus("审核失败：找不到这条提交。");
+      return;
+    }
+
     try {
+      let stationCreateState: "created" | "existing" | null = null;
+
+      if (statusValue === "approved" && target.kind === "新站点") {
+        if (!target.stationName.trim()) {
+          throw new Error("站点名不能为空。");
+        }
+
+        const currentStations = await loadStations();
+        if (currentStations.some((station) => isSameSubmittedStation(station, target))) {
+          stationCreateState = "existing";
+        } else {
+          await createStation(stationSubmissionToCreateInput(target));
+          stationCreateState = "created";
+        }
+      }
+
       await updateSubmissionReviewSupabase(id, {
         status: statusValue,
-        adminNote: target?.adminNote ?? "",
+        adminNote: target.adminNote ?? "",
       });
-      // Also update local state
-      const next = updateSubmissionReview(id, {
-        status: statusValue,
-        adminNote: target?.adminNote ?? "",
-      });
-      setSubmissions(next);
+      setSubmissions((current) =>
+        current.map((item) =>
+          item.id === id
+            ? {
+                ...item,
+                status: statusValue,
+                adminNote: target.adminNote ?? "",
+                reviewedAt: new Date().toISOString(),
+              }
+            : item,
+        ),
+      );
+      if (stationCreateState === "created") {
+        void refreshAllStations();
+      }
+      void refreshSubmissions();
       setStatus(
         statusValue === "approved"
-          ? mode === "edited"
-            ? "已保存你改过的内容，并通过这条提交。"
-            : "已直接通过这条提交。"
+          ? stationCreateState === "created"
+            ? "已创建正式站点，并通过这条提交。"
+            : stationCreateState === "existing"
+              ? "正式榜单中已存在相同站点，已通过这条提交。"
+              : mode === "edited"
+                ? "已保存你改过的内容，并通过这条提交。"
+                : "已直接通过这条提交。"
           : "已驳回这条提交。",
       );
       addAudit(
         statusValue === "approved" ? "通过站点提交" : "驳回站点提交",
-        target?.stationName ?? id,
+        target.stationName ?? id,
       );
     } catch (error) {
       setStatus(`审核失败: ${getErrorMessage(error, "请稍后重试。")}`);

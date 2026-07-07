@@ -119,9 +119,10 @@ export function StationEditModal({
         await submitStationEditRequest({
           stationId: station.id,
           userId,
+          editorName: editorName || "站内用户",
           suggestedData: payload,
         });
-        addToast("已提交修改申请，感谢您的贡献！", "success");
+        addToast("已提交修改申请，管理员审核后会生效。", "success");
       }
 
       onSaved();
@@ -159,7 +160,7 @@ export function StationEditModal({
           </p>
           <h2 className="mt-2 text-xl font-bold text-white">{station.name}</h2>
           <p className="mt-2 text-sm text-zinc-500">
-            {isAdmin ? "管理员将直接写入正式榜单。" : "普通用户的修改会进入待审核申请。"}
+            {isAdmin ? "管理员将直接写入正式榜单。" : "普通用户的修改会进入后台审核。"}
           </p>
         </div>
 

@@ -390,7 +390,7 @@ export async function loadSharedComments(postId: string): Promise<SharedComment[
       try {
         const profilesResult = await getSupabaseClient()
           .from("forum_profiles")
-          .select("id, display_name, avatar_url, custom_title")
+          .select("id, display_name, avatar_url")
           .in("id", authorIds);
         let profiles: any = profilesResult.data;
         const profileError = profilesResult.error;
@@ -406,7 +406,7 @@ export async function loadSharedComments(postId: string): Promise<SharedComment[
         for (const p of profiles ?? []) {
           nameMap.set((p as any).id, (p as any).display_name);
           avatarMap.set((p as any).id, (p as any).avatar_url ?? null);
-          customTitleMap.set((p as any).id, (p as any).custom_title ?? null);
+          customTitleMap.set((p as any).id, null);
         }
       } catch { /* 静默降级 */ }
     }
@@ -464,7 +464,7 @@ export async function createSharedComment(
   try {
     const profileResult = await supabase
       .from("forum_profiles")
-      .select("display_name, avatar_url, custom_title")
+      .select("display_name, avatar_url")
       .eq("id", authorId)
       .maybeSingle();
     let profile: any = profileResult.data;
@@ -482,7 +482,7 @@ export async function createSharedComment(
     if (profile) {
       authorName = (profile as any).display_name ?? authorName;
       authorAvatar = (profile as any).avatar_url ?? null;
-      authorCustomTitle = (profile as any).custom_title ?? null;
+      authorCustomTitle = null;
     }
   } catch { /* 降级 */ }
   const authorRole = (await loadUserRoles([authorId])).get(authorId) ?? "user";

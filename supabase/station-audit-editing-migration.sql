@@ -1,18 +1,18 @@
 -- ========================================
--- Timix观察站 · 站点榜单审核制安全加固
+-- Timix观察站 · 正式榜单审核制编辑迁移
 -- 在 Supabase SQL Editor 中运行。
 -- 目的：
--- 1) 正式榜单 stations 只允许管理员/站主直接新增/修改/删除。
--- 2) 普通用户修改正式站点必须进入 station_pending_edits 审核表。
--- 3) 待审核字段增加数据库 allowlist，避免审核时写入非预期列。
+-- 1) 管理员/站主可直接新增、修改、删除正式榜单。
+-- 2) 普通用户不能直接写 stations，只能提交 station_pending_edits / station_submissions。
+-- 3) 保留站点编辑历史与待审核字段白名单。
 -- ========================================
 
 begin;
 
 alter table public.stations enable row level security;
+alter table public.station_edits enable row level security;
 alter table public.station_pending_edits enable row level security;
 
--- 正式榜单：公开可读，管理员/站主可直接新增/修改/删除。
 drop policy if exists "Authenticated users create stations" on public.stations;
 drop policy if exists "Authenticated users update stations" on public.stations;
 drop policy if exists "Authenticated users delete stations" on public.stations;
@@ -34,7 +34,15 @@ create policy "Admins delete stations" on public.stations
   for delete
   using (public.is_forum_admin());
 
--- 待审核编辑：字段只允许落在正式榜单可编辑列中。
+drop policy if exists "Station edits are public" on public.station_edits;
+create policy "Station edits are public" on public.station_edits
+  for select using (true);
+
+drop policy if exists "Users create their edits" on public.station_edits;
+create policy "Users create their edits" on public.station_edits
+  for insert
+  with check (auth.uid() = editor_id);
+
 alter table public.station_pending_edits
   drop constraint if exists station_pending_edits_field_name_check;
 
@@ -63,8 +71,8 @@ alter table public.station_pending_edits
     )
   );
 
--- 普通用户只能插入自己的 pending edit；审核状态仍由管理员更新。
 drop policy if exists "Anyone can submit pending edits" on public.station_pending_edits;
+drop policy if exists "Authenticated can view pending edits" on public.station_pending_edits;
 drop policy if exists "Admins can review pending edits" on public.station_pending_edits;
 
 create policy "Anyone can submit pending edits" on public.station_pending_edits
@@ -76,9 +84,18 @@ create policy "Anyone can submit pending edits" on public.station_pending_edits
     and reviewed_at is null
   );
 
+create policy "Authenticated can view pending edits" on public.station_pending_edits
+  for select using (auth.role() = 'authenticated');
+
 create policy "Admins can review pending edits" on public.station_pending_edits
   for update
   using (public.is_forum_admin())
   with check (public.is_forum_admin());
+
+grant insert, update on public.stations to authenticated;
+grant select, insert on public.station_edits to authenticated;
+grant insert on public.station_pending_edits to authenticated;
+grant select on public.station_pending_edits to authenticated;
+grant update on public.station_pending_edits to authenticated;
 
 commit;

@@ -23,29 +23,44 @@ export function CoCreatorsWall() {
     async function load() {
       try {
         const supabase = getSupabaseClient();
-        // Get unique authors from shared_posts
-        const { data: posts } = await supabase.from("shared_posts").select("author_id, forum_profiles!inner(display_name, avatar_url)").order("created_at", { ascending: false }).limit(50);
+        // Keep this independent from Supabase FK/embed metadata; older schemas may
+        // not expose shared_posts -> forum_profiles as an embedded relationship.
+        const { data: posts } = await supabase
+          .from("shared_posts")
+          .select("author_id")
+          .order("created_at", { ascending: false })
+          .limit(50);
         if (!posts) return;
-        const seen = new Set<string>();
-        const list: CoCreator[] = [];
+        const authorIds = [...new Set(
+          (posts as Array<{ author_id?: string | null }>)
+            .map((post) => post.author_id)
+            .filter((id): id is string => Boolean(id)),
+        )];
+        if (authorIds.length === 0) return;
+
         // Check site_owners & forum_admins for role
-        const [{ data: owners }, { data: admins }] = await Promise.all([
+        const [{ data: profiles }, { data: owners }, { data: admins }] = await Promise.all([
+          supabase.from("forum_profiles").select("id, display_name, avatar_url").in("id", authorIds),
           supabase.from("site_owners").select("user_id"),
           supabase.from("forum_admins").select("user_id"),
         ]);
+        const profileMap = new Map(
+          ((profiles ?? []) as Array<{ id?: string; display_name?: string | null; avatar_url?: string | null }>)
+            .filter((profile) => profile.id)
+            .map((profile) => [profile.id as string, profile]),
+        );
         const ownerIds = new Set((owners ?? []).map((o: any) => o.user_id));
         const adminIds = new Set((admins ?? []).map((a: any) => a.user_id));
-        for (const p of posts as any[]) {
-          const uid = p.author_id;
-          if (seen.has(uid)) continue; seen.add(uid);
-          const profile = p.forum_profiles as any;
-          list.push({
+
+        const list: CoCreator[] = authorIds.map((uid) => {
+          const profile = profileMap.get(uid);
+          return {
             id: uid,
             avatarUrl: profile?.avatar_url ?? null,
             nickname: profile?.display_name ?? "未知用户",
             role: ownerIds.has(uid) ? "founder" : adminIds.has(uid) ? "admin" : "contributor",
-          });
-        }
+          };
+        });
         setCreators(list);
       } catch {}
     }

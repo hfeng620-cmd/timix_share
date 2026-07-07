@@ -1,7 +1,0 @@
-<?xml version='1.0' encoding='utf-8'?>
-<resources>
-    <string name="app_name">TiMix</string>
-    <string name="title_activity_main">TiMix</string>
-    <string name="package_name">com.timix.mobile</string>
-    <string name="custom_url_scheme">com.timix.mobile</string>
-</resources>

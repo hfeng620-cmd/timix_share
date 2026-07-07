@@ -211,7 +211,12 @@ function isPermissionError(error: { code?: string; message?: string }) {
 }
 
 function stationWritePermissionMessage(action: string) {
-  return `数据库暂时还没放开登录用户${action}正式榜单，请先执行 supabase/station-open-editing-migration.sql 后再试。`;
+  return `数据库未允许当前账号${action}正式榜单。普通用户请提交审核，管理员请确认已运行站点审核流 RLS 迁移。`;
+}
+
+function nullableText(value: string | undefined, fallback = "") {
+  const next = value?.trim();
+  return next || fallback;
 }
 
 // ---------------------------------------------------------------------------
@@ -221,7 +226,17 @@ function stationWritePermissionMessage(action: string) {
 /** Load all approved stations, ordered by sort_order. */
 export async function loadStations(): Promise<Station[]> {
   if (!isSupabaseConfigured()) return [];
-  const { data, error } = await getSupabaseClient()
+  const supabase = getSupabaseClient();
+  const viewResult = await supabase
+    .from("stations_with_editor")
+    .select("*")
+    .order("sort_order", { ascending: true });
+
+  if (!viewResult.error) {
+    return ((viewResult.data ?? []) as Record<string, unknown>[]).map(stationFromRow);
+  }
+
+  const { data, error } = await supabase
     .from("stations")
     .select("*")
     .order("sort_order", { ascending: true });
@@ -391,23 +406,23 @@ export async function createStation(input: {
         : 1;
 
     const row = {
-      name: input.name,
-      url: normalizedUrl || null,
-      price: input.price ?? null,
-      multiplier: input.multiplier ?? null,
-      entry: input.entry ?? null,
-      package_type: input.packageType ?? null,
-      status: input.status ?? null,
-      models: input.models ?? null,
-      uptime: input.uptime ?? null,
-      latency: input.latency ?? null,
-      source: input.source ?? null,
-      verdict: input.verdict ?? null,
-      note: input.note ?? null,
-      advantage: input.advantage ?? null,
-      risk: input.risk ?? null,
-      badge: input.badge ?? null,
-      group_name: input.groupName ?? null,
+      name: input.name.trim(),
+      url: normalizedUrl,
+      price: nullableText(input.price),
+      multiplier: nullableText(input.multiplier),
+      entry: nullableText(input.entry),
+      package_type: nullableText(input.packageType, "倍率制"),
+      status: nullableText(input.status),
+      models: nullableText(input.models),
+      uptime: nullableText(input.uptime, "待补"),
+      latency: nullableText(input.latency, "待补"),
+      source: nullableText(input.source),
+      verdict: nullableText(input.verdict),
+      note: nullableText(input.note),
+      advantage: nullableText(input.advantage),
+      risk: nullableText(input.risk),
+      badge: nullableText(input.badge),
+      group_name: nullableText(input.groupName),
       sort_order: input.sortOrder ?? nextSortOrder,
     };
 
@@ -706,6 +721,7 @@ export async function loadStationEditHistory(
 export async function submitStationEditRequest(params: {
   stationId: string;
   userId: string;
+  editorName: string;
   suggestedData: StationEditRequestPayload;
 }): Promise<void> {
   if (!isSupabaseConfigured()) {
@@ -715,13 +731,46 @@ export async function submitStationEditRequest(params: {
     throw new Error("这条站点还没有进入正式榜单，暂时不能提交修改申请。");
   }
 
-  const { error } = await getSupabaseClient()
-    .from("station_edit_requests")
-    .insert({
+  const supabase = getSupabaseClient();
+  const { data: current, error: fetchError } = await supabase
+    .from("stations")
+    .select("*")
+    .eq("id", params.stationId)
+    .single();
+
+  if (fetchError) {
+    throw new Error(`获取站点信息失败: ${fetchError.message}`);
+  }
+
+  const currentRow = current as Record<string, unknown>;
+  const inserts = Object.entries(params.suggestedData).flatMap(([camelKey, rawValue]) => {
+    const fieldName = toSnakeCase(camelKey);
+    assertEditableStationField(fieldName);
+
+    const oldValue = currentRow[fieldName];
+    const oldStr = oldValue === null || oldValue === undefined ? "" : String(oldValue);
+    const newStr = rawValue === null || rawValue === undefined ? "" : String(rawValue);
+
+    if (oldStr === newStr) return [];
+
+    return [{
       station_id: params.stationId,
-      user_id: params.userId,
-      suggested_data: params.suggestedData,
-    });
+      editor_id: params.userId,
+      editor_name: params.editorName || "站内用户",
+      field_name: fieldName,
+      old_value: oldStr,
+      new_value: newStr,
+      status: "pending",
+    }];
+  });
+
+  if (inserts.length === 0) {
+    throw new Error("没有检测到需要提交的字段变化。");
+  }
+
+  const { error } = await supabase
+    .from("station_pending_edits")
+    .insert(inserts);
 
   if (error) {
     throw new Error(`提交修改申请失败: ${error.message}`);

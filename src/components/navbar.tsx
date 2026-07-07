@@ -9,7 +9,6 @@ import { AuthButton } from "@/components/auth-button";
 import { DirectMessageModal } from "@/components/direct-message-modal";
 import { GlobalInboxModal } from "@/components/global-inbox-modal";
 import { NotificationBell } from "@/components/notification-bell";
-import { PwaInstallButton } from "@/components/pwa-install-prompt";
 import { OnlineIndicator } from "@/components/online-indicator";
 import { useForumAuth } from "@/lib/forum-auth";
 import { getSupabaseClient, isSupabaseConfigured } from "@/lib/supabase";
@@ -186,8 +185,7 @@ export function Navbar() {
   ) : null;
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-[100] px-4 sm:px-8 lg:px-16 lg:top-4"
->
+    <nav className="fixed top-4 left-0 right-0 z-[100] px-4 sm:px-8 lg:px-16">
       <div className="mx-auto flex max-w-7xl items-center justify-between py-3 gap-3">
         <Link
           href="/"
@@ -240,7 +238,7 @@ export function Navbar() {
         <div className="flex items-center gap-2">
           <Link
             href="/stations"
-            className="hidden rounded-full px-4 py-2 text-sm font-medium text-white md:hidden"
+            className="rounded-full px-4 py-2 text-sm font-medium text-white md:hidden"
             style={{
               background: "rgba(255,255,255,0.12)",
               backdropFilter: "blur(28px) saturate(200%)",
@@ -250,12 +248,11 @@ export function Navbar() {
           >
             榜单
           </Link>
-          <span className="hidden sm:inline"><OnlineIndicator /></span>
+          <OnlineIndicator />
           <NotificationBell />
-          <PwaInstallButton />
           <button
             aria-label="我的私信"
-            className="relative hidden h-10 w-10 items-center justify-center rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] text-[var(--color-muted)] transition hover:border-emerald-500/40 hover:bg-emerald-500/10 hover:text-emerald-300 sm:flex"
+            className="relative flex h-10 w-10 items-center justify-center rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] text-[var(--color-muted)] transition hover:border-emerald-500/40 hover:bg-emerald-500/10 hover:text-emerald-300"
             onClick={() => setIsInboxOpen(true)}
             title="我的私信"
             type="button"

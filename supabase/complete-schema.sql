@@ -33,6 +33,7 @@ create table if not exists public.forum_profiles (
   display_name text not null default '噜噜' check (char_length(trim(display_name)) between 1 and 80),
   avatar_url text,
   bio text check (bio is null or char_length(bio) <= 500),
+  custom_title text not null default '',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -1362,15 +1363,17 @@ create policy "Stations are public" on public.stations
   for select using (true);
 
 drop policy if exists "Authenticated users create stations" on public.stations;
-create policy "Authenticated users create stations" on public.stations
+drop policy if exists "Admins create stations" on public.stations;
+create policy "Admins create stations" on public.stations
   for insert
-  with check (auth.uid() is not null);
+  with check (public.is_forum_admin());
 
 drop policy if exists "Authenticated users update stations" on public.stations;
-create policy "Authenticated users update stations" on public.stations
+drop policy if exists "Admins update stations" on public.stations;
+create policy "Admins update stations" on public.stations
   for update
-  using (auth.uid() is not null)
-  with check (auth.uid() is not null);
+  using (public.is_forum_admin())
+  with check (public.is_forum_admin());
 
 drop policy if exists "Admins delete stations" on public.stations;
 create policy "Admins delete stations" on public.stations
@@ -2008,6 +2011,7 @@ grant execute on function public.get_admin_user_list() to authenticated;
 
 -- 9.3 表操作权限
 grant insert, update on public.stations to authenticated;
+grant select, insert on public.station_edits to authenticated;
 grant insert on public.station_pending_edits to authenticated;
 grant select on public.station_pending_edits to authenticated;
 grant update on public.station_pending_edits to authenticated;

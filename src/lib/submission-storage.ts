@@ -166,12 +166,15 @@ export async function updateSubmissionReviewSupabase(
     return;
   }
 
-  const { error } = await getSupabaseClient()
+  const supabase = getSupabaseClient();
+  const { data: userData } = await supabase.auth.getUser();
+  const { error } = await supabase
     .from("station_submissions")
     .update({
       status: updates.status,
       admin_note: updates.adminNote,
       reviewed_at: new Date().toISOString(),
+      reviewer_id: userData.user?.id ?? null,
     })
     .eq("id", id);
 
@@ -207,7 +210,7 @@ async function createSubmissionSupabase(
   const supabase = getSupabaseClient();
 
   const submittedAt = new Date().toISOString();
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("station_submissions")
     .insert({
       kind: input.kind,
@@ -217,13 +220,15 @@ async function createSubmissionSupabase(
       note: input.note,
       contact: input.contact,
       submitted_at: submittedAt,
-    });
+    })
+    .select("id")
+    .single();
 
   if (error) throw new Error("提交失败，请稍后重试。");
 
   return {
     ...input,
-    id: `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
+    id: String(data.id),
     status: "pending",
     adminNote: "",
     submittedAt,

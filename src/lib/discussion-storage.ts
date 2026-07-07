@@ -319,21 +319,9 @@ async function loadProfileCustomTitles(userIds: string[]) {
   const uniqueIds = [...new Set(userIds.filter(Boolean))];
   if (uniqueIds.length === 0 || !isSupabaseConfigured()) return titles;
 
-  try {
-    const { data, error } = await getSupabaseClient()
-      .from("forum_profiles")
-      .select("id, custom_title")
-      .in("id", uniqueIds);
-
-    if (error) return titles;
-    for (const row of (data ?? []) as Array<{ id?: string; custom_title?: string | null }>) {
-      const title = row.custom_title?.trim();
-      if (row.id && title) titles.set(row.id, title);
-    }
-  } catch {
-    // The migration may not be applied yet; title badges are optional.
-  }
-
+  // custom_title is optional and may be absent on older Supabase schemas. Avoid
+  // querying it on public pages, because PostgREST logs a browser-visible 400
+  // before client-side fallbacks can run.
   return titles;
 }
 

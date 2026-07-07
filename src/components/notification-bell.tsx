@@ -223,9 +223,6 @@ export function NotificationBell({
             className="surface-in w-full max-w-lg overflow-hidden rounded-[24px] border border-[var(--color-line)] bg-[var(--color-panel)] shadow-[0_24px_80px_rgba(15,23,42,0.18)] max-md:max-h-[85dvh] max-md:rounded-b-none max-md:rounded-t-[20px] max-md:border-b-0"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Mobile drag handle */}
-            <div className="sheet-handle md:hidden" />
-
             {/* Header */}
             <div className="flex items-center justify-between border-b border-[var(--color-line)] px-6 py-4">
               <div className="flex items-center gap-2">

@@ -8,6 +8,7 @@ create table if not exists public.forum_profiles (
   display_name text not null default '噜噜' check (char_length(trim(display_name)) between 1 and 80),
   avatar_url text,
   bio text check (bio is null or char_length(bio) <= 500),
+  custom_title text not null default '',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );

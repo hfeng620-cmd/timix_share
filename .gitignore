@@ -52,3 +52,6 @@ next-env.d.ts
 
 # local runtime logs
 .runtime/
+
+# autonomous task runner local state
+.autonomous/

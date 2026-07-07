@@ -58,18 +58,20 @@ for each row execute function public.set_stations_updated_at();
 alter table public.stations enable row level security;
 alter table public.station_edits enable row level security;
 
--- stations: select for everyone, insert/update/delete require login
+-- stations: select for everyone; direct insert/update/delete require admin/owner.
 drop policy if exists "Stations are public" on public.stations;
 create policy "Stations are public" on public.stations for select using (true);
 
 drop policy if exists "Authenticated users create stations" on public.stations;
-create policy "Authenticated users create stations" on public.stations for insert
-with check (auth.uid() is not null);
+drop policy if exists "Admins create stations" on public.stations;
+create policy "Admins create stations" on public.stations for insert
+with check (public.is_forum_admin());
 
 drop policy if exists "Authenticated users update stations" on public.stations;
-create policy "Authenticated users update stations" on public.stations for update
-using (auth.uid() is not null)
-with check (auth.uid() is not null);
+drop policy if exists "Admins update stations" on public.stations;
+create policy "Admins update stations" on public.stations for update
+using (public.is_forum_admin())
+with check (public.is_forum_admin());
 
 drop policy if exists "Authenticated users delete stations" on public.stations;
 create policy "Only admins delete stations" on public.stations for delete
@@ -96,6 +98,8 @@ left join public.station_edits e on e.station_id = s.id
 order by s.id, e.created_at desc;
 
 grant select on public.stations_with_editor to anon, authenticated;
+grant insert, update on public.stations to authenticated;
+grant select, insert on public.station_edits to authenticated;
 
 -- Seed data: initial station list for Supabase setup.
 -- This seed can be bypassed if stations already exist in the table

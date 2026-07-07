@@ -4,12 +4,8 @@ import type { NextConfig } from "next";
 //   "server"  → Next.js server (node_modules/.bin/next start) for cloud / VPS
 //   unset     → static export (`output: "export"`) for GitHub Pages / CDN
 const isServerDeploy = process.env.DEPLOY_TARGET === "server";
-const isMobileBuild =
-  process.env.MOBILE_BUILD === "true" ||
-  process.env.CAPACITOR_BUILD === "true" ||
-  process.env.npm_lifecycle_event?.startsWith("mobile:");
 const isGithubPages =
-  !isServerDeploy && !isMobileBuild && process.env.GITHUB_ACTIONS === "true";
+  !isServerDeploy && process.env.GITHUB_ACTIONS === "true";
 const repoName = "timix_share";
 
 const nextConfig: NextConfig = {

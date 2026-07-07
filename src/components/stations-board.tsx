@@ -10,6 +10,7 @@ import { RelayStationDetailModal } from "@/components/relay-station-detail-modal
 import { DiscussionFeed } from "@/components/discussion-feed";
 import { StationEditModal } from "@/components/station-edit-modal";
 import { SubmissionPanel } from "@/components/submission-panel";
+import { createSubmission } from "@/lib/submission-storage";
 import { useForumAuth } from "@/lib/forum-auth";
 import { useToast } from "@/lib/toast-context";
 import { getSafeExternalHref } from "@/lib/url-safety";
@@ -336,6 +337,35 @@ function stationFormToCreateInput(form: Partial<Station>) {
   };
 }
 
+function stationFormToSubmissionInput(form: Partial<Station>, contact: string) {
+  const priceParts = [form.price, form.multiplier, form.packageType]
+    .map((value) => value?.trim())
+    .filter(Boolean);
+  const detailParts = [
+    form.status ? `状态：${form.status}` : "",
+    form.models ? `模型：${form.models}` : "",
+    form.uptime ? `在线率：${form.uptime}` : "",
+    form.latency ? `延迟：${form.latency}` : "",
+    form.source ? `来源：${form.source}` : "",
+    form.verdict ? `评价：${form.verdict}` : "",
+    form.note ? `备注：${form.note}` : "",
+    form.advantage ? `优势：${form.advantage}` : "",
+    form.risk ? `风险：${form.risk}` : "",
+    form.badge ? `标签：${form.badge}` : "",
+    form.groupName ? `分组：${form.groupName}` : "",
+    form.entry ? `入口：${form.entry}` : "",
+  ].filter(Boolean);
+
+  return {
+    kind: "新站点" as const,
+    stationName: form.name?.trim() ?? "",
+    url: form.url?.trim() || form.entry?.trim() || "",
+    priceOrRate: priceParts.join(" / ") || "待补",
+    note: detailParts.join("\n") || "通过站点榜添加入口提交。",
+    contact,
+  };
+}
+
 function pickEditableStationFields(station: Partial<Station>): Partial<Station> {
   const next: Partial<Station> = {};
   for (const key of EDITABLE_FIELD_KEYS) {
@@ -354,7 +384,8 @@ function pickEditableStationFields(station: Partial<Station>): Partial<Station> 
 export function StationsBoard() {
   const { isConnected, displayName, isAdmin, isOwner, showAuthModal, user } = useForumAuth();
   const { addToast } = useToast();
-  const canDeleteStations = isAdmin || isOwner;
+  const canManageStationsDirectly = isAdmin || isOwner;
+  const canDeleteStations = canManageStationsDirectly;
 
   // ---- data ---------------------------------------------------------------
   const [stations, setStations] = useState<Station[]>([]);
@@ -608,6 +639,7 @@ export function StationsBoard() {
   const startEdit = useCallback((station: Station) => {
     setEditingId(station.id);
     setAddingNew(false);
+    setWikiEditStation(null);
     setEditForm(pickEditableStationFields(station));
   }, []);
 
@@ -618,12 +650,13 @@ export function StationsBoard() {
       return;
     }
     if (isStaticStationId(station.id)) {
-      addToast("这条还是本地兜底数据，请先保存为正式站点后再修改。", "error");
+      startEdit(station);
+      addToast("这条是本地兜底数据，先保存为正式站点后再继续维护。", "info");
       return;
     }
     setEditingId(null);
     setWikiEditStation(station);
-  }, [addToast, isConnected, showAuthModal, user?.id]);
+  }, [addToast, isConnected, showAuthModal, startEdit, user?.id]);
 
   const cancelEdit = useCallback(() => {
     setEditingId(null);
@@ -633,21 +666,26 @@ export function StationsBoard() {
   const saveEdit = useCallback(async () => {
     if (!editingId) return;
     if (!editForm.name?.trim()) {
-      alert("站点名不能为空。");
+      addToast("站点名不能为空。", "warning");
       return;
     }
     const editorName = displayName || "未知用户";
     setSaving(true);
     try {
       if (isStaticStationId(editingId)) {
-        await createStation(stationFormToCreateInput(editForm));
-        alert("已把这条本地兜底数据保存为正式站点。");
+        if (canManageStationsDirectly) {
+          await createStation(stationFormToCreateInput(editForm));
+          addToast("已把这条本地兜底数据保存为正式站点。", "success");
+        } else {
+          await createSubmission(stationFormToSubmissionInput(editForm, user?.email ?? displayName ?? "站内用户"));
+          addToast("已提交新增站点申请，管理员审核后会进入正式榜单。", "success");
+        }
       } else {
         const result = await updateStation(editingId, editForm, editorName);
         if (result.needsReview) {
-          alert("已提交巡查队列，站主或管理员确认后会生效。");
+          addToast("已提交巡查队列，站主或管理员确认后会生效。", "success");
         } else {
-          alert("已保存到正式榜单。");
+          addToast("已保存到正式榜单。", "success");
         }
       }
       await refreshStations();
@@ -655,16 +693,16 @@ export function StationsBoard() {
       setEditingId(null);
       setEditForm({});
     } catch (err) {
-      alert(err instanceof Error ? err.message : "保存失败，请稍后重试。");
+      addToast(err instanceof Error ? err.message : "保存失败，请稍后重试。", "error");
     } finally {
       setSaving(false);
     }
-  }, [editingId, editForm, displayName, refreshStations]);
+  }, [addToast, canManageStationsDirectly, displayName, editingId, editForm, refreshStations, user?.email]);
 
   const handleDelete = useCallback(
     async (id: string) => {
       if (isStaticStationId(id)) {
-        alert("这是本地兜底数据，还没有进入正式榜单；先保存为正式站点后再删除。");
+        addToast("这是本地兜底数据，还没有进入正式榜单；先保存为正式站点后再删除。", "warning");
         return;
       }
       if (!window.confirm("确定要删除这个站点吗？此操作不可撤销。")) return;
@@ -677,10 +715,10 @@ export function StationsBoard() {
           setEditForm({});
         }
       } catch (err) {
-        alert(err instanceof Error ? err.message : "删除失败，请稍后重试。");
+        addToast(err instanceof Error ? err.message : "删除失败，请稍后重试。", "error");
       }
     },
-    [editingId, refreshStations],
+    [addToast, editingId, refreshStations],
   );
 
   const startAdd = useCallback(() => {
@@ -696,40 +734,46 @@ export function StationsBoard() {
 
   const saveNew = useCallback(async () => {
     if (!editForm.name?.trim()) {
-      alert("站点名不能为空。");
+      addToast("站点名不能为空。", "warning");
       return;
     }
     setSaving(true);
     try {
-      await createStation({
-        name: editForm.name.trim(),
-        url: editForm.url,
-        price: editForm.price,
-        multiplier: editForm.multiplier,
-        entry: editForm.entry,
-        packageType: editForm.packageType,
-        status: editForm.status,
-        models: editForm.models,
-        uptime: editForm.uptime,
-        latency: editForm.latency,
-        source: editForm.source,
-        verdict: editForm.verdict,
-        note: editForm.note,
-        advantage: editForm.advantage,
-        risk: editForm.risk,
-        badge: editForm.badge,
-        groupName: editForm.groupName,
-      });
-      await refreshStations();
-      notifyStationsChanged();
+      if (canManageStationsDirectly) {
+        await createStation({
+          name: editForm.name.trim(),
+          url: editForm.url,
+          price: editForm.price,
+          multiplier: editForm.multiplier,
+          entry: editForm.entry,
+          packageType: editForm.packageType,
+          status: editForm.status,
+          models: editForm.models,
+          uptime: editForm.uptime,
+          latency: editForm.latency,
+          source: editForm.source,
+          verdict: editForm.verdict,
+          note: editForm.note,
+          advantage: editForm.advantage,
+          risk: editForm.risk,
+          badge: editForm.badge,
+          groupName: editForm.groupName,
+        });
+        await refreshStations();
+        notifyStationsChanged();
+        addToast("已创建正式站点。", "success");
+      } else {
+        await createSubmission(stationFormToSubmissionInput(editForm, user?.email ?? displayName ?? "站内用户"));
+        addToast("已提交新增站点申请，管理员审核后会进入正式榜单。", "success");
+      }
       setAddingNew(false);
       setEditForm({});
     } catch (err) {
-      alert(err instanceof Error ? err.message : "创建失败，请稍后重试。");
+      addToast(err instanceof Error ? err.message : "创建失败，请稍后重试。", "error");
     } finally {
       setSaving(false);
     }
-  }, [editForm, refreshStations]);
+  }, [addToast, canManageStationsDirectly, displayName, editForm, refreshStations, user?.email]);
 
   const toggleHistory = useCallback((stationId: string) => {
     setHistoryStationId((prev) => (prev === stationId ? null : stationId));
@@ -1845,7 +1889,7 @@ export function StationsBoard() {
                   编辑口径
                 </p>
                 <p className="mt-2 text-sm leading-6 text-[var(--color-muted)]">
-                  登录后可直接补站和修改字段；当前人少，改动会直接保存到正式榜单。
+                  登录后可直接补站；普通用户修改正式站点会进入后台审核，通过后再写入榜单。
                 </p>
               </div>
 
