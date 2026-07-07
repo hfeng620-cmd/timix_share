@@ -13,6 +13,7 @@ import { SubmissionPanel } from "@/components/submission-panel";
 import { useForumAuth } from "@/lib/forum-auth";
 import { useToast } from "@/lib/toast-context";
 import { getSafeExternalHref } from "@/lib/url-safety";
+import { createSubmission } from "@/lib/submission-storage";
 import {
   createStation,
   deleteStation,
@@ -334,6 +335,45 @@ function stationFormToCreateInput(form: Partial<Station>) {
   };
 }
 
+function stationFormToSubmissionInput(form: Partial<Station>, contact: string) {
+  const name = form.name?.trim() ?? "";
+  const priceParts = [form.price, form.multiplier, form.packageType]
+    .map((value) => value?.trim())
+    .filter(Boolean);
+  const detailParts = [
+    form.status ? `状态：${form.status}` : "",
+    form.models ? `模型：${form.models}` : "",
+    form.uptime ? `在线率：${form.uptime}` : "",
+    form.latency ? `延迟：${form.latency}` : "",
+    form.source ? `来源：${form.source}` : "",
+    form.verdict ? `评价：${form.verdict}` : "",
+    form.note ? `备注：${form.note}` : "",
+    form.advantage ? `优势：${form.advantage}` : "",
+    form.risk ? `风险：${form.risk}` : "",
+    form.badge ? `标签：${form.badge}` : "",
+    form.groupName ? `分组：${form.groupName}` : "",
+    form.entry ? `入口：${form.entry}` : "",
+  ].filter(Boolean);
+
+  return {
+    kind: "新站点" as const,
+    stationName: name,
+    url: form.url?.trim() || form.entry?.trim() || "",
+    priceOrRate: priceParts.join(" / ") || "待补",
+    note: detailParts.join("\n") || "通过站点榜添加入口提交。",
+    contact,
+  };
+}
+
+function pickEditableStationFields(station: Partial<Station>): Partial<Station> {
+  return EDITABLE_FIELDS.reduce<Partial<Station>>((next, field) => {
+    const value = station[field.key];
+    if (value !== undefined) {
+      return { ...next, [field.key]: value };
+    }
+    return next;
+  }, {});
+}
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
@@ -341,7 +381,8 @@ function stationFormToCreateInput(form: Partial<Station>) {
 export function StationsBoard() {
   const { isConnected, displayName, isAdmin, isOwner, showAuthModal, user } = useForumAuth();
   const { addToast } = useToast();
-  const canDeleteStations = isAdmin || isOwner;
+  const canManageStationsDirectly = isAdmin || isOwner;
+  const canDeleteStations = canManageStationsDirectly;
 
   // ---- data ---------------------------------------------------------------
   const [stations, setStations] = useState<Station[]>([]);
@@ -591,6 +632,12 @@ export function StationsBoard() {
   // Edit / create / delete handlers
   // =========================================================================
 
+  const startEdit = useCallback((station: Station) => {
+    setAddingNew(false);
+    setWikiEditStation(null);
+    setEditingId(station.id);
+    setEditForm(pickEditableStationFields(station));
+  }, []);
   const openWikiEditModal = useCallback((station: Station) => {
     if (!isConnected || !user?.id) {
       addToast("请先登录再提交修改", "error");
@@ -598,12 +645,13 @@ export function StationsBoard() {
       return;
     }
     if (isStaticStationId(station.id)) {
-      addToast("这条还是本地兜底数据，请先保存为正式站点后再修改。", "error");
+      startEdit(station);
+      addToast(canManageStationsDirectly ? "这是本地兜底站点，保存后会写入正式榜单。" : "这是本地兜底站点，保存后会提交给管理员审核。", "info");
       return;
     }
     setEditingId(null);
     setWikiEditStation(station);
-  }, [addToast, isConnected, showAuthModal, user?.id]);
+  }, [addToast, canManageStationsDirectly, isConnected, showAuthModal, startEdit, user?.id]);
 
   const cancelEdit = useCallback(() => {
     setEditingId(null);
@@ -613,21 +661,26 @@ export function StationsBoard() {
   const saveEdit = useCallback(async () => {
     if (!editingId) return;
     if (!editForm.name?.trim()) {
-      alert("站点名不能为空。");
+      addToast("站点名不能为空。", "warning");
       return;
     }
     const editorName = displayName || "未知用户";
     setSaving(true);
     try {
       if (isStaticStationId(editingId)) {
-        await createStation(stationFormToCreateInput(editForm));
-        alert("已把这条本地兜底数据保存为正式站点。");
+        if (canManageStationsDirectly) {
+          await createStation(stationFormToCreateInput(editForm));
+          addToast("已把这条本地兜底数据保存为正式站点。", "success");
+        } else {
+          await createSubmission(stationFormToSubmissionInput(editForm, user?.email ?? displayName ?? "站内用户"));
+          addToast("已提交新增站点申请，管理员审核后会进入正式榜单。", "success");
+        }
       } else {
         const result = await updateStation(editingId, editForm, editorName);
         if (result.needsReview) {
-          alert("已提交巡查队列，站主或管理员确认后会生效。");
+          addToast("已提交巡查队列，站主或管理员确认后会生效。", "success");
         } else {
-          alert("已保存到正式榜单。");
+          addToast("已保存到正式榜单。", "success");
         }
       }
       await refreshStations();
@@ -635,11 +688,11 @@ export function StationsBoard() {
       setEditingId(null);
       setEditForm({});
     } catch (err) {
-      alert(err instanceof Error ? err.message : "保存失败，请稍后重试。");
+      addToast(err instanceof Error ? err.message : "保存失败，请稍后重试。", "error");
     } finally {
       setSaving(false);
     }
-  }, [editingId, editForm, displayName, refreshStations]);
+  }, [addToast, canManageStationsDirectly, editingId, editForm, displayName, refreshStations, user?.email]);
 
   const handleDelete = useCallback(
     async (id: string) => {
@@ -676,40 +729,46 @@ export function StationsBoard() {
 
   const saveNew = useCallback(async () => {
     if (!editForm.name?.trim()) {
-      alert("站点名不能为空。");
+      addToast("站点名不能为空。", "warning");
       return;
     }
     setSaving(true);
     try {
-      await createStation({
-        name: editForm.name.trim(),
-        url: editForm.url,
-        price: editForm.price,
-        multiplier: editForm.multiplier,
-        entry: editForm.entry,
-        packageType: editForm.packageType,
-        status: editForm.status,
-        models: editForm.models,
-        uptime: editForm.uptime,
-        latency: editForm.latency,
-        source: editForm.source,
-        verdict: editForm.verdict,
-        note: editForm.note,
-        advantage: editForm.advantage,
-        risk: editForm.risk,
-        badge: editForm.badge,
-        groupName: editForm.groupName,
-      });
-      await refreshStations();
-      notifyStationsChanged();
+      if (canManageStationsDirectly) {
+        await createStation({
+          name: editForm.name.trim(),
+          url: editForm.url,
+          price: editForm.price,
+          multiplier: editForm.multiplier,
+          entry: editForm.entry,
+          packageType: editForm.packageType,
+          status: editForm.status,
+          models: editForm.models,
+          uptime: editForm.uptime,
+          latency: editForm.latency,
+          source: editForm.source,
+          verdict: editForm.verdict,
+          note: editForm.note,
+          advantage: editForm.advantage,
+          risk: editForm.risk,
+          badge: editForm.badge,
+          groupName: editForm.groupName,
+        });
+        await refreshStations();
+        notifyStationsChanged();
+        addToast("已创建正式站点。", "success");
+      } else {
+        await createSubmission(stationFormToSubmissionInput(editForm, user?.email ?? displayName ?? "站内用户"));
+        addToast("已提交新增站点申请，管理员审核后会进入正式榜单。", "success");
+      }
       setAddingNew(false);
       setEditForm({});
     } catch (err) {
-      alert(err instanceof Error ? err.message : "创建失败，请稍后重试。");
+      addToast(err instanceof Error ? err.message : "创建失败，请稍后重试。", "error");
     } finally {
       setSaving(false);
     }
-  }, [editForm, refreshStations]);
+  }, [addToast, canManageStationsDirectly, displayName, editForm, refreshStations, user?.email]);
 
   const toggleHistory = useCallback((stationId: string) => {
     setHistoryStationId((prev) => (prev === stationId ? null : stationId));
@@ -836,7 +895,7 @@ export function StationsBoard() {
             onClick={saveNew}
             type="button"
           >
-            {saving ? "创建中..." : "创建站点"}
+            {saving ? "处理中..." : canManageStationsDirectly ? "创建站点" : "提交新增申请"}
           </button>
           <button
             className="rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-2.5 text-sm font-bold text-[var(--color-muted)] transition active:border-[var(--color-brand)] active:text-[var(--color-brand-deep)] active:scale-[0.98] md:hover:border-[var(--color-brand)] md:hover:text-[var(--color-brand-deep)]"
