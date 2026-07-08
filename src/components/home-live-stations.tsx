@@ -5,7 +5,6 @@ import { useEffect, useMemo, useState } from "react";
 import { FavoriteButton } from "@/components/favorite-button";
 import { StationRowLink } from "@/components/station-row-link";
 import {
-  prioritizedStationNames,
   stationComparisonRows,
   stationLinkMap,
 } from "@/lib/site-data";
@@ -119,11 +118,7 @@ function getTrialReadyCount(rows: HomeStationRow[]) {
 }
 
 function getTopRows(rows: HomeStationRow[]) {
-  const preferred = prioritizedStationNames
-    .map((name) => rows.find((row) => row.name === name))
-    .filter((row): row is HomeStationRow => Boolean(row));
-
-  return preferred.length > 0 ? preferred : rows.slice(0, 4);
+  return rows.slice(0, 4);
 }
 
 function getMoreRows(rows: HomeStationRow[]) {

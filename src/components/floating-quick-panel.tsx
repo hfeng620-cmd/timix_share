@@ -89,7 +89,7 @@ export function FloatingQuickPanel() {
 
   return (
     <>
-    <div className="fixed bottom-20 left-3 z-[70] max-w-[calc(100vw-1.5rem)] sm:left-4 lg:bottom-4 hidden lg:block" data-selection-comments="off" ref={wrapperRef}>
+    <div className="fixed bottom-24 left-3 z-[70] block max-w-[calc(100vw-1.5rem)] sm:left-4 md:bottom-5" data-selection-comments="off" ref={wrapperRef}>
       {open ? (
         <div
           aria-label="导航与快捷操作"
@@ -238,6 +238,13 @@ export function FloatingQuickPanel() {
                   target="_blank"
                 >
                   讨论
+                </a>
+                <a
+                  className="rounded-[14px] border border-emerald-400/25 bg-emerald-400/10 px-3 py-2 text-sm font-semibold text-[var(--color-ink)] transition-all duration-300 hover:border-emerald-300/50 hover:bg-emerald-400/15 hover:text-[var(--color-brand-deep)]"
+                  href="/release/TiMix-debug-latest.apk"
+                  download
+                >
+                  App下载
                 </a>
                 <a
                   className="rounded-[14px] border border-[var(--color-line)] bg-[var(--color-soft)] px-3 py-2 text-sm font-semibold text-[var(--color-ink)] transition-all duration-300 hover:border-[var(--color-brand)] hover:bg-[var(--color-brand-soft)] hover:text-[var(--color-brand-deep)]"

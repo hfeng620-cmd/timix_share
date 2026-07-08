@@ -5,6 +5,7 @@ import { BackgroundSliderWrapper } from "@/components/background-slider-wrapper"
 import { ErrorBoundary } from "@/components/error-boundary";
 import { RegisterCounter } from "@/components/register-counter";
 import { FloatingQuickPanel } from "@/components/floating-quick-panel";
+import { MobileBottomNav } from "@/components/mobile-bottom-nav";
 import { ToastContainer } from "@/components/toast-container";
 import { VpsFallbackBanner } from "@/components/vps-fallback-banner";
 import { ForumAuthProvider } from "@/lib/forum-auth";
@@ -64,12 +65,13 @@ export default function RootLayout({
         <ForumAuthProvider>
           <SystemMonitorProvider>
             <ToastProvider>
-              <main id="main-content" className="relative z-10 flex min-h-screen flex-col">
+              <main id="main-content" className="relative z-10 flex min-h-screen flex-col pb-20 md:pb-0">
                 <ErrorBoundary>{children}</ErrorBoundary>
               </main>
               <ToastContainer />
             </ToastProvider>
             <FloatingQuickPanel />
+            <MobileBottomNav />
           </SystemMonitorProvider>
         </ForumAuthProvider>
         <AnnouncementModal />

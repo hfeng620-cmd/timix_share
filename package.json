@@ -5,9 +5,10 @@
   "scripts": {
     "dev": "next dev",
     "start:named-tunnel": "powershell -ExecutionPolicy Bypass -File .\\scripts\\start-timin-named-tunnel.ps1",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint"
+    "build": "next build && node scripts/copy-release.mjs",
+    "start": "node scripts/serve-static.mjs",
+    "lint": "eslint",
+    "copy-release": "node scripts/copy-release.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.7",

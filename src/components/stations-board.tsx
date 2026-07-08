@@ -21,6 +21,7 @@ import {
   loadStationEditHistory,
   loadStations,
   notifyStationsChanged,
+  STATIONS_CHANGED_EVENT,
   updateStation,
   type Station,
   type StationEditRecord,
@@ -458,38 +459,10 @@ export function StationsBoard() {
 
   // ---- Data loading ---------------------------------------------------------
   useEffect(() => {
-    let cancelled = false;
-    let resolved = false;
-    // 10s fallback — don't hang forever if Supabase is unreachable
-    const timeout = setTimeout(() => {
-      if (!cancelled && !resolved) {
-        setError("加载超时，请刷新页面重试。");
-        setLoading(false);
-      }
-    }, 10_000);
-    loadStations()
-      .then((data) => {
-        clearTimeout(timeout);
-        if (!cancelled) {
-          resolved = true;
-          const dbNames = new Set(data.map((s) => s.name));
-          const merged = [...data, ...STATIC_STATIONS.filter((s) => !dbNames.has(s.name))];
-          setStations(merged);
-          setError(null);
-          setLoading(false);
-        }
-      })
-      .catch(() => {
-        clearTimeout(timeout);
-        resolved = true;
-        if (!cancelled) {
-          setError("数据暂时加载失败，请稍后刷新重试。");
-          setStations(STATIC_STATIONS);
-          setLoading(false);
-        }
-      });
-    return () => { cancelled = true; clearTimeout(timeout); };
-  }, []);
+    void refreshStations();
+    window.addEventListener(STATIONS_CHANGED_EVENT, refreshStations);
+    return () => window.removeEventListener(STATIONS_CHANGED_EVENT, refreshStations);
+  }, [refreshStations]);
 
   // ---- Edit history loading -----------------------------------------------
   useEffect(() => {

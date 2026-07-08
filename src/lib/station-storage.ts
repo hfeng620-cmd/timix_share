@@ -230,7 +230,8 @@ export async function loadStations(): Promise<Station[]> {
   const viewResult = await supabase
     .from("stations_with_editor")
     .select("*")
-    .order("sort_order", { ascending: true });
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: true });
 
   if (!viewResult.error) {
     return ((viewResult.data ?? []) as Record<string, unknown>[]).map(stationFromRow);
@@ -239,7 +240,8 @@ export async function loadStations(): Promise<Station[]> {
   const { data, error } = await supabase
     .from("stations")
     .select("*")
-    .order("sort_order", { ascending: true });
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: true });
 
   if (error) {
     console.error("[loadStations] Error:", error);
@@ -248,7 +250,7 @@ export async function loadStations(): Promise<Station[]> {
   return ((data ?? []) as Record<string, unknown>[]).map(stationFromRow);
 }
 
-/** Move a station up (direction=-1) or down (direction=1) by swapping sort_order with its neighbor. */
+/** Move a station up (direction=-1) or down (direction=1) and normalize the shared board order. */
 export async function reorderStation(id: string, direction: -1 | 1): Promise<void> {
   if (!isSupabaseConfigured()) return;
   if (!isOfficialStationId(id)) {
@@ -259,39 +261,40 @@ export async function reorderStation(id: string, direction: -1 | 1): Promise<voi
   }
   const supabase = getSupabaseClient();
 
-  // Get current station's sort_order
-  const { data: current, error: curErr } = await supabase
+  const { data: rows, error: loadError } = await supabase
     .from("stations")
-    .select("id, sort_order")
-    .eq("id", id)
-    .single();
-  if (curErr || !current) throw new Error("站点未找到");
+    .select("id, sort_order, created_at")
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: true });
 
-  // Find the adjacent station
-  const comp = direction === -1 ? "lt" : "gt";
-  const order = direction === -1 ? { ascending: false } : { ascending: true };
-  const { data: neighbor, error: neighErr } = await supabase
-    .from("stations")
-    .select("id, sort_order")
-    .filter("sort_order", comp, current.sort_order)
-    .order("sort_order", order)
-    .limit(1)
-    .maybeSingle();
-  if (neighErr) throw new Error(`查找相邻站点失败: ${neighErr.message}`);
-  if (!neighbor) return; // Already at edge
+  if (loadError) throw new Error(`加载排序数据失败: ${loadError.message}`);
 
-  // Swap sort_order values
-  const { error: up1 } = await supabase
-    .from("stations")
-    .update({ sort_order: neighbor.sort_order })
-    .eq("id", id);
-  if (up1) throw new Error(`更新排序失败: ${up1.message}`);
+  const ordered = ((rows ?? []) as Array<{ id: string; sort_order: number | null; created_at?: string | null }>)
+    .map((row, index) => ({
+      id: row.id,
+      sortOrder: Number.isFinite(Number(row.sort_order)) ? Number(row.sort_order) : index + 1,
+    }));
 
-  const { error: up2 } = await supabase
-    .from("stations")
-    .update({ sort_order: current.sort_order })
-    .eq("id", neighbor.id);
-  if (up2) throw new Error(`更新排序失败: ${up2.message}`);
+  const currentIndex = ordered.findIndex((row) => row.id === id);
+  if (currentIndex < 0) throw new Error("站点未找到");
+
+  const targetIndex = currentIndex + direction;
+  if (targetIndex < 0 || targetIndex >= ordered.length) return;
+
+  const nextOrdered = [...ordered];
+  [nextOrdered[currentIndex], nextOrdered[targetIndex]] = [nextOrdered[targetIndex], nextOrdered[currentIndex]];
+
+  for (let index = 0; index < nextOrdered.length; index += 1) {
+    const nextSortOrder = index + 1;
+    if (nextOrdered[index].sortOrder === nextSortOrder) continue;
+
+    const { error } = await supabase
+      .from("stations")
+      .update({ sort_order: nextSortOrder })
+      .eq("id", nextOrdered[index].id);
+
+    if (error) throw new Error(`更新排序失败: ${error.message}`);
+  }
 
   notifyStationsChanged();
 }

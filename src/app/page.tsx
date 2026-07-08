@@ -12,6 +12,7 @@ import {
 
 import { AiNewsPanel } from "@/components/ai-news-panel";
 import { CoCreatorsWall } from "@/components/co-creators-wall";
+import { HomeStationSnapshot } from "@/components/home-station-snapshot";
 import { Navbar } from "@/components/navbar";
 
 export const metadata: Metadata = {
@@ -24,44 +25,6 @@ const stats = [
   { value: "0.055x", label: "当前最低倍率" },
   { value: "审核制", label: "普通用户编辑" },
   { value: "Live", label: "社区反馈" },
-];
-
-const stationRows = [
-  {
-    name: "启元AI",
-    rate: "0.055x",
-    price: "约 110 元 ≈ 10 亿 tokens",
-    status: "低成本观察",
-    tag: "新置顶",
-  },
-  {
-    name: "虎虎",
-    rate: "0.13x 起",
-    price: "Plus / Pro 双口径",
-    status: "试用入口清晰",
-    tag: "先试用",
-  },
-  {
-    name: "杂货铺",
-    rate: "0.058x 起",
-    price: "GPT / CC Max 分开看",
-    status: "低倍率样本",
-    tag: "双口径",
-  },
-  {
-    name: "Aether",
-    rate: "0.263x",
-    price: "Dashboard 直链",
-    status: "社区常用",
-    tag: "稳定候选",
-  },
-  {
-    name: "viptoken站",
-    rate: "0.15x 起",
-    price: "GPT / Claude 分组",
-    status: "待复核",
-    tag: "补样本",
-  },
 ];
 
 const signalCards = [
@@ -139,6 +102,13 @@ export default function Home() {
               >
                 看社区讨论
               </Link>
+              <a
+                href="/release/TiMix-debug-latest.apk"
+                download
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-emerald-300/25 bg-emerald-300/10 px-5 py-2.5 text-sm font-bold text-emerald-100 transition hover:bg-emerald-300/15"
+              >
+                下载 App
+              </a>
             </div>
 
             <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -168,28 +138,7 @@ export default function Home() {
               </Link>
             </div>
 
-            <div className="divide-y divide-white/[0.06]">
-              {stationRows.map((row, index) => (
-                <Link
-                  key={row.name}
-                  href="/stations"
-                  className="grid grid-cols-[30px_minmax(0,1.05fr)_minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 transition hover:bg-white/[0.035] sm:px-5"
-                >
-                  <span className="font-mono text-xs text-zinc-600">{String(index + 1).padStart(2, "0")}</span>
-                  <span className="min-w-0">
-                    <span className="flex items-center gap-2">
-                      <span className="truncate text-sm font-bold text-white">{row.name}</span>
-                      <span className="rounded-full bg-white/[0.06] px-2 py-0.5 text-[10px] font-bold text-zinc-400">
-                        {row.tag}
-                      </span>
-                    </span>
-                    <span className="mt-1 block truncate text-xs text-zinc-500">{row.status}</span>
-                  </span>
-                  <span className="hidden truncate text-xs text-zinc-500 sm:block">{row.price}</span>
-                  <span className="font-mono text-sm font-bold text-emerald-300">{row.rate}</span>
-                </Link>
-              ))}
-            </div>
+            <HomeStationSnapshot />
           </div>
         </section>
 
