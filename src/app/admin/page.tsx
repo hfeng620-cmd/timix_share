@@ -1327,7 +1327,7 @@ export default function AdminPage() {
                 <label className="mt-4 block space-y-2">
                   <span className="text-sm font-semibold text-[var(--color-muted)]">关联站点 (可选)</span>
                   <input
-                    className="w-full rounded-2xl border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 outline-none transition focus:border-[var(--color-brand)]"
+                    className="w-full rounded-2xl border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 outline-none transition focus:[border-color:var(--color-brand)]"
                     maxLength={ANNOUNCEMENT_LIMITS.station}
                     onChange={(e) => setAnnounceStation(e.target.value)}
                     placeholder="例如：虎虎"
@@ -1337,7 +1337,7 @@ export default function AdminPage() {
                 <label className="mt-4 block space-y-2">
                   <span className="text-sm font-semibold text-[var(--color-muted)]">公告内容</span>
                   <textarea
-                    className="min-h-28 w-full rounded-2xl border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 outline-none transition focus:border-[var(--color-brand)]"
+                    className="min-h-28 w-full rounded-2xl border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 outline-none transition focus:[border-color:var(--color-brand)]"
                     maxLength={ANNOUNCEMENT_LIMITS.body}
                     onChange={(e) => setAnnounceBody(e.target.value)}
                     placeholder={`输入公告正文...&#10;图片: ![描述](图片URL)&#10;链接: [文字](链接URL)`}
@@ -1347,7 +1347,7 @@ export default function AdminPage() {
                 </label>
                 <div className="mt-4 flex flex-wrap items-center gap-4">
                   <button
-                    className="rounded-full bg-[var(--color-brand)] px-5 py-3 text-sm font-bold text-[var(--color-on-brand)] transition active:bg-[var(--color-brand-deep)] active:scale-[0.98] md:hover:bg-[var(--color-brand-deep)] disabled:opacity-50"
+                    className="rounded-full bg-[var(--color-brand)] px-5 py-3 text-sm font-bold text-[var(--color-on-brand)] transition active:[background-color:var(--color-brand-deep)] active:scale-[0.98] md:hover:[background-color:var(--color-brand-deep)] disabled:opacity-50"
                     disabled={announceSending}
                     onClick={handleAnnouncementClick}
                     type="button"
@@ -1370,7 +1370,7 @@ export default function AdminPage() {
                     已审核论坛帖子
                   </p>
                   <button
-                    className="rounded-full bg-[var(--color-soft)] px-4 py-2 text-sm font-bold text-[var(--color-brand-deep)] transition active:bg-[var(--color-brand-soft)] active:scale-[0.98] md:hover:bg-[var(--color-brand-soft)]"
+                    className="rounded-full bg-[var(--color-soft)] px-4 py-2 text-sm font-bold text-[var(--color-brand-deep)] transition active:[background-color:var(--color-brand-soft)] active:scale-[0.98] md:hover:[background-color:var(--color-brand-soft)]"
                     onClick={() => void refreshForumHistory()}
                     type="button"
                   >
@@ -1414,7 +1414,7 @@ export default function AdminPage() {
                           <p className="flex items-center gap-2 text-xs text-[var(--color-muted)]">
                             <span className="font-mono">{item.id}</span>
                             <button
-                              className="rounded-full border border-[var(--color-line)] bg-[var(--color-input)] px-2 py-0.5 text-[10px] font-bold text-[var(--color-muted)] transition active:bg-[var(--color-soft)] active:text-[var(--color-ink)] active:scale-[0.98] md:hover:bg-[var(--color-soft)] md:hover:text-[var(--color-ink)]"
+                              className="rounded-full border border-[var(--color-line)] bg-[var(--color-input)] px-2 py-0.5 text-[10px] font-bold text-[var(--color-muted)] transition active:[background-color:var(--color-soft)] active:[color:var(--color-ink)] active:scale-[0.98] md:hover:[background-color:var(--color-soft)] md:hover:[color:var(--color-ink)]"
                               onClick={() => {
                                 void navigator.clipboard.writeText(item.id);
                               }}
@@ -1473,7 +1473,7 @@ export default function AdminPage() {
                 {auditLog.length > 0 && (
                   <div className="mt-4">
                     <button
-                      className="rounded-full border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-2 text-xs font-bold text-[var(--color-muted)] transition active:bg-[var(--color-soft)] active:text-[var(--color-ink)] active:scale-[0.98] md:hover:bg-[var(--color-soft)] md:hover:text-[var(--color-ink)]"
+                      className="rounded-full border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-2 text-xs font-bold text-[var(--color-muted)] transition active:[background-color:var(--color-soft)] active:[color:var(--color-ink)] active:scale-[0.98] md:hover:[background-color:var(--color-soft)] md:hover:[color:var(--color-ink)]"
                       onClick={() => {
                         if (window.confirm("确定要清空所有操作日志吗？")) {
                           setAuditLog([]);
@@ -1505,7 +1505,7 @@ export default function AdminPage() {
                     <h2 className="mt-2 text-2xl font-black">审核 AI 新闻投稿</h2>
                   </div>
                   <button
-                    className="rounded-full bg-[var(--color-soft)] px-4 py-2 text-sm font-bold text-[var(--color-brand-deep)] transition active:bg-[var(--color-brand-soft)] active:scale-[0.98] md:hover:bg-[var(--color-brand-soft)]"
+                    className="rounded-full bg-[var(--color-soft)] px-4 py-2 text-sm font-bold text-[var(--color-brand-deep)] transition active:[background-color:var(--color-brand-soft)] active:scale-[0.98] md:hover:[background-color:var(--color-brand-soft)]"
                     onClick={() => void Promise.all([refreshPendingNews(), refreshApprovedNews()])}
                     type="button"
                   >
@@ -1546,7 +1546,7 @@ export default function AdminPage() {
                         </div>
                         <div className="mt-4 flex flex-wrap gap-3">
                           <button
-                            className="rounded-full bg-[var(--color-brand)] px-5 py-3 text-sm font-bold text-[var(--color-on-brand)] transition active:bg-[var(--color-brand-deep)] active:scale-[0.98] md:hover:bg-[var(--color-brand-deep)] disabled:cursor-not-allowed disabled:opacity-50"
+                            className="rounded-full bg-[var(--color-brand)] px-5 py-3 text-sm font-bold text-[var(--color-on-brand)] transition active:[background-color:var(--color-brand-deep)] active:scale-[0.98] md:hover:[background-color:var(--color-brand-deep)] disabled:cursor-not-allowed disabled:opacity-50"
                             disabled={newsActionId === item.id}
                             onClick={() => void handleApproveNews(item.id)}
                             type="button"
@@ -1581,7 +1581,7 @@ export default function AdminPage() {
                 <label className="mt-4 block space-y-2">
                   <span className="text-sm font-semibold text-[var(--color-muted)]">标题 *</span>
                   <input
-                    className="w-full rounded-2xl border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 outline-none transition focus:border-[var(--color-brand)]"
+                    className="w-full rounded-2xl border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 outline-none transition focus:[border-color:var(--color-brand)]"
                     maxLength={NEWS_LIMITS.title}
                     onChange={(e) => setNewsForm((prev) => ({ ...prev, title: e.target.value }))}
                     placeholder="新闻标题"
@@ -1591,7 +1591,7 @@ export default function AdminPage() {
                 <label className="mt-4 block space-y-2">
                   <span className="text-sm font-semibold text-[var(--color-muted)]">摘要 *</span>
                   <textarea
-                    className="min-h-20 w-full rounded-2xl border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 outline-none transition focus:border-[var(--color-brand)]"
+                    className="min-h-20 w-full rounded-2xl border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 outline-none transition focus:[border-color:var(--color-brand)]"
                     maxLength={NEWS_LIMITS.summary}
                     onChange={(e) => setNewsForm((prev) => ({ ...prev, summary: e.target.value }))}
                     placeholder="新闻摘要"
@@ -1602,7 +1602,7 @@ export default function AdminPage() {
                   <label className="space-y-2">
                     <span className="text-sm font-semibold text-[var(--color-muted)]">来源</span>
                     <input
-                      className="w-full rounded-2xl border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 outline-none transition focus:border-[var(--color-brand)]"
+                      className="w-full rounded-2xl border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 outline-none transition focus:[border-color:var(--color-brand)]"
                       maxLength={NEWS_LIMITS.source}
                       onChange={(e) => setNewsForm((prev) => ({ ...prev, source: e.target.value }))}
                       placeholder="例如：TechCrunch"
@@ -1612,7 +1612,7 @@ export default function AdminPage() {
                   <label className="space-y-2">
                     <span className="text-sm font-semibold text-[var(--color-muted)]">作者</span>
                     <input
-                      className="w-full rounded-2xl border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 outline-none transition focus:border-[var(--color-brand)]"
+                      className="w-full rounded-2xl border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 outline-none transition focus:[border-color:var(--color-brand)]"
                       maxLength={NEWS_LIMITS.author}
                       onChange={(e) => setNewsForm((prev) => ({ ...prev, author: e.target.value }))}
                       placeholder="作者名"
@@ -1623,7 +1623,7 @@ export default function AdminPage() {
                 <label className="mt-4 block space-y-2">
                   <span className="text-sm font-semibold text-[var(--color-muted)]">正文 (可选)</span>
                   <textarea
-                    className="min-h-32 w-full rounded-2xl border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 outline-none transition focus:border-[var(--color-brand)]"
+                    className="min-h-32 w-full rounded-2xl border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 outline-none transition focus:[border-color:var(--color-brand)]"
                     maxLength={NEWS_LIMITS.body}
                     onChange={(e) => setNewsForm((prev) => ({ ...prev, body: e.target.value }))}
                     placeholder="新闻正文内容..."
@@ -1632,7 +1632,7 @@ export default function AdminPage() {
                 </label>
                 <div className="mt-4 flex flex-wrap items-center gap-4">
                   <button
-                    className="rounded-full bg-[var(--color-brand)] px-5 py-3 text-sm font-bold text-[var(--color-on-brand)] transition active:bg-[var(--color-brand-deep)] active:scale-[0.98] md:hover:bg-[var(--color-brand-deep)] disabled:opacity-50"
+                    className="rounded-full bg-[var(--color-brand)] px-5 py-3 text-sm font-bold text-[var(--color-on-brand)] transition active:[background-color:var(--color-brand-deep)] active:scale-[0.98] md:hover:[background-color:var(--color-brand-deep)] disabled:opacity-50"
                     disabled={newsFormSending}
                     onClick={() => void handlePublishNews()}
                     type="button"
@@ -1700,7 +1700,7 @@ export default function AdminPage() {
                           <button
                             className={`rounded-full px-4 py-2 text-xs font-bold transition disabled:cursor-not-allowed disabled:opacity-50 ${
                               item.is_hidden
-                                ? "bg-[var(--color-soft)] text-[var(--color-brand-deep)] active:bg-[var(--color-brand-soft)] md:active:bg-[var(--color-brand-soft)] active:scale-[0.98] md:hover:bg-[var(--color-brand-soft)]"
+                                ? "bg-[var(--color-soft)] text-[var(--color-brand-deep)] active:[background-color:var(--color-brand-soft)] md:active:[background-color:var(--color-brand-soft)] active:scale-[0.98] md:hover:[background-color:var(--color-brand-soft)]"
                                 : "bg-red-500/10 text-red-400 active:bg-red-500/20 md:active:bg-red-500/20 active:scale-[0.98] md:hover:bg-red-500/20"
                             }`}
                             disabled={newsActionId === item.id}
@@ -1774,7 +1774,7 @@ export default function AdminPage() {
                       导入模板
                     </button>
                     <button
-                      className="rounded-full border border-[var(--color-line)] bg-white/[0.06] px-4 py-2 text-sm font-bold text-white active:bg-[var(--color-soft)] active:scale-[0.98] md:hover:bg-[var(--color-soft)]"
+                      className="rounded-full border border-[var(--color-line)] bg-white/[0.06] px-4 py-2 text-sm font-bold text-white active:[background-color:var(--color-soft)] active:scale-[0.98] md:hover:[background-color:var(--color-soft)]"
                       onClick={refreshAllStations}
                       type="button"
                     >
@@ -1788,37 +1788,37 @@ export default function AdminPage() {
                   <div className="mt-5 rounded-[24px] border border-dashed border-[var(--color-brand)] bg-[var(--color-soft)] p-5">
                     <div className="grid gap-3 sm:grid-cols-3">
                       <input
-                        className="rounded-xl border border-[var(--color-line)] bg-white/[0.06] px-4 py-2.5 text-sm outline-none focus:border-[var(--color-brand)]"
+                        className="rounded-xl border border-[var(--color-line)] bg-white/[0.06] px-4 py-2.5 text-sm outline-none focus:[border-color:var(--color-brand)]"
                         placeholder="站点名*"
                         value={newStationForm.name}
                         onChange={(e) => setNewStationForm({ ...newStationForm, name: e.target.value })}
                       />
                       <input
-                        className="rounded-xl border border-[var(--color-line)] bg-white/[0.06] px-4 py-2.5 text-sm outline-none focus:border-[var(--color-brand)]"
+                        className="rounded-xl border border-[var(--color-line)] bg-white/[0.06] px-4 py-2.5 text-sm outline-none focus:[border-color:var(--color-brand)]"
                         placeholder="网址"
                         value={newStationForm.url}
                         onChange={(e) => setNewStationForm({ ...newStationForm, url: e.target.value })}
                       />
                       <input
-                        className="rounded-xl border border-[var(--color-line)] bg-white/[0.06] px-4 py-2.5 text-sm outline-none focus:border-[var(--color-brand)]"
+                        className="rounded-xl border border-[var(--color-line)] bg-white/[0.06] px-4 py-2.5 text-sm outline-none focus:[border-color:var(--color-brand)]"
                         placeholder="标签"
                         value={newStationForm.badge}
                         onChange={(e) => setNewStationForm({ ...newStationForm, badge: e.target.value })}
                       />
                       <input
-                        className="rounded-xl border border-[var(--color-line)] bg-white/[0.06] px-4 py-2.5 text-sm outline-none focus:border-[var(--color-brand)]"
+                        className="rounded-xl border border-[var(--color-line)] bg-white/[0.06] px-4 py-2.5 text-sm outline-none focus:[border-color:var(--color-brand)]"
                         placeholder="价格"
                         value={newStationForm.price}
                         onChange={(e) => setNewStationForm({ ...newStationForm, price: e.target.value })}
                       />
                       <input
-                        className="rounded-xl border border-[var(--color-line)] bg-white/[0.06] px-4 py-2.5 text-sm outline-none focus:border-[var(--color-brand)]"
+                        className="rounded-xl border border-[var(--color-line)] bg-white/[0.06] px-4 py-2.5 text-sm outline-none focus:[border-color:var(--color-brand)]"
                         placeholder="倍率"
                         value={newStationForm.multiplier}
                         onChange={(e) => setNewStationForm({ ...newStationForm, multiplier: e.target.value })}
                       />
                       <button
-                        className="rounded-xl bg-[var(--color-brand)] px-4 py-2.5 text-sm font-bold text-[var(--color-on-brand)] active:bg-[var(--color-brand-deep)] active:scale-[0.98] md:hover:bg-[var(--color-brand-deep)] disabled:opacity-50"
+                        className="rounded-xl bg-[var(--color-brand)] px-4 py-2.5 text-sm font-bold text-[var(--color-on-brand)] active:[background-color:var(--color-brand-deep)] active:scale-[0.98] md:hover:[background-color:var(--color-brand-deep)] disabled:opacity-50"
                         disabled={newStationSaving}
                         onClick={handleAddStation}
                         type="button"
@@ -1894,14 +1894,14 @@ export default function AdminPage() {
                   </div>
                 <div className="flex flex-wrap gap-3">
                   <button
-                    className="rounded-full bg-[var(--color-brand)] px-5 py-3 text-sm font-bold text-[var(--color-on-brand)] transition active:bg-[var(--color-brand-deep)] active:scale-[0.98] md:hover:bg-[var(--color-brand-deep)]"
+                    className="rounded-full bg-[var(--color-brand)] px-5 py-3 text-sm font-bold text-[var(--color-on-brand)] transition active:[background-color:var(--color-brand-deep)] active:scale-[0.98] md:hover:[background-color:var(--color-brand-deep)]"
                     onClick={saveAll}
                     type="button"
                   >
                     保存到首页
                   </button>
                   <button
-                    className="rounded-full border border-[var(--color-line)] bg-white/[0.06] px-5 py-3 text-sm font-bold text-white transition active:bg-[var(--color-soft)] active:scale-[0.98] md:hover:bg-[var(--color-soft)]"
+                    className="rounded-full border border-[var(--color-line)] bg-white/[0.06] px-5 py-3 text-sm font-bold text-white transition active:[background-color:var(--color-soft)] active:scale-[0.98] md:hover:[background-color:var(--color-soft)]"
                     onClick={resetAll}
                     type="button"
                   >
@@ -1925,7 +1925,7 @@ export default function AdminPage() {
                       <label className="space-y-2">
                         <span className="text-sm font-semibold text-[var(--color-muted)]">价格</span>
                         <input
-                          className="w-full rounded-2xl border border-[var(--color-line)] bg-white/[0.06] px-4 py-3 outline-none transition focus:border-[var(--color-brand)]"
+                          className="w-full rounded-2xl border border-[var(--color-line)] bg-white/[0.06] px-4 py-3 outline-none transition focus:[border-color:var(--color-brand)]"
                           onChange={(e) => updateStation(index, "price", e.target.value)}
                           value={station.price}
                         />
@@ -1933,7 +1933,7 @@ export default function AdminPage() {
                       <label className="space-y-2">
                         <span className="text-sm font-semibold text-[var(--color-muted)]">倍率</span>
                         <input
-                          className="w-full rounded-2xl border border-[var(--color-line)] bg-white/[0.06] px-4 py-3 outline-none transition focus:border-[var(--color-brand)]"
+                          className="w-full rounded-2xl border border-[var(--color-line)] bg-white/[0.06] px-4 py-3 outline-none transition focus:[border-color:var(--color-brand)]"
                           onChange={(e) => updateStation(index, "multiplier", e.target.value)}
                           value={station.multiplier}
                         />
@@ -1942,7 +1942,7 @@ export default function AdminPage() {
                     <label className="mt-4 block space-y-2">
                       <span className="text-sm font-semibold text-[var(--color-muted)]">首页简介</span>
                       <textarea
-                        className="min-h-24 w-full rounded-2xl border border-[var(--color-line)] bg-white/[0.06] px-4 py-3 outline-none transition focus:border-[var(--color-brand)]"
+                        className="min-h-24 w-full rounded-2xl border border-[var(--color-line)] bg-white/[0.06] px-4 py-3 outline-none transition focus:[border-color:var(--color-brand)]"
                         onChange={(e) => updateStation(index, "summary", e.target.value)}
                         value={station.summary}
                       />
@@ -1950,7 +1950,7 @@ export default function AdminPage() {
                     <label className="mt-4 block space-y-2">
                       <span className="text-sm font-semibold text-[var(--color-muted)]">推荐理由</span>
                       <textarea
-                        className="min-h-24 w-full rounded-2xl border border-[var(--color-line)] bg-white/[0.06] px-4 py-3 outline-none transition focus:border-[var(--color-brand)]"
+                        className="min-h-24 w-full rounded-2xl border border-[var(--color-line)] bg-white/[0.06] px-4 py-3 outline-none transition focus:[border-color:var(--color-brand)]"
                         onChange={(e) => updateStation(index, "reason", e.target.value)}
                         value={station.reason}
                       />
@@ -2000,7 +2000,7 @@ export default function AdminPage() {
                           <label className="space-y-2">
                             <span className="text-sm font-semibold text-[var(--color-muted)]">站点名</span>
                             <input
-                              className="w-full rounded-2xl border border-[var(--color-line)] bg-white/[0.06] px-4 py-3 outline-none transition focus:border-[var(--color-brand)]"
+                              className="w-full rounded-2xl border border-[var(--color-line)] bg-white/[0.06] px-4 py-3 outline-none transition focus:[border-color:var(--color-brand)]"
                               onChange={(e) => updateSubmissionField(item.id, "stationName", e.target.value)}
                               value={item.stationName}
                             />
@@ -2008,7 +2008,7 @@ export default function AdminPage() {
                           <label className="space-y-2">
                             <span className="text-sm font-semibold text-[var(--color-muted)]">地址或入口</span>
                             <input
-                              className="w-full rounded-2xl border border-[var(--color-line)] bg-white/[0.06] px-4 py-3 outline-none transition focus:border-[var(--color-brand)]"
+                              className="w-full rounded-2xl border border-[var(--color-line)] bg-white/[0.06] px-4 py-3 outline-none transition focus:[border-color:var(--color-brand)]"
                               onChange={(e) => updateSubmissionField(item.id, "url", e.target.value)}
                               value={item.url}
                             />
@@ -2016,7 +2016,7 @@ export default function AdminPage() {
                           <label className="space-y-2">
                             <span className="text-sm font-semibold text-[var(--color-muted)]">倍率或价格</span>
                             <input
-                              className="w-full rounded-2xl border border-[var(--color-line)] bg-white/[0.06] px-4 py-3 outline-none transition focus:border-[var(--color-brand)]"
+                              className="w-full rounded-2xl border border-[var(--color-line)] bg-white/[0.06] px-4 py-3 outline-none transition focus:[border-color:var(--color-brand)]"
                               onChange={(e) => updateSubmissionField(item.id, "priceOrRate", e.target.value)}
                               value={item.priceOrRate}
                             />
@@ -2024,7 +2024,7 @@ export default function AdminPage() {
                           <label className="space-y-2">
                             <span className="text-sm font-semibold text-[var(--color-muted)]">来源或联系方式</span>
                             <input
-                              className="w-full rounded-2xl border border-[var(--color-line)] bg-white/[0.06] px-4 py-3 outline-none transition focus:border-[var(--color-brand)]"
+                              className="w-full rounded-2xl border border-[var(--color-line)] bg-white/[0.06] px-4 py-3 outline-none transition focus:[border-color:var(--color-brand)]"
                               onChange={(e) => updateSubmissionField(item.id, "contact", e.target.value)}
                               value={item.contact}
                             />
@@ -2033,7 +2033,7 @@ export default function AdminPage() {
                         <label className="mt-4 block space-y-2">
                           <span className="text-sm font-semibold text-[var(--color-muted)]">用户提交说明</span>
                           <textarea
-                            className="min-h-24 w-full rounded-2xl border border-[var(--color-line)] bg-white/[0.06] px-4 py-3 outline-none transition focus:border-[var(--color-brand)]"
+                            className="min-h-24 w-full rounded-2xl border border-[var(--color-line)] bg-white/[0.06] px-4 py-3 outline-none transition focus:[border-color:var(--color-brand)]"
                             onChange={(e) => updateSubmissionField(item.id, "note", e.target.value)}
                             value={item.note}
                           />
@@ -2041,7 +2041,7 @@ export default function AdminPage() {
                         <label className="mt-4 block space-y-2">
                           <span className="text-sm font-semibold text-[var(--color-muted)]">管理员备注</span>
                           <textarea
-                            className="min-h-24 w-full rounded-2xl border border-[var(--color-line)] bg-white/[0.06] px-4 py-3 outline-none transition focus:border-[var(--color-brand)]"
+                            className="min-h-24 w-full rounded-2xl border border-[var(--color-line)] bg-white/[0.06] px-4 py-3 outline-none transition focus:[border-color:var(--color-brand)]"
                             onChange={(e) => updateSubmissionField(item.id, "adminNote", e.target.value)}
                             placeholder="你可以先改内容，再备注为什么通过，或者写驳回原因。"
                             value={item.adminNote}
@@ -2049,14 +2049,14 @@ export default function AdminPage() {
                         </label>
                         <div className="mt-5 flex flex-wrap gap-3">
                           <button
-                            className="rounded-full bg-[var(--color-brand)] px-5 py-3 text-sm font-bold text-[var(--color-on-brand)] transition active:bg-[var(--color-brand-deep)] active:scale-[0.98] md:hover:bg-[var(--color-brand-deep)]"
+                            className="rounded-full bg-[var(--color-brand)] px-5 py-3 text-sm font-bold text-[var(--color-on-brand)] transition active:[background-color:var(--color-brand-deep)] active:scale-[0.98] md:hover:[background-color:var(--color-brand-deep)]"
                             onClick={() => reviewSubmission(item.id, "approved", "direct")}
                             type="button"
                           >
                             直接通过
                           </button>
                           <button
-                            className="rounded-full border border-[var(--color-line)] bg-white/[0.06] px-5 py-3 text-sm font-bold text-white transition active:bg-[var(--color-soft)] active:scale-[0.98] md:hover:bg-[var(--color-soft)]"
+                            className="rounded-full border border-[var(--color-line)] bg-white/[0.06] px-5 py-3 text-sm font-bold text-white transition active:[background-color:var(--color-soft)] active:scale-[0.98] md:hover:[background-color:var(--color-soft)]"
                             onClick={() => reviewSubmission(item.id, "approved", "edited")}
                             type="button"
                           >
@@ -2122,7 +2122,7 @@ export default function AdminPage() {
                         </div>
                         <div className="mt-4 flex flex-wrap gap-3">
                           <button
-                            className="rounded-full bg-[var(--color-brand)] px-4 py-2 text-sm font-bold text-[var(--color-on-brand)] transition active:bg-[var(--color-brand-deep)] active:scale-[0.98] md:hover:bg-[var(--color-brand-deep)] disabled:opacity-50"
+                            className="rounded-full bg-[var(--color-brand)] px-4 py-2 text-sm font-bold text-[var(--color-on-brand)] transition active:[background-color:var(--color-brand-deep)] active:scale-[0.98] md:hover:[background-color:var(--color-brand-deep)] disabled:opacity-50"
                             disabled={processingEditId === edit.id}
                             onClick={() => handleApproveEdit(edit.id)}
                             type="button"
@@ -2206,7 +2206,7 @@ export default function AdminPage() {
                         )}
                         <div className="mt-4 flex flex-wrap gap-3">
                           <button
-                            className="rounded-full bg-[var(--color-brand)] px-4 py-2 text-sm font-bold text-[var(--color-on-brand)] transition active:bg-[var(--color-brand-deep)] active:scale-[0.98] md:hover:bg-[var(--color-brand-deep)] disabled:opacity-50"
+                            className="rounded-full bg-[var(--color-brand)] px-4 py-2 text-sm font-bold text-[var(--color-on-brand)] transition active:[background-color:var(--color-brand-deep)] active:scale-[0.98] md:hover:[background-color:var(--color-brand-deep)] disabled:opacity-50"
                             disabled={processingGuideId === guide.id}
                             onClick={() => handleApproveGuide(guide.id)}
                             type="button"
@@ -2290,7 +2290,7 @@ export default function AdminPage() {
                 <h2 className="mt-2 text-2xl font-black">管理员可以直接改 JSON</h2>
               </div>
               <button
-                className="rounded-full bg-[var(--color-soft)] px-4 py-2 text-sm font-bold text-[var(--color-brand-deep)] transition active:bg-[var(--color-brand-soft)] active:scale-[0.98] md:hover:bg-[var(--color-brand-soft)]"
+                className="rounded-full bg-[var(--color-soft)] px-4 py-2 text-sm font-bold text-[var(--color-brand-deep)] transition active:[background-color:var(--color-brand-soft)] active:scale-[0.98] md:hover:[background-color:var(--color-brand-soft)]"
                 onClick={importJson}
                 type="button"
               >
@@ -2298,7 +2298,7 @@ export default function AdminPage() {
               </button>
             </div>
             <textarea
-              className="mt-5 min-h-[420px] w-full rounded-[24px] border border-[var(--color-line)] bg-[var(--color-soft)] px-4 py-4 font-mono text-sm outline-none transition focus:border-[var(--color-brand)]"
+              className="mt-5 min-h-[420px] w-full rounded-[24px] border border-[var(--color-line)] bg-[var(--color-soft)] px-4 py-4 font-mono text-sm outline-none transition focus:[border-color:var(--color-brand)]"
               onChange={(e) => setImportText(e.target.value)}
               value={importText}
             />
@@ -2320,14 +2320,14 @@ export default function AdminPage() {
               </p>
               <div className="mt-5 flex flex-wrap items-center gap-3">
                 <input
-                  className="min-w-[260px] rounded-2xl border border-[var(--color-line)] bg-white px-5 py-3 outline-none transition focus:border-[var(--color-brand)]"
+                  className="min-w-[260px] rounded-2xl border border-[var(--color-line)] bg-white px-5 py-3 outline-none transition focus:[border-color:var(--color-brand)]"
                   onChange={(e) => setNewAdminEmail(e.target.value)}
                   onKeyDown={(e) => { if (e.nativeEvent.isComposing) return; if (e.key === "Enter") { e.preventDefault(); void handleAddAdmin(); } }}
                   placeholder="输入用户邮箱地址"
                   value={newAdminEmail}
                 />
                 <button
-                  className="rounded-full bg-[var(--color-brand)] px-6 py-3 text-sm font-bold text-[var(--color-on-brand)] transition active:bg-[var(--color-brand-deep)] active:scale-[0.98] md:hover:bg-[var(--color-brand-deep)] disabled:opacity-50"
+                  className="rounded-full bg-[var(--color-brand)] px-6 py-3 text-sm font-bold text-[var(--color-on-brand)] transition active:[background-color:var(--color-brand-deep)] active:scale-[0.98] md:hover:[background-color:var(--color-brand-deep)] disabled:opacity-50"
                   disabled={addAdminLoading}
                   onClick={() => void handleAddAdmin()}
                   type="button"
@@ -2350,7 +2350,7 @@ export default function AdminPage() {
                   <h2 className="mt-2 text-2xl font-black">管理现有管理员权限</h2>
                 </div>
                 <button
-                  className="rounded-full bg-[var(--color-soft)] px-4 py-2 text-sm font-bold text-[var(--color-brand-deep)] transition active:bg-[var(--color-brand-soft)] active:scale-[0.98] md:hover:bg-[var(--color-brand-soft)]"
+                  className="rounded-full bg-[var(--color-soft)] px-4 py-2 text-sm font-bold text-[var(--color-brand-deep)] transition active:[background-color:var(--color-brand-soft)] active:scale-[0.98] md:hover:[background-color:var(--color-brand-soft)]"
                   onClick={() => void loadAdminList()}
                   type="button"
                 >
@@ -2410,13 +2410,13 @@ export default function AdminPage() {
 
           <div className="mt-4 flex items-center gap-3">
             <input
-              className="rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-2 text-sm outline-none transition focus:border-[var(--color-brand)]"
+              className="rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-2 text-sm outline-none transition focus:[border-color:var(--color-brand)]"
               onChange={(e) => setUserSearch(e.target.value)}
               placeholder="搜索邮箱或昵称..."
               value={userSearch}
             />
             <button
-              className="rounded-full bg-[var(--color-soft)] px-4 py-2 text-sm font-bold text-[var(--color-brand-deep)] transition active:bg-[var(--color-brand-soft)] active:scale-[0.98] md:hover:bg-[var(--color-brand-soft)]"
+              className="rounded-full bg-[var(--color-soft)] px-4 py-2 text-sm font-bold text-[var(--color-brand-deep)] transition active:[background-color:var(--color-brand-soft)] active:scale-[0.98] md:hover:[background-color:var(--color-brand-soft)]"
               onClick={loadUsers}
               type="button"
             >
@@ -2636,14 +2636,14 @@ export default function AdminPage() {
             </div>
             <div className="border-t border-[var(--color-line)] px-6 py-4 flex justify-end gap-3">
               <button
-                className="rounded-full border border-[var(--color-line)] bg-[var(--color-input)] px-5 py-2.5 text-sm font-bold text-[var(--color-muted)] transition active:bg-[var(--color-soft)] active:text-[var(--color-ink)] active:scale-[0.98] md:hover:bg-[var(--color-soft)] md:hover:text-[var(--color-ink)]"
+                className="rounded-full border border-[var(--color-line)] bg-[var(--color-input)] px-5 py-2.5 text-sm font-bold text-[var(--color-muted)] transition active:[background-color:var(--color-soft)] active:[color:var(--color-ink)] active:scale-[0.98] md:hover:[background-color:var(--color-soft)] md:hover:[color:var(--color-ink)]"
                 onClick={() => setAnnounceConfirmOpen(false)}
                 type="button"
               >
                 取消
               </button>
               <button
-                className="rounded-full bg-[var(--color-brand)] px-5 py-2.5 text-sm font-bold text-[var(--color-on-brand)] transition active:bg-[var(--color-brand-deep)] active:scale-[0.98] md:hover:bg-[var(--color-brand-deep)]"
+                className="rounded-full bg-[var(--color-brand)] px-5 py-2.5 text-sm font-bold text-[var(--color-on-brand)] transition active:[background-color:var(--color-brand-deep)] active:scale-[0.98] md:hover:[background-color:var(--color-brand-deep)]"
                 onClick={() => void handleConfirmPublishAnnouncement()}
                 type="button"
               >
@@ -2658,3 +2658,4 @@ export default function AdminPage() {
     </div>
   );
 }
+

@@ -53,14 +53,14 @@ export function FeaturedStationsPanel({ initialStations }: Props) {
 
         <div className="flex flex-wrap gap-3">
           <button
-            className="rounded-full bg-[var(--color-soft)] px-4 py-2 text-sm font-bold text-[var(--color-brand-deep)] transition hover:bg-[var(--color-brand-soft)]"
+            className="rounded-full bg-[var(--color-soft)] px-4 py-2 text-sm font-bold text-[var(--color-brand-deep)] transition hover:[background-color:var(--color-brand-soft)]"
             onClick={() => setIsEditing((value) => !value)}
             type="button"
           >
             {isEditing ? "退出编辑" : "管理员编辑"}
           </button>
           <button
-            className="rounded-full border border-[var(--color-line)] bg-white/[0.06] px-4 py-2 text-sm font-bold text-white transition hover:bg-[var(--color-soft)]"
+            className="rounded-full border border-[var(--color-line)] bg-white/[0.06] px-4 py-2 text-sm font-bold text-white transition hover:[background-color:var(--color-soft)]"
             onClick={resetChanges}
             type="button"
           >
@@ -92,7 +92,7 @@ export function FeaturedStationsPanel({ initialStations }: Props) {
               </div>
               {isEditing ? (
                 <textarea
-                  className="mt-3 min-h-24 w-full rounded-2xl border border-white/10 bg-white/[0.06] px-3 py-3 text-sm leading-6 text-[var(--color-muted)] outline-none transition focus:border-[var(--color-brand)]"
+                  className="mt-3 min-h-24 w-full rounded-2xl border border-white/10 bg-white/[0.06] px-3 py-3 text-sm leading-6 text-[var(--color-muted)] outline-none transition focus:[border-color:var(--color-brand)]"
                   onChange={(event) => updateStation(index, "summary", event.target.value)}
                   value={station.summary}
                 />
@@ -105,7 +105,7 @@ export function FeaturedStationsPanel({ initialStations }: Props) {
 
             {isEditing ? (
               <input
-                className="rounded-2xl border border-white/10 bg-white/[0.06] px-3 py-3 text-sm font-bold outline-none transition focus:border-[var(--color-brand)]"
+                className="rounded-2xl border border-white/10 bg-white/[0.06] px-3 py-3 text-sm font-bold outline-none transition focus:[border-color:var(--color-brand)]"
                 onChange={(event) => updateStation(index, "price", event.target.value)}
                 value={station.price}
               />
@@ -115,7 +115,7 @@ export function FeaturedStationsPanel({ initialStations }: Props) {
 
             {isEditing ? (
               <input
-                className="rounded-2xl border border-white/10 bg-white/[0.06] px-3 py-3 text-sm font-bold outline-none transition focus:border-[var(--color-brand)]"
+                className="rounded-2xl border border-white/10 bg-white/[0.06] px-3 py-3 text-sm font-bold outline-none transition focus:[border-color:var(--color-brand)]"
                 onChange={(event) => updateStation(index, "multiplier", event.target.value)}
                 value={station.multiplier}
               />
@@ -125,7 +125,7 @@ export function FeaturedStationsPanel({ initialStations }: Props) {
 
             {isEditing ? (
               <textarea
-                className="min-h-24 w-full rounded-2xl border border-white/10 bg-white/[0.06] px-3 py-3 text-sm leading-6 text-[var(--color-muted)] outline-none transition focus:border-[var(--color-brand)]"
+                className="min-h-24 w-full rounded-2xl border border-white/10 bg-white/[0.06] px-3 py-3 text-sm leading-6 text-[var(--color-muted)] outline-none transition focus:[border-color:var(--color-brand)]"
                 onChange={(event) => updateStation(index, "reason", event.target.value)}
                 value={station.reason}
               />
@@ -144,7 +144,7 @@ export function FeaturedStationsPanel({ initialStations }: Props) {
         </p>
         <div className="flex flex-wrap gap-3">
           <button
-            className="rounded-full bg-[var(--color-brand)] px-5 py-3 text-sm font-bold text-white transition hover:bg-[var(--color-brand-deep)] disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-full bg-[var(--color-brand)] px-5 py-3 text-sm font-bold text-white transition hover:[background-color:var(--color-brand-deep)] disabled:cursor-not-allowed disabled:opacity-50"
             disabled={!isEditing}
             onClick={saveChanges}
             type="button"
@@ -156,3 +156,4 @@ export function FeaturedStationsPanel({ initialStations }: Props) {
     </div>
   );
 }
+

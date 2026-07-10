@@ -31,7 +31,7 @@ export function QqGroupModalButton() {
   return (
     <div className="relative" ref={wrapperRef}>
       <button
-        className="inline-flex items-center gap-2 rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-3 text-sm font-bold text-[var(--color-brand-deep)] shadow-[0_10px_24px_rgba(15,23,42,0.06)] transition hover:border-[var(--color-brand)] hover:bg-[var(--color-brand-soft)]"
+        className="inline-flex items-center gap-2 rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-3 text-sm font-bold text-[var(--color-brand-deep)] shadow-[0_10px_24px_rgba(15,23,42,0.06)] transition hover:[border-color:var(--color-brand)] hover:[background-color:var(--color-brand-soft)]"
         onClick={() => setOpen((current) => !current)}
         type="button"
       >
@@ -51,7 +51,7 @@ export function QqGroupModalButton() {
               <h2 className="mt-2 text-xl font-black tracking-tight">群号 602190132</h2>
             </div>
             <button
-              className="rounded-full px-2 py-1 text-xs font-semibold text-[var(--color-muted)] transition hover:bg-[var(--color-soft)] hover:text-[var(--color-ink)]"
+              className="rounded-full px-2 py-1 text-xs font-semibold text-[var(--color-muted)] transition hover:[background-color:var(--color-soft)] hover:[color:var(--color-ink)]"
               onClick={() => setOpen(false)}
               type="button"
             >
@@ -80,3 +80,4 @@ export function QqGroupModalButton() {
     </div>
   );
 }
+

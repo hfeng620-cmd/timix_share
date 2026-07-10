@@ -71,7 +71,7 @@ export function SiteFooter() {
             {decisionMap.map((item) => (
               <Link
                 key={item.href}
-                className="group rounded-3xl border border-[var(--color-line)] bg-[var(--color-panel-strong)] p-5 transition hover:-translate-y-0.5 hover:border-[var(--color-brand)] hover:bg-[var(--color-soft)] hover:shadow-[0_18px_50px_var(--color-panel-glow)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-brand)] motion-reduce:transform-none motion-reduce:transition-none"
+                className="group rounded-3xl border border-[var(--color-line)] bg-[var(--color-panel-strong)] p-5 transition hover:-translate-y-0.5 hover:[border-color:var(--color-brand)] hover:[background-color:var(--color-soft)] hover:shadow-[0_18px_50px_var(--color-panel-glow)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-brand)] motion-reduce:transform-none motion-reduce:transition-none"
                 href={item.href}
               >
                 <div className="flex items-center justify-between gap-3">
@@ -82,7 +82,7 @@ export function SiteFooter() {
                     {item.step}
                   </span>
                 </div>
-                <h3 className="mt-3 text-base font-black leading-6 text-[var(--color-ink)] transition group-hover:text-[var(--color-brand-deep)]">
+                <h3 className="mt-3 text-base font-black leading-6 text-[var(--color-ink)] transition group-hover:[color:var(--color-brand-deep)]">
                   {item.title}
                 </h3>
                 <p className="mt-2 text-sm leading-6 text-[var(--color-muted)]">
@@ -126,7 +126,7 @@ export function SiteFooter() {
               {collaborationLinks.map((item) => (
                 <a
                   key={item.label}
-                  className="inline-flex items-center justify-between rounded-2xl border border-[var(--color-line)] px-4 py-3 font-medium text-[var(--color-ink)] transition hover:border-[var(--color-brand)] hover:bg-[var(--color-soft)] hover:text-[var(--color-brand-deep)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-brand)] motion-reduce:transition-none"
+                  className="inline-flex items-center justify-between rounded-2xl border border-[var(--color-line)] px-4 py-3 font-medium text-[var(--color-ink)] transition hover:[border-color:var(--color-brand)] hover:[background-color:var(--color-soft)] hover:[color:var(--color-brand-deep)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-brand)] motion-reduce:transition-none"
                   href={item.href}
                   rel="noopener noreferrer"
                   target="_blank"
@@ -139,7 +139,7 @@ export function SiteFooter() {
               ))}
               {isAdmin ? (
                 <Link
-                  className="inline-flex items-center justify-between rounded-2xl border border-[var(--color-line)] px-4 py-3 font-medium text-[var(--color-ink)] transition hover:border-[var(--color-brand)] hover:bg-[var(--color-soft)] hover:text-[var(--color-brand-deep)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-brand)] motion-reduce:transition-none"
+                  className="inline-flex items-center justify-between rounded-2xl border border-[var(--color-line)] px-4 py-3 font-medium text-[var(--color-ink)] transition hover:[border-color:var(--color-brand)] hover:[background-color:var(--color-soft)] hover:[color:var(--color-brand-deep)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-brand)] motion-reduce:transition-none"
                   href="/admin"
                 >
                   <span>管理员面板</span>
@@ -159,3 +159,4 @@ export function SiteFooter() {
     </footer>
   );
 }
+

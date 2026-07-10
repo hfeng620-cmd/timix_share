@@ -241,7 +241,7 @@ export function StationReviewPanel({ stationId }: StationReviewPanelProps) {
         {!formOpen && (
           <button
             type="button"
-            className="rounded-full bg-[var(--color-brand)] px-4 py-2 text-sm font-bold text-[var(--color-on-brand)] transition hover:bg-[var(--color-brand-deep)]"
+            className="rounded-full bg-[var(--color-brand)] px-4 py-2 text-sm font-bold text-[var(--color-on-brand)] transition hover:[background-color:var(--color-brand-deep)]"
             disabled={!canUseReviews}
             onClick={() => {
               if (!canUseReviews) {
@@ -282,7 +282,7 @@ export function StationReviewPanel({ stationId }: StationReviewPanelProps) {
 
           {/* Body textarea */}
           <textarea
-            className="w-full resize-none rounded-[14px] border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-3 text-sm leading-7 outline-none transition focus:border-[var(--color-brand)]"
+            className="w-full resize-none rounded-[14px] border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-3 text-sm leading-7 outline-none transition focus:[border-color:var(--color-brand)]"
             maxLength={REVIEW_MAX}
             rows={4}
             placeholder="写下你对这个中转站的体验、优缺点或避坑建议..."
@@ -301,7 +301,7 @@ export function StationReviewPanel({ stationId }: StationReviewPanelProps) {
           <div className="flex flex-wrap items-center gap-3">
             <button
               type="button"
-              className="rounded-full bg-[var(--color-brand)] px-5 py-2.5 text-sm font-bold text-[var(--color-on-brand)] transition hover:bg-[var(--color-brand-deep)] disabled:opacity-50"
+              className="rounded-full bg-[var(--color-brand)] px-5 py-2.5 text-sm font-bold text-[var(--color-on-brand)] transition hover:[background-color:var(--color-brand-deep)] disabled:opacity-50"
               disabled={submitting}
               onClick={handleSubmit}
             >
@@ -309,7 +309,7 @@ export function StationReviewPanel({ stationId }: StationReviewPanelProps) {
             </button>
             <button
               type="button"
-              className="rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-2.5 text-sm font-bold text-[var(--color-muted)] transition hover:bg-[var(--color-soft)] hover:text-[var(--color-ink)]"
+              className="rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-2.5 text-sm font-bold text-[var(--color-muted)] transition hover:[background-color:var(--color-soft)] hover:[color:var(--color-ink)]"
               onClick={() => {
                 setFormOpen(false);
                 setRating(0);
@@ -359,3 +359,4 @@ export function StationReviewPanel({ stationId }: StationReviewPanelProps) {
     </div>
   );
 }
+

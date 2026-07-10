@@ -41,7 +41,7 @@ export function FavoriteButton({ stationName }: { stationName: string }) {
     <button
       type="button"
       onClick={handleClick}
-      className="flex h-11 w-11 items-center justify-center rounded-full transition hover:bg-[var(--color-soft)]"
+      className="flex h-11 w-11 items-center justify-center rounded-full transition hover:[background-color:var(--color-soft)]"
       title={favorited ? "取消收藏" : "收藏站点"}
       aria-label={favorited ? "取消收藏" : "收藏站点"}
     >
@@ -62,3 +62,4 @@ export function FavoriteButton({ stationName }: { stationName: string }) {
     </button>
   );
 }
+

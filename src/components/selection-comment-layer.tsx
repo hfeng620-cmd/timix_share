@@ -212,7 +212,7 @@ export function SelectionCommentLayer() {
                 </span>
                 <button
                   aria-label="删除这条划词评论"
-                  className="text-xs font-semibold text-[var(--color-muted)] transition hover:text-[var(--color-ink)]"
+                  className="text-xs font-semibold text-[var(--color-muted)] transition hover:[color:var(--color-ink)]"
                   onClick={() => handleDeleteComment(item.id)}
                   type="button"
                 >
@@ -241,7 +241,7 @@ export function SelectionCommentLayer() {
                 </span>
                 <button
                   aria-label="删除这条划词评论"
-                  className="text-xs font-semibold text-[var(--color-muted)] transition hover:text-[var(--color-ink)]"
+                  className="text-xs font-semibold text-[var(--color-muted)] transition hover:[color:var(--color-ink)]"
                   onClick={() => handleDeleteComment(item.id)}
                   type="button"
                 >
@@ -267,7 +267,7 @@ export function SelectionCommentLayer() {
             </span>
             <button
               aria-label="关闭划词评论草稿"
-              className="text-xs font-semibold text-[var(--color-muted)] transition hover:text-[var(--color-ink)]"
+              className="text-xs font-semibold text-[var(--color-muted)] transition hover:[color:var(--color-ink)]"
               onClick={closeDraft}
               type="button"
             >
@@ -278,7 +278,7 @@ export function SelectionCommentLayer() {
             “{draft.quote}”
           </p>
           <textarea
-            className="mt-3 min-h-24 w-full rounded-2xl border border-[var(--color-line)] bg-[var(--color-input)] px-3 py-3 text-sm leading-6 text-[var(--color-ink)] outline-none transition focus:border-[var(--color-brand)]"
+            className="mt-3 min-h-24 w-full rounded-2xl border border-[var(--color-line)] bg-[var(--color-input)] px-3 py-3 text-sm leading-6 text-[var(--color-ink)] outline-none transition focus:[border-color:var(--color-brand)]"
             maxLength={MAX_BODY_LENGTH}
             onChange={(event) => setCommentText(event.target.value.slice(0, MAX_BODY_LENGTH))}
             onKeyDown={(e) => { if (e.nativeEvent.isComposing) return; if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSaveComment(); } }}
@@ -291,7 +291,7 @@ export function SelectionCommentLayer() {
               {draft.side === "left" ? "左侧" : "右侧"}评论栏
             </span>
             <button
-              className="rounded-full bg-[var(--color-brand)] px-4 py-2 text-sm font-bold text-[var(--color-on-brand)] transition hover:bg-[var(--color-brand-deep)]"
+              className="rounded-full bg-[var(--color-brand)] px-4 py-2 text-sm font-bold text-[var(--color-on-brand)] transition hover:[background-color:var(--color-brand-deep)]"
               onClick={handleSaveComment}
               type="button"
             >
@@ -311,3 +311,4 @@ export function SelectionCommentLayer() {
     </>
   );
 }
+

@@ -130,7 +130,7 @@ export function SubmissionPanel() {
         <label className="space-y-2">
           <span className="text-sm font-semibold text-[var(--color-muted)]">提交类型</span>
           <select
-            className="w-full rounded-[12px] border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 outline-none transition focus:border-[var(--color-brand)]"
+            className="w-full rounded-[12px] border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 outline-none transition focus:[border-color:var(--color-brand)]"
             onChange={(event) => setKind(event.target.value as (typeof submissionKinds)[number])}
             value={kind}
           >
@@ -145,7 +145,7 @@ export function SubmissionPanel() {
         <label className="space-y-2">
           <span className="text-sm font-semibold text-[var(--color-muted)]">站点名</span>
           <input
-            className="w-full rounded-[12px] border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 outline-none transition focus:border-[var(--color-brand)]"
+            className="w-full rounded-[12px] border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 outline-none transition focus:[border-color:var(--color-brand)]"
             onChange={(event) => setStationName(event.target.value)}
             maxLength={STATION_NAME_MAX}
             value={stationName}
@@ -155,7 +155,7 @@ export function SubmissionPanel() {
         <label className="space-y-2">
           <span className="text-sm font-semibold text-[var(--color-muted)]">地址或入口</span>
           <input
-            className="w-full rounded-[12px] border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 outline-none transition focus:border-[var(--color-brand)]"
+            className="w-full rounded-[12px] border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 outline-none transition focus:[border-color:var(--color-brand)]"
             onChange={(event) => setUrl(event.target.value)}
             placeholder="https://..."
             type="url"
@@ -166,7 +166,7 @@ export function SubmissionPanel() {
         <label className="space-y-2">
           <span className="text-sm font-semibold text-[var(--color-muted)]">倍率或价格</span>
           <input
-            className="w-full rounded-[12px] border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 outline-none transition focus:border-[var(--color-brand)]"
+            className="w-full rounded-[12px] border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 outline-none transition focus:[border-color:var(--color-brand)]"
             onChange={(event) => setPriceOrRate(event.target.value)}
             maxLength={PRICE_OR_RATE_MAX}
             placeholder="例如：0.12x / GPT 0.2 / 免费"
@@ -178,7 +178,7 @@ export function SubmissionPanel() {
       <label className="mt-4 block space-y-2">
         <span className="text-sm font-semibold text-[var(--color-muted)]">备注说明</span>
         <textarea
-          className="min-h-28 w-full rounded-[12px] border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 outline-none transition focus:border-[var(--color-brand)]"
+          className="min-h-28 w-full rounded-[12px] border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 outline-none transition focus:[border-color:var(--color-brand)]"
           maxLength={NOTE_MAX}
           onChange={(event) => setNote(event.target.value)}
           placeholder="写清楚你补充的是什么、看到的价格页面、模型分组、试用信息或需要纠正的内容。"
@@ -196,7 +196,7 @@ export function SubmissionPanel() {
       <label className="mt-4 block space-y-2">
         <span className="text-sm font-semibold text-[var(--color-muted)]">联系方式或备注来源</span>
         <input
-          className="w-full rounded-[12px] border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 outline-none transition focus:border-[var(--color-brand)]"
+          className="w-full rounded-[12px] border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 outline-none transition focus:[border-color:var(--color-brand)]"
           onChange={(event) => setContact(event.target.value)}
           maxLength={CONTACT_MAX}
           placeholder="例如：QQ群昵称 / 金山文档来源 / 自己实测"
@@ -207,7 +207,7 @@ export function SubmissionPanel() {
       <div className="mt-5 flex flex-wrap items-center justify-between gap-4">
         <p className={`text-sm leading-6 ${statusTone === "error" ? STATUS_ERROR_CLASS : STATUS_NEUTRAL_CLASS}`}>{status}</p>
         <button
-          className="rounded-full bg-[var(--color-brand)] px-6 py-3 text-sm font-bold text-[var(--color-on-brand)] transition hover:bg-[var(--color-brand-deep)] disabled:cursor-not-allowed disabled:opacity-60"
+          className="rounded-full bg-[var(--color-brand)] px-6 py-3 text-sm font-bold text-[var(--color-on-brand)] transition hover:[background-color:var(--color-brand-deep)] disabled:cursor-not-allowed disabled:opacity-60"
           disabled={isSubmitting}
           onClick={handleSubmit}
           type="button"
@@ -218,3 +218,4 @@ export function SubmissionPanel() {
     </div>
   );
 }
+

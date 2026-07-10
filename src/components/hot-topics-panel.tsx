@@ -95,7 +95,7 @@ export default function HotTopicsPanel({ onTopicClick }: HotTopicsPanelProps) {
               <button
                 key={topic.id}
                 type="button"
-                className="flex w-full items-center gap-3 border-b border-[var(--color-line)] py-2.5 text-left transition hover:bg-[var(--color-hover)] last:border-b-0"
+                className="flex w-full items-center gap-3 border-b border-[var(--color-line)] py-2.5 text-left transition hover:[background-color:var(--color-hover)] last:border-b-0"
                 style={{ minHeight: 48 }}
                 onClick={() => onTopicClick?.(topic.id)}
               >
@@ -122,3 +122,4 @@ export default function HotTopicsPanel({ onTopicClick }: HotTopicsPanelProps) {
     </div>
   );
 }
+

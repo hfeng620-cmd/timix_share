@@ -79,7 +79,7 @@ export function StationDetailModal({ station, open, onClose }: StationDetailModa
           </div>
           <button
             aria-label="关闭"
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] text-[var(--color-muted)] transition hover:border-[var(--color-ink)] hover:text-[var(--color-ink)]"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] text-[var(--color-muted)] transition hover:[border-color:var(--color-ink)] hover:[color:var(--color-ink)]"
             onClick={onClose}
             type="button"
           >
@@ -90,7 +90,7 @@ export function StationDetailModal({ station, open, onClose }: StationDetailModa
         {/* ── Direct link to relay station ── */}
         {stationHref ? (
           <a
-            className="mt-3 inline-flex items-center gap-1.5 text-sm font-bold text-[var(--color-brand-deep)] transition hover:text-[var(--color-brand)]"
+            className="mt-3 inline-flex items-center gap-1.5 text-sm font-bold text-[var(--color-brand-deep)] transition hover:[color:var(--color-brand)]"
             href={stationHref}
             rel="noopener noreferrer"
             target="_blank"
@@ -202,7 +202,7 @@ export function StationDetailModal({ station, open, onClose }: StationDetailModa
         {/* ── Community discussion link ── */}
         <div className="mt-4" style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 16px)' }}>
           <a
-            className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[var(--color-brand)] px-5 py-3 text-sm font-bold text-[var(--color-on-brand)] transition hover:bg-[var(--color-brand-deep)]"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[var(--color-brand)] px-5 py-3 text-sm font-bold text-[var(--color-on-brand)] transition hover:[background-color:var(--color-brand-deep)]"
             href={`https://github.com/hfeng620-cmd/timin_api_test_and_forum/discussions?discussions_q=${encodeURIComponent(station.name)}`}
             rel="noopener noreferrer"
             target="_blank"
@@ -231,3 +231,4 @@ export function StationDetailModal({ station, open, onClose }: StationDetailModa
     </div>
   );
 }
+

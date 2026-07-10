@@ -569,7 +569,7 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
               </p>
             </div>
             <button
-              className="w-full rounded-full bg-[var(--color-brand)] px-5 py-3 text-sm font-bold text-[var(--color-on-brand)] transition active:bg-[var(--color-brand-deep)] active:scale-[0.98] md:hover:bg-[var(--color-brand-deep)]"
+              className="w-full rounded-full bg-[var(--color-brand)] px-5 py-3 text-sm font-bold text-[var(--color-on-brand)] transition active:[background-color:var(--color-brand-deep)] active:scale-[0.98] md:hover:[background-color:var(--color-brand-deep)]"
               onClick={onClose}
               type="button"
             >
@@ -617,7 +617,7 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
                 <label className="sr-only" htmlFor="auth-setup-name">昵称</label>
                 <input
                   aria-describedby={error ? "auth-error" : undefined}
-                  className="w-full rounded-[12px] border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 text-sm outline-none transition focus:border-[var(--color-brand)]"
+                  className="w-full rounded-[12px] border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 text-sm outline-none transition focus:[border-color:var(--color-brand)]"
                   id="auth-setup-name"
                   onChange={(event) => {
                     setDisplayNameInput(event.target.value);
@@ -632,7 +632,7 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
                 <input
                   aria-describedby={error ? "auth-error" : undefined}
                   aria-invalid={error && registrationPasswordError ? true : undefined}
-                  className="w-full rounded-[12px] border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 text-sm outline-none transition focus:border-[var(--color-brand)]"
+                  className="w-full rounded-[12px] border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 text-sm outline-none transition focus:[border-color:var(--color-brand)]"
                   id="auth-setup-password"
                   onChange={(event) => {
                     setPasswordValue(event.target.value);
@@ -647,7 +647,7 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
                 <input
                   aria-describedby={error ? "auth-error" : undefined}
                   aria-invalid={error && password !== confirmPassword ? true : undefined}
-                  className="w-full rounded-[12px] border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 text-sm outline-none transition focus:border-[var(--color-brand)]"
+                  className="w-full rounded-[12px] border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 text-sm outline-none transition focus:[border-color:var(--color-brand)]"
                   id="auth-setup-confirm"
                   onChange={(event) => {
                     setConfirmPassword(event.target.value);
@@ -658,7 +658,7 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
                   value={confirmPassword}
                 />
                 <button
-                  className="w-full rounded-full bg-[var(--color-brand)] px-5 py-3 text-sm font-bold text-[var(--color-on-brand)] transition active:bg-[var(--color-brand-deep)] active:scale-[0.98] md:hover:bg-[var(--color-brand-deep)] disabled:opacity-60"
+                  className="w-full rounded-full bg-[var(--color-brand)] px-5 py-3 text-sm font-bold text-[var(--color-on-brand)] transition active:[background-color:var(--color-brand-deep)] active:scale-[0.98] md:hover:[background-color:var(--color-brand-deep)] disabled:opacity-60"
                   disabled={loading || Boolean(registrationPasswordError) || !confirmPassword}
                   onClick={handleSetPassword}
                   type="button"
@@ -681,7 +681,7 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
                     type="file"
                   />
                   <button
-                    className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-[var(--color-line)] bg-[var(--color-soft)] transition active:border-[var(--color-brand)] active:scale-[0.98] md:hover:border-[var(--color-brand)] disabled:opacity-60"
+                    className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-[var(--color-line)] bg-[var(--color-soft)] transition active:[border-color:var(--color-brand)] active:scale-[0.98] md:hover:[border-color:var(--color-brand)] disabled:opacity-60"
                     disabled={avatarUploading}
                     onClick={() => avatarFileRef.current?.click()}
                     title="点击上传头像"
@@ -716,7 +716,7 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
                 <label className="sr-only" htmlFor="auth-edit-name">修改昵称</label>
                 <input
                   aria-describedby={error ? "auth-error" : undefined}
-                  className="w-full rounded-[12px] border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 text-sm outline-none transition focus:border-[var(--color-brand)]"
+                  className="w-full rounded-[12px] border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 text-sm outline-none transition focus:[border-color:var(--color-brand)]"
                   id="auth-edit-name"
                   onChange={(event) => {
                     setDisplayNameInput(event.target.value);
@@ -729,7 +729,7 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
                 />
                 <div className="flex flex-col gap-3">
                   <button
-                    className="w-full rounded-full bg-[var(--color-brand)] px-5 py-3 text-sm font-bold text-[var(--color-on-brand)] transition active:bg-[var(--color-brand-deep)] active:scale-[0.98] md:hover:bg-[var(--color-brand-deep)] disabled:opacity-60"
+                    className="w-full rounded-full bg-[var(--color-brand)] px-5 py-3 text-sm font-bold text-[var(--color-on-brand)] transition active:[background-color:var(--color-brand-deep)] active:scale-[0.98] md:hover:[background-color:var(--color-brand-deep)] disabled:opacity-60"
                     disabled={loading || !displayNameInput.trim()}
                     onClick={async () => {
                       if (!displayNameInput.trim()) return;
@@ -748,7 +748,7 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
                     保存昵称
                   </button>
                   <button
-                    className="w-full rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-3 text-sm font-bold text-[var(--color-muted)] transition active:bg-[var(--color-soft)] active:text-[var(--color-ink)] active:scale-[0.98] md:hover:bg-[var(--color-soft)] md:hover:text-[var(--color-ink)]"
+                    className="w-full rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-3 text-sm font-bold text-[var(--color-muted)] transition active:[background-color:var(--color-soft)] active:[color:var(--color-ink)] active:scale-[0.98] md:hover:[background-color:var(--color-soft)] md:hover:[color:var(--color-ink)]"
                     onClick={onClose}
                     type="button"
                   >
@@ -790,7 +790,7 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
                 className={`rounded-full px-4 py-2 text-sm font-bold transition ${
                   mode === "login"
                     ? "bg-[var(--color-panel)] text-[var(--color-ink)] shadow-sm"
-                    : "text-[var(--color-muted)] active:text-[var(--color-ink)] active:scale-[0.98] md:hover:text-[var(--color-ink)]"
+                    : "text-[var(--color-muted)] active:[color:var(--color-ink)] active:scale-[0.98] md:hover:[color:var(--color-ink)]"
                 }`}
                 onClick={switchToLogin}
                 type="button"
@@ -801,7 +801,7 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
                 className={`rounded-full px-4 py-2 text-sm font-bold transition ${
                   mode === "register"
                     ? "bg-[var(--color-panel)] text-[var(--color-ink)] shadow-sm"
-                    : "text-[var(--color-muted)] active:text-[var(--color-ink)] active:scale-[0.98] md:hover:text-[var(--color-ink)]"
+                    : "text-[var(--color-muted)] active:[color:var(--color-ink)] active:scale-[0.98] md:hover:[color:var(--color-ink)]"
                 }`}
                 onClick={switchToRegister}
                 type="button"
@@ -816,7 +816,7 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
               <input
                 aria-describedby={error ? "auth-error" : undefined}
                 aria-invalid={error && !normalizedEmail ? true : undefined}
-                className="w-full rounded-[12px] border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 text-sm outline-none transition focus:border-[var(--color-brand)]"
+                className="w-full rounded-[12px] border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 text-sm outline-none transition focus:[border-color:var(--color-brand)]"
                 id="auth-email"
                 onChange={(event) => {
                   setEmail(event.target.value);
@@ -834,7 +834,7 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
                   <input
                     aria-describedby={error ? "auth-error" : undefined}
                     aria-invalid={error && !password ? true : undefined}
-                    className="w-full rounded-[12px] border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 text-sm outline-none transition focus:border-[var(--color-brand)]"
+                    className="w-full rounded-[12px] border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 text-sm outline-none transition focus:[border-color:var(--color-brand)]"
                     id="auth-password"
                     onChange={(event) => {
                       setPasswordValue(event.target.value);
@@ -874,7 +874,7 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
                       <input
                         aria-describedby={error ? "auth-error" : undefined}
                         aria-invalid={error && !displayNameInput.trim() ? true : undefined}
-                        className="w-full rounded-[12px] border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 text-sm outline-none transition focus:border-[var(--color-brand)]"
+                        className="w-full rounded-[12px] border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 text-sm outline-none transition focus:[border-color:var(--color-brand)]"
                         id="auth-display-name"
                         onChange={(event) => {
                           setDisplayNameInput(event.target.value);
@@ -889,7 +889,7 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
                       <input
                         aria-describedby={error ? "auth-error" : undefined}
                         aria-invalid={error && registrationPasswordError ? true : undefined}
-                        className="w-full rounded-[12px] border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 text-sm outline-none transition focus:border-[var(--color-brand)]"
+                        className="w-full rounded-[12px] border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 text-sm outline-none transition focus:[border-color:var(--color-brand)]"
                         id="auth-reg-password"
                         onChange={(event) => {
                           setPasswordValue(event.target.value);
@@ -904,7 +904,7 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
                       <input
                         aria-describedby={error ? "auth-error" : undefined}
                         aria-invalid={error && password !== confirmPassword ? true : undefined}
-                        className="w-full rounded-[12px] border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 text-sm outline-none transition focus:border-[var(--color-brand)]"
+                        className="w-full rounded-[12px] border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 text-sm outline-none transition focus:[border-color:var(--color-brand)]"
                         id="auth-confirm-password"
                         onChange={(event) => {
                           setConfirmPassword(event.target.value);
@@ -940,7 +940,7 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
                       <input
                         aria-describedby={error ? "auth-error" : undefined}
                         aria-invalid={error && otpCode.length < OTP_CODE_MIN_LENGTH ? true : undefined}
-                        className="w-full rounded-[12px] border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 text-center text-lg tracking-[0.5em] outline-none transition focus:border-[var(--color-brand)]"
+                        className="w-full rounded-[12px] border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 text-center text-lg tracking-[0.5em] outline-none transition focus:[border-color:var(--color-brand)]"
                         id="auth-otp-code"
                         onChange={(event) => {
                           setOtpCode(event.target.value.replace(/\D/g, ""));
@@ -955,7 +955,7 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
                       />
                       <div className="flex items-center justify-between">
                         <button
-                          className="text-xs text-[var(--color-muted)] active:text-[var(--color-brand)] active:scale-[0.98] md:hover:text-[var(--color-brand)]"
+                          className="text-xs text-[var(--color-muted)] active:[color:var(--color-brand)] active:scale-[0.98] md:hover:[color:var(--color-brand)]"
                           onClick={() => {
                             setOtpSent(false);
                             setOtpCode("");
@@ -991,14 +991,14 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
               style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 0px)' }}
             >
               <button
-                className="rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-3 text-sm font-bold text-[var(--color-muted)] transition active:bg-[var(--color-soft)] active:text-[var(--color-ink)] active:scale-[0.98] md:hover:bg-[var(--color-soft)] md:hover:text-[var(--color-ink)]"
+                className="rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-3 text-sm font-bold text-[var(--color-muted)] transition active:[background-color:var(--color-soft)] active:[color:var(--color-ink)] active:scale-[0.98] md:hover:[background-color:var(--color-soft)] md:hover:[color:var(--color-ink)]"
                 onClick={onClose}
                 type="button"
               >
                 取消
               </button>
               <button
-                className="rounded-full bg-[var(--color-brand)] px-5 py-3 text-sm font-bold text-[var(--color-on-brand)] transition active:bg-[var(--color-brand-deep)] active:scale-[0.98] md:hover:bg-[var(--color-brand-deep)] disabled:opacity-60"
+                className="rounded-full bg-[var(--color-brand)] px-5 py-3 text-sm font-bold text-[var(--color-on-brand)] transition active:[background-color:var(--color-brand-deep)] active:scale-[0.98] md:hover:[background-color:var(--color-brand-deep)] disabled:opacity-60"
                 disabled={
                   loading ||
                   !normalizedEmail ||
@@ -1029,3 +1029,4 @@ export function ForumAuthModal({ open, onClose }: ForumAuthModalProps) {
     </div>
   );
 }
+

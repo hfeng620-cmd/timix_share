@@ -98,11 +98,11 @@ function MonitorRow({ metric, nowMs }: { metric: StationMonitorMetric; nowMs: nu
   const trend = metric.priceChangePercent;
 
   return (
-    <tr className="border-b border-[var(--color-line)] bg-[var(--color-panel)]/70 transition active:bg-[var(--color-soft)] md:hover:bg-[var(--color-soft)]">
+    <tr className="border-b border-[var(--color-line)] bg-[var(--color-panel)]/70 transition active:[background-color:var(--color-soft)] md:hover:[background-color:var(--color-soft)]">
       <td className="min-w-[160px] px-3 py-3">
         <div className="flex flex-wrap items-center gap-2">
           {href ? (
-            <a className="font-mono text-sm font-bold text-[var(--color-ink)] transition hover:text-[var(--color-brand-deep)]" href={href} target="_blank" rel="noreferrer">
+            <a className="font-mono text-sm font-bold text-[var(--color-ink)] transition hover:[color:var(--color-brand-deep)]" href={href} target="_blank" rel="noreferrer">
               {metric.stationName}
             </a>
           ) : (
@@ -252,7 +252,7 @@ export function StationMonitorPanel() {
         </div>
 
         <button
-          className="inline-flex items-center justify-center gap-1.5 rounded-full bg-[var(--color-brand)] px-3 py-2 text-xs font-black text-[var(--color-on-brand)] transition active:bg-[var(--color-brand-deep)] active:scale-[0.98] md:hover:bg-[var(--color-brand-deep)] disabled:cursor-wait disabled:opacity-70 lg:gap-2 lg:px-6 lg:py-3 lg:text-sm"
+          className="inline-flex items-center justify-center gap-1.5 rounded-full bg-[var(--color-brand)] px-3 py-2 text-xs font-black text-[var(--color-on-brand)] transition active:[background-color:var(--color-brand-deep)] active:scale-[0.98] md:hover:[background-color:var(--color-brand-deep)] disabled:cursor-wait disabled:opacity-70 lg:gap-2 lg:px-6 lg:py-3 lg:text-sm"
           disabled={refreshing}
           onClick={() => refreshMetrics(true)}
           type="button"
@@ -266,7 +266,7 @@ export function StationMonitorPanel() {
         <div className="inline-grid w-full grid-cols-2 rounded-full border border-[var(--color-line)] bg-[var(--color-soft)] p-1 lg:max-w-md">
           <button
             className={`rounded-full px-3 py-1.5 text-xs font-black transition lg:px-4 lg:py-2 lg:text-sm ${
-              activeTab === "stations" ? "bg-[var(--color-brand)] text-[var(--color-on-brand)]" : "text-[var(--color-muted)] active:text-[var(--color-ink)] active:scale-[0.98] md:hover:text-[var(--color-ink)]"
+              activeTab === "stations" ? "bg-[var(--color-brand)] text-[var(--color-on-brand)]" : "text-[var(--color-muted)] active:[color:var(--color-ink)] active:scale-[0.98] md:hover:[color:var(--color-ink)]"
             }`}
             onClick={() => setActiveTab("stations")}
             type="button"
@@ -275,7 +275,7 @@ export function StationMonitorPanel() {
           </button>
           <button
             className={`rounded-full px-3 py-1.5 text-xs font-black transition lg:px-4 lg:py-2 lg:text-sm ${
-              activeTab === "news" ? "bg-[var(--color-brand)] text-[var(--color-on-brand)]" : "text-[var(--color-muted)] active:text-[var(--color-ink)] active:scale-[0.98] md:hover:text-[var(--color-ink)]"
+              activeTab === "news" ? "bg-[var(--color-brand)] text-[var(--color-on-brand)]" : "text-[var(--color-muted)] active:[color:var(--color-ink)] active:scale-[0.98] md:hover:[color:var(--color-ink)]"
             }`}
             onClick={() => setActiveTab("news")}
             type="button"
@@ -333,7 +333,7 @@ export function StationMonitorPanel() {
                 <div className="flex items-center gap-3">
                   <h3 className="text-base font-black text-[var(--color-ink)] lg:text-lg">{group.modelName}</h3>
                   <a
-                    className="inline-flex items-center gap-1 text-xs font-bold text-[var(--color-muted)] transition active:text-[var(--color-brand-deep)] active:scale-[0.98] md:hover:text-[var(--color-brand-deep)]"
+                    className="inline-flex items-center gap-1 text-xs font-bold text-[var(--color-muted)] transition active:[color:var(--color-brand-deep)] active:scale-[0.98] md:hover:[color:var(--color-brand-deep)]"
                     href="#station-monitor-all"
                   >
                     查看全部
@@ -381,3 +381,4 @@ export function StationMonitorPanel() {
     </section>
   );
 }
+

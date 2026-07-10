@@ -231,7 +231,7 @@ export function LiveTopStationRows() {
         <StationRowLink
           key={row.name}
           href={row.url}
-          className="stagger-in grid cursor-pointer gap-4 border-b border-[var(--color-line)] py-5 transition hover:bg-[var(--color-hover)] md:grid-cols-[0.55fr_1fr_0.95fr_0.75fr_1.35fr] md:items-start"
+          className="stagger-in grid cursor-pointer gap-4 border-b border-[var(--color-line)] py-5 transition hover:[background-color:var(--color-hover)] md:grid-cols-[0.55fr_1fr_0.95fr_0.75fr_1.35fr] md:items-start"
         >
           <div className="flex min-w-0 items-center justify-between gap-3 md:block">
             <span className="text-sm font-bold text-[var(--color-muted)] md:pt-1">
@@ -274,8 +274,8 @@ export function LiveMoreStationRows() {
       {getMoreRows(rows).map((row) => {
         const baseClasses =
           "stagger-in card-lift grid gap-3 border-b border-[var(--color-line)] py-5 transition md:grid-cols-[0.9fr_0.9fr_0.6fr_1.4fr]";
-        const linkClasses = `${baseClasses} cursor-pointer hover:bg-[var(--color-hover)]`;
-        const plainClasses = `${baseClasses} hover:bg-[var(--color-hover)]`;
+        const linkClasses = `${baseClasses} cursor-pointer hover:[background-color:var(--color-hover)]`;
+        const plainClasses = `${baseClasses} hover:[background-color:var(--color-hover)]`;
 
         const content = (
           <>
@@ -320,3 +320,4 @@ export function LiveMoreStationRows() {
     </>
   );
 }
+

@@ -44,31 +44,31 @@ $patterns = @(
     # 标准按钮/链接 hover
     @{
         Find = ' hover:bg-\[var\(--color-([^\]]+)\)\]'
-        Replace = ' active:bg-[var(--color-$1)] md:hover:bg-[var(--color-$1)]'
+        Replace = (' active:[background-color:var(--color-' + '$1' + ')] md:hover:[background-color:var(--color-' + '$1' + ')]')
     },
     @{
         Find = ' hover:text-\[var\(--color-([^\]]+)\)\]'
-        Replace = ' active:text-[var(--color-$1)] md:hover:text-[var(--color-$1)]'
+        Replace = (' active:[color:var(--color-' + '$1' + ')] md:hover:[color:var(--color-' + '$1' + ')]')
     },
     @{
         Find = ' hover:border-\[var\(--color-([^\]]+)\)\]'
-        Replace = ' active:border-[var(--color-$1)] md:hover:border-[var(--color-$1)]'
+        Replace = (' active:[border-color:var(--color-' + '$1' + ')] md:hover:[border-color:var(--color-' + '$1' + ')]')
     },
 
     # 通用颜色类
     @{
         Find = ' hover:bg-(white|zinc|slate|gray|red|blue|green)-'
-        Replace = ' active:bg-$1- md:hover:bg-$1-'
+        Replace = (' active:bg-' + '$1' + '- md:hover:bg-' + '$1' + '-')
     },
     @{
         Find = ' hover:text-(white|zinc|slate|gray|red|blue|green)-'
-        Replace = ' active:text-$1- md:hover:text-$1-'
+        Replace = (' active:text-' + '$1' + '- md:hover:text-' + '$1' + '-')
     },
 
     # 不透明度
     @{
         Find = ' hover:opacity-(\d+)'
-        Replace = ' active:opacity-$1 md:hover:opacity-$1'
+        Replace = (' active:opacity-' + '$1' + ' md:hover:opacity-' + '$1')
     },
 
     # 移除装饰性动画
@@ -88,7 +88,7 @@ $patterns = @(
     # group-hover (保留，但添加响应式)
     @{
         Find = ' group-hover:opacity-(\d+)'
-        Replace = ' group-active:opacity-$1 md:group-hover:opacity-$1'
+        Replace = (' group-active:opacity-' + '$1' + ' md:group-hover:opacity-' + '$1')
     }
 )
 
@@ -125,3 +125,4 @@ foreach ($file in $files) {
 
 Write-Host "`n📊 总计修复 $totalFixed 处 hover 状态" -ForegroundColor Cyan
 Write-Host "🔨 运行 npm run build 验证构建..." -ForegroundColor Cyan
+

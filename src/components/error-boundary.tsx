@@ -36,7 +36,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 请刷新页面重试。如果问题持续，请到 GitHub Issues 反馈。
               </p>
               <button
-                className="mt-6 rounded-full bg-[var(--color-brand)] px-6 py-3 text-sm font-bold text-[var(--color-on-brand)] transition hover:bg-[var(--color-brand-deep)]"
+                className="mt-6 rounded-full bg-[var(--color-brand)] px-6 py-3 text-sm font-bold text-[var(--color-on-brand)] transition hover:[background-color:var(--color-brand-deep)]"
                 onClick={() => window.location.reload()}
                 type="button"
               >
@@ -51,3 +51,4 @@ export class ErrorBoundary extends Component<Props, State> {
     return this.props.children;
   }
 }
+

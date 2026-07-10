@@ -210,7 +210,7 @@ export function GithubIssueReviewPanel() {
             <div className="mt-5 flex flex-wrap gap-3">
               {editingId === post.issueNumber ? (
                 <button
-                  className="rounded-xl bg-[var(--color-brand)] px-5 py-2.5 text-sm font-bold text-white transition active:bg-[var(--color-brand-deep)] active:scale-[0.98] md:hover:bg-[var(--color-brand-deep)]"
+                  className="rounded-xl bg-[var(--color-brand)] px-5 py-2.5 text-sm font-bold text-white transition active:[background-color:var(--color-brand-deep)] active:scale-[0.98] md:hover:[background-color:var(--color-brand-deep)]"
                   onClick={() => void updateAndApprove(post.issueNumber)}
                   type="button"
                 >
@@ -218,7 +218,7 @@ export function GithubIssueReviewPanel() {
                 </button>
               ) : (
                 <button
-                  className="rounded-xl bg-[var(--color-brand)] px-5 py-2.5 text-sm font-bold text-white transition active:bg-[var(--color-brand-deep)] active:scale-[0.98] md:hover:bg-[var(--color-brand-deep)]"
+                  className="rounded-xl bg-[var(--color-brand)] px-5 py-2.5 text-sm font-bold text-white transition active:[background-color:var(--color-brand-deep)] active:scale-[0.98] md:hover:[background-color:var(--color-brand-deep)]"
                   onClick={() => void review(post.issueNumber, "approve")}
                   type="button"
                 >
@@ -249,3 +249,4 @@ export function GithubIssueReviewPanel() {
     </section>
   );
 }
+

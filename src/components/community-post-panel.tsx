@@ -202,7 +202,7 @@ export function CommunityPostPanel({ onPostCreated }: CommunityPostPanelProps) {
           <p className="text-xs text-[var(--color-muted)]">短反馈、价格变化、试用记录。</p>
         </div>
         <a
-          className="hidden rounded-full border border-[var(--color-line)] px-3 py-2 text-xs font-bold text-[var(--color-muted)] transition active:border-[var(--color-brand)] active:text-[var(--color-brand-deep)] active:scale-[0.98] md:hover:border-[var(--color-brand)] md:hover:text-[var(--color-brand-deep)] sm:inline-flex"
+          className="hidden rounded-full border border-[var(--color-line)] px-3 py-2 text-xs font-bold text-[var(--color-muted)] transition active:[border-color:var(--color-brand)] active:[color:var(--color-brand-deep)] active:scale-[0.98] md:hover:[border-color:var(--color-brand)] md:hover:[color:var(--color-brand-deep)] sm:inline-flex"
           href="https://github.com/hfeng620-cmd/timin_api_test_and_forum/discussions"
           rel="noopener noreferrer"
           target="_blank"
@@ -214,7 +214,7 @@ export function CommunityPostPanel({ onPostCreated }: CommunityPostPanelProps) {
       {!open ? (
         <div className="mt-3 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
           <button
-            className="min-h-11 rounded-xl border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 text-left text-sm text-[var(--color-muted)] transition active:border-[var(--color-brand)] active:text-[var(--color-ink)] active:scale-[0.98] md:hover:border-[var(--color-brand)] md:hover:text-[var(--color-ink)]"
+            className="min-h-11 rounded-xl border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 text-left text-sm text-[var(--color-muted)] transition active:[border-color:var(--color-brand)] active:[color:var(--color-ink)] active:scale-[0.98] md:hover:[border-color:var(--color-brand)] md:hover:[color:var(--color-ink)]"
             onClick={handlePlaceholderClick}
             type="button"
           >
@@ -224,7 +224,7 @@ export function CommunityPostPanel({ onPostCreated }: CommunityPostPanelProps) {
           </button>
           <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
             <button
-              className="btn-press w-full cursor-pointer rounded-full bg-[var(--color-brand)] px-5 py-3 text-sm font-bold text-[var(--color-on-brand)] shadow-[0_10px_22px_var(--color-panel-glow)] transition active:bg-[var(--color-brand-deep)] active:scale-[0.98] md:hover:bg-[var(--color-brand-deep)] sm:w-auto"
+              className="btn-press w-full cursor-pointer rounded-full bg-[var(--color-brand)] px-5 py-3 text-sm font-bold text-[var(--color-on-brand)] shadow-[0_10px_22px_var(--color-panel-glow)] transition active:[background-color:var(--color-brand-deep)] active:scale-[0.98] md:hover:[background-color:var(--color-brand-deep)] sm:w-auto"
               onClick={handlePlaceholderClick}
               type="button"
             >
@@ -237,7 +237,7 @@ export function CommunityPostPanel({ onPostCreated }: CommunityPostPanelProps) {
         <div className="mt-4">
           <div className="relative">
             <input
-              className="w-full rounded-xl border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 text-sm outline-none transition focus:border-[var(--color-brand)]"
+              className="w-full rounded-xl border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 text-sm outline-none transition focus:[border-color:var(--color-brand)]"
               onChange={(event) => setStation(event.target.value)}
               placeholder="关联站点或标签"
               value={station}
@@ -247,7 +247,7 @@ export function CommunityPostPanel({ onPostCreated }: CommunityPostPanelProps) {
                 {tagSuggestions.map((tag) => (
                   <button
                     key={tag}
-                    className="block w-full px-4 py-3 text-left text-sm font-semibold text-[var(--color-muted)] transition active:bg-[var(--color-soft)] active:text-[var(--color-ink)] active:scale-[0.98] md:hover:bg-[var(--color-soft)] md:hover:text-[var(--color-ink)]"
+                    className="block w-full px-4 py-3 text-left text-sm font-semibold text-[var(--color-muted)] transition active:[background-color:var(--color-soft)] active:[color:var(--color-ink)] active:scale-[0.98] md:hover:[background-color:var(--color-soft)] md:hover:[color:var(--color-ink)]"
                     onClick={() => handleSelectSuggestion(tag)}
                     type="button"
                   >
@@ -268,7 +268,7 @@ export function CommunityPostPanel({ onPostCreated }: CommunityPostPanelProps) {
                   className={`rounded-full px-2.5 py-1 text-[11px] font-semibold transition border sm:px-3 sm:py-1.5 sm:text-xs ${
                     active
                       ? "border-current text-[var(--color-on-brand)] shadow-sm"
-                      : "border-[var(--color-line)] bg-[var(--color-panel)] text-[var(--color-muted)] active:border-[var(--color-brand)] active:text-[var(--color-ink)] active:scale-[0.98] md:hover:border-[var(--color-brand)] md:hover:text-[var(--color-ink)]"
+                      : "border-[var(--color-line)] bg-[var(--color-panel)] text-[var(--color-muted)] active:[border-color:var(--color-brand)] active:[color:var(--color-ink)] active:scale-[0.98] md:hover:[border-color:var(--color-brand)] md:hover:[color:var(--color-ink)]"
                   }`}
                   onClick={() => setSelectedCategory(cat)}
                   style={
@@ -287,7 +287,7 @@ export function CommunityPostPanel({ onPostCreated }: CommunityPostPanelProps) {
           <div className="relative mt-3">
             <textarea
               ref={textareaRef}
-              className="min-h-28 w-full resize-none rounded-xl border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 text-sm leading-7 outline-none transition focus:border-[var(--color-brand)]"
+              className="min-h-28 w-full resize-none rounded-xl border border-[var(--color-line)] bg-[var(--color-input)] px-4 py-3 text-sm leading-7 outline-none transition focus:[border-color:var(--color-brand)]"
               onChange={(event) => {
                 setBody(event.target.value);
                 setMentionIndex(0);
@@ -331,7 +331,7 @@ export function CommunityPostPanel({ onPostCreated }: CommunityPostPanelProps) {
                     className={`block w-full px-4 py-3 text-left text-sm font-semibold transition ${
                       idx === mentionIndex
                         ? "bg-[var(--color-brand-soft)] text-[var(--color-brand)]"
-                        : "text-[var(--color-muted)] active:bg-[var(--color-soft)] active:text-[var(--color-ink)] active:scale-[0.98] md:hover:bg-[var(--color-soft)] md:hover:text-[var(--color-ink)]"
+                        : "text-[var(--color-muted)] active:[background-color:var(--color-soft)] active:[color:var(--color-ink)] active:scale-[0.98] md:hover:[background-color:var(--color-soft)] md:hover:[color:var(--color-ink)]"
                     }`}
                     onClick={() => handleSelectMention(name)}
                     onMouseEnter={() => setMentionIndex(idx)}
@@ -366,7 +366,7 @@ export function CommunityPostPanel({ onPostCreated }: CommunityPostPanelProps) {
               type="file"
             />
             <button
-              className="rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-3 py-2 text-sm font-semibold text-[var(--color-muted)] transition active:bg-[var(--color-soft)] active:text-[var(--color-ink)] active:scale-[0.98] md:hover:bg-[var(--color-soft)] md:hover:text-[var(--color-ink)] disabled:opacity-50"
+              className="rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-3 py-2 text-sm font-semibold text-[var(--color-muted)] transition active:[background-color:var(--color-soft)] active:[color:var(--color-ink)] active:scale-[0.98] md:hover:[background-color:var(--color-soft)] md:hover:[color:var(--color-ink)] disabled:opacity-50"
               disabled={uploadingImage}
               onClick={() => fileInputRef.current?.click()}
               type="button"
@@ -378,7 +378,7 @@ export function CommunityPostPanel({ onPostCreated }: CommunityPostPanelProps) {
 
           <div className="mt-3 grid grid-cols-2 gap-3 sm:flex sm:items-center sm:justify-between">
             <button
-              className="w-full rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-3 text-xs font-semibold text-[var(--color-muted)] transition active:bg-[var(--color-soft)] active:text-[var(--color-ink)] active:scale-[0.98] md:hover:bg-[var(--color-soft)] md:hover:text-[var(--color-ink)] sm:w-auto sm:text-sm"
+              className="w-full rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-4 py-3 text-xs font-semibold text-[var(--color-muted)] transition active:[background-color:var(--color-soft)] active:[color:var(--color-ink)] active:scale-[0.98] md:hover:[background-color:var(--color-soft)] md:hover:[color:var(--color-ink)] sm:w-auto sm:text-sm"
               onClick={() => setOpen(false)}
               type="button"
             >
@@ -386,7 +386,7 @@ export function CommunityPostPanel({ onPostCreated }: CommunityPostPanelProps) {
             </button>
 
             <button
-              className="btn-press w-full cursor-pointer rounded-full bg-[var(--color-brand)] px-5 py-3 text-xs font-bold text-[var(--color-on-brand)] transition active:bg-[var(--color-brand-deep)] active:scale-[0.98] md:hover:bg-[var(--color-brand-deep)] disabled:opacity-60 sm:w-auto sm:text-sm"
+              className="btn-press w-full cursor-pointer rounded-full bg-[var(--color-brand)] px-5 py-3 text-xs font-bold text-[var(--color-on-brand)] transition active:[background-color:var(--color-brand-deep)] active:scale-[0.98] md:hover:[background-color:var(--color-brand-deep)] disabled:opacity-60 sm:w-auto sm:text-sm"
               disabled={submitting}
               onClick={handleSubmit}
               type="button"
@@ -402,3 +402,4 @@ export function CommunityPostPanel({ onPostCreated }: CommunityPostPanelProps) {
     </div>
   );
 }
+

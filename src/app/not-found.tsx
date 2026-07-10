@@ -18,19 +18,19 @@ export default function NotFound() {
 
         <div className="mt-8 flex flex-wrap gap-3">
           <Link
-            className="rounded-full bg-[var(--color-brand)] px-5 py-3 text-sm font-bold text-[var(--color-on-brand)] transition hover:bg-[var(--color-brand-deep)]"
+            className="rounded-full bg-[var(--color-brand)] px-5 py-3 text-sm font-bold text-[var(--color-on-brand)] transition hover:[background-color:var(--color-brand-deep)]"
             href="/"
           >
             回到首页
           </Link>
           <Link
-            className="rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-3 text-sm font-bold text-[var(--color-ink)] transition hover:border-[var(--color-brand)] hover:text-[var(--color-brand-deep)]"
+            className="rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-3 text-sm font-bold text-[var(--color-ink)] transition hover:[border-color:var(--color-brand)] hover:[color:var(--color-brand-deep)]"
             href="/stations"
           >
             打开榜单
           </Link>
           <a
-            className="rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-3 text-sm font-bold text-[var(--color-ink)] transition hover:border-[var(--color-brand)] hover:text-[var(--color-brand-deep)]"
+            className="rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-5 py-3 text-sm font-bold text-[var(--color-ink)] transition hover:[border-color:var(--color-brand)] hover:[color:var(--color-brand-deep)]"
             href={siteLinks.discussions}
             rel="noopener noreferrer"
             target="_blank"
@@ -47,3 +47,4 @@ export default function NotFound() {
     </main>
   );
 }
+

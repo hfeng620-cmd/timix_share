@@ -106,12 +106,12 @@ export function FloatingQuickPanel() {
             </div>
             <div className="mt-2">
               <button
-                className="group flex w-full items-center justify-between gap-3 rounded-[16px] border border-[var(--color-line)] bg-[var(--color-soft)] px-3 py-2.5 text-left transition active:border-[var(--color-brand)] active:bg-[var(--color-brand-soft)] active:scale-[0.98] md:hover:border-[var(--color-brand)] md:hover:bg-[var(--color-brand-soft)]"
+                className="group flex w-full items-center justify-between gap-3 rounded-[16px] border border-[var(--color-line)] bg-[var(--color-soft)] px-3 py-2.5 text-left transition active:[border-color:var(--color-brand)] active:[background-color:var(--color-brand-soft)] active:scale-[0.98] md:hover:[border-color:var(--color-brand)] md:hover:[background-color:var(--color-brand-soft)]"
                 onClick={() => { setAppearanceOpen(true); setOpen(false); }}
                 type="button"
               >
                 <span className="min-w-0">
-                  <span className="block text-sm font-black text-[var(--color-ink)] group-active:text-[var(--color-brand-deep)] md:group-hover:text-[var(--color-brand-deep)]">
+                  <span className="block text-sm font-black text-[var(--color-ink)] group-active:[color:var(--color-brand-deep)] md:group-hover:[color:var(--color-brand-deep)]">
                     外观
                   </span>
                   <span className="mt-0.5 block text-[11px] leading-4 text-[var(--color-muted)]">
@@ -124,12 +124,12 @@ export function FloatingQuickPanel() {
               </button>
 
               <button
-                className="group mt-2 flex w-full items-center justify-between gap-3 rounded-[16px] border border-[var(--color-line)] bg-[var(--color-soft)] px-3 py-2.5 text-left transition active:border-[var(--color-brand)] active:bg-[var(--color-brand-soft)] active:scale-[0.98] md:hover:border-[var(--color-brand)] md:hover:bg-[var(--color-brand-soft)]"
+                className="group mt-2 flex w-full items-center justify-between gap-3 rounded-[16px] border border-[var(--color-line)] bg-[var(--color-soft)] px-3 py-2.5 text-left transition active:[border-color:var(--color-brand)] active:[background-color:var(--color-brand-soft)] active:scale-[0.98] md:hover:[border-color:var(--color-brand)] md:hover:[background-color:var(--color-brand-soft)]"
                 onClick={() => { setVsOpen(true); setOpen(false); }}
                 type="button"
               >
                 <span className="min-w-0">
-                  <span className="block text-sm font-black text-[var(--color-ink)] group-active:text-[var(--color-brand-deep)] md:group-hover:text-[var(--color-brand-deep)]">切换UI</span>
+                  <span className="block text-sm font-black text-[var(--color-ink)] group-active:[color:var(--color-brand-deep)] md:group-hover:[color:var(--color-brand-deep)]">切换UI</span>
                   <span className="mt-0.5 block text-[11px] leading-4 text-[var(--color-muted)]">新UI / Legacy 经典版</span>
                 </span>
                 <span className="rounded-full bg-[var(--color-panel)] px-2 py-1 text-[10px] font-bold text-[var(--color-brand-deep)]">切换</span>
@@ -175,7 +175,7 @@ export function FloatingQuickPanel() {
                     className={`rounded-[14px] border px-2 py-2 text-center text-sm font-bold transition-all duration-300 ${
                       active
                         ? "border-[var(--color-brand)] bg-[var(--color-brand-soft)] text-[var(--color-brand-deep)] shadow-[0_8px_20px_rgba(37,99,235,0.1)]"
-                        : "border-[var(--color-line)] bg-[var(--color-soft)] text-[var(--color-ink)] active:border-[var(--color-brand)] active:bg-[var(--color-brand-soft)] active:text-[var(--color-brand-deep)] md:hover:border-[var(--color-brand)] md:hover:bg-[var(--color-brand-soft)] md:hover:text-[var(--color-brand-deep)]"
+                        : "border-[var(--color-line)] bg-[var(--color-soft)] text-[var(--color-ink)] active:[border-color:var(--color-brand)] active:[background-color:var(--color-brand-soft)] active:[color:var(--color-brand-deep)] md:hover:[border-color:var(--color-brand)] md:hover:[background-color:var(--color-brand-soft)] md:hover:[color:var(--color-brand-deep)]"
                     }`}
                     href={item.href}
                   >
@@ -202,7 +202,7 @@ export function FloatingQuickPanel() {
                       className={`rounded-[14px] border px-3 py-2 text-sm font-semibold transition-all duration-300 ${
                         active
                           ? "border-[var(--color-brand)] bg-[var(--color-brand-soft)] text-[var(--color-brand-deep)]"
-                          : "border-[var(--color-line)] bg-[var(--color-soft)] text-[var(--color-ink)] active:border-[var(--color-brand)] active:bg-[var(--color-brand-soft)] active:text-[var(--color-brand-deep)] md:hover:border-[var(--color-brand)] md:hover:bg-[var(--color-brand-soft)] md:hover:text-[var(--color-brand-deep)]"
+                          : "border-[var(--color-line)] bg-[var(--color-soft)] text-[var(--color-ink)] active:[border-color:var(--color-brand)] active:[background-color:var(--color-brand-soft)] active:[color:var(--color-brand-deep)] md:hover:[border-color:var(--color-brand)] md:hover:[background-color:var(--color-brand-soft)] md:hover:[color:var(--color-brand-deep)]"
                       }`}
                       href={item.href}
                     >
@@ -216,7 +216,7 @@ export function FloatingQuickPanel() {
                     className={`rounded-[14px] border px-3 py-2 text-sm font-semibold transition-all duration-300 ${
                       isRouteActive(pathname, "/admin")
                         ? "border-[var(--color-brand)] bg-[var(--color-brand-soft)] text-[var(--color-brand-deep)]"
-                        : "border-[var(--color-line)] bg-[var(--color-soft)] text-[var(--color-ink)] active:border-[var(--color-brand)] active:bg-[var(--color-brand-soft)] active:text-[var(--color-brand-deep)] md:hover:border-[var(--color-brand)] md:hover:bg-[var(--color-brand-soft)] md:hover:text-[var(--color-brand-deep)]"
+                        : "border-[var(--color-line)] bg-[var(--color-soft)] text-[var(--color-ink)] active:[border-color:var(--color-brand)] active:[background-color:var(--color-brand-soft)] active:[color:var(--color-brand-deep)] md:hover:[border-color:var(--color-brand)] md:hover:[background-color:var(--color-brand-soft)] md:hover:[color:var(--color-brand-deep)]"
                     }`}
                     href="/admin"
                   >
@@ -232,7 +232,7 @@ export function FloatingQuickPanel() {
               </p>
               <div className="mt-2 grid gap-1.5">
                 <a
-                  className="rounded-[14px] border border-[var(--color-line)] bg-[var(--color-soft)] px-3 py-2 text-sm font-semibold text-[var(--color-ink)] transition-all duration-300 active:border-[var(--color-brand)] active:bg-[var(--color-brand-soft)] active:text-[var(--color-brand-deep)] md:hover:border-[var(--color-brand)] md:hover:bg-[var(--color-brand-soft)] md:hover:text-[var(--color-brand-deep)]"
+                  className="rounded-[14px] border border-[var(--color-line)] bg-[var(--color-soft)] px-3 py-2 text-sm font-semibold text-[var(--color-ink)] transition-all duration-300 active:[border-color:var(--color-brand)] active:[background-color:var(--color-brand-soft)] active:[color:var(--color-brand-deep)] md:hover:[border-color:var(--color-brand)] md:hover:[background-color:var(--color-brand-soft)] md:hover:[color:var(--color-brand-deep)]"
                   href={siteLinks.discussions}
                   rel="noopener noreferrer"
                   target="_blank"
@@ -240,7 +240,7 @@ export function FloatingQuickPanel() {
                   讨论
                 </a>
                 <a
-                  className="rounded-[14px] border border-[var(--color-line)] bg-[var(--color-soft)] px-3 py-2 text-sm font-semibold text-[var(--color-ink)] transition-all duration-300 active:border-[var(--color-brand)] active:bg-[var(--color-brand-soft)] active:text-[var(--color-brand-deep)] md:hover:border-[var(--color-brand)] md:hover:bg-[var(--color-brand-soft)] md:hover:text-[var(--color-brand-deep)]"
+                  className="rounded-[14px] border border-[var(--color-line)] bg-[var(--color-soft)] px-3 py-2 text-sm font-semibold text-[var(--color-ink)] transition-all duration-300 active:[border-color:var(--color-brand)] active:[background-color:var(--color-brand-soft)] active:[color:var(--color-brand-deep)] md:hover:[border-color:var(--color-brand)] md:hover:[background-color:var(--color-brand-soft)] md:hover:[color:var(--color-brand-deep)]"
                   href={siteLinks.repo}
                   rel="noopener noreferrer"
                   target="_blank"
@@ -257,7 +257,7 @@ export function FloatingQuickPanel() {
         aria-label="打开快捷菜单"
         aria-controls="quick-panel-menu"
         aria-expanded={open}
-        className={`relative flex h-11 min-w-11 items-center justify-center rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-4 text-sm font-bold text-[var(--color-brand-deep)] shadow-[0_12px_34px_rgba(15,23,42,0.14)] transition active:border-[var(--color-brand)] active:bg-[var(--color-brand-soft)] active:scale-[0.98] md:hover:border-[var(--color-brand)] md:hover:bg-[var(--color-brand-soft)] ${showHint ? "theme-hint-pulse" : ""}`}
+        className={`relative flex h-11 min-w-11 items-center justify-center rounded-full border border-[var(--color-line)] bg-[var(--color-panel)] px-4 text-sm font-bold text-[var(--color-brand-deep)] shadow-[0_12px_34px_rgba(15,23,42,0.14)] transition active:[border-color:var(--color-brand)] active:[background-color:var(--color-brand-soft)] active:scale-[0.98] md:hover:[border-color:var(--color-brand)] md:hover:[background-color:var(--color-brand-soft)] ${showHint ? "theme-hint-pulse" : ""}`}
         onClick={() => {
           setOpen((current) => !current);
           dismissHint();
@@ -273,3 +273,4 @@ export function FloatingQuickPanel() {
     </>
   );
 }
+
