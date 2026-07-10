@@ -3,7 +3,9 @@ import type { NextConfig } from "next";
 // DEPLOY_TARGET env var controls the build mode:
 //   "server"  → Next.js server (node_modules/.bin/next start) for cloud / VPS
 //   unset     → static export (`output: "export"`) for GitHub Pages / CDN
-const isServerDeploy = process.env.DEPLOY_TARGET === "server";
+const isServerDeploy =
+  process.env.DEPLOY_TARGET === "server" ||
+  process.env.NODE_ENV === "development";
 const isGithubPages =
   !isServerDeploy && process.env.GITHUB_ACTIONS === "true";
 const repoName = "timix_share";

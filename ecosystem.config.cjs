@@ -22,6 +22,7 @@ module.exports = {
 
       // Environment variables
       env: {
+        CN_ACCESS_MODE: "share-only",
         DEPLOY_TARGET: "server",
         NODE_ENV: "production",
       },

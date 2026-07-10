@@ -8,7 +8,8 @@
     "build": "next build && node scripts/copy-release.mjs",
     "start": "node scripts/serve-static.mjs",
     "lint": "eslint",
-    "copy-release": "node scripts/copy-release.mjs"
+    "copy-release": "node scripts/copy-release.mjs",
+    "update:cn-ip-ranges": "node scripts/update-cn-ip-ranges.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.7",
@@ -16,6 +17,7 @@
     "@supabase/supabase-js": "^2.108.2",
     "emoji-picker-react": "^4.19.1",
     "hls.js": "^1.6.16",
+    "ipaddr.js": "^2.4.0",
     "lucide-react": "^0.462.0",
     "motion": "^12.42.0",
     "next": "16.2.10",
