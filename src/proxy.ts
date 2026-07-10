@@ -2,22 +2,6 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { isMainlandChinaIp } from "@/lib/cn-ip-access";
 
-const COUNTRY_HEADERS = [
-  "cf-ipcountry",
-  "x-vercel-ip-country",
-  "cloudfront-viewer-country",
-  "x-country-code",
-] as const;
-
-function requestCountry(request: NextRequest) {
-  for (const header of COUNTRY_HEADERS) {
-    const country = request.headers.get(header)?.trim().toUpperCase();
-    if (country) return country;
-  }
-
-  return null;
-}
-
 function requestIp(request: NextRequest) {
   return (
     request.headers.get("x-real-ip") ||
@@ -27,25 +11,24 @@ function requestIp(request: NextRequest) {
 }
 
 function isMainlandRequest(request: NextRequest) {
-  return (
-    requestCountry(request) === "CN" ||
-    isMainlandChinaIp(requestIp(request))
-  );
+  return isMainlandChinaIp(requestIp(request));
+}
+
+function isRestrictedPath(pathname: string) {
+  return pathname === "/restricted" || pathname.startsWith("/restricted/");
 }
 
 function isMainlandAllowedPath(pathname: string) {
   return (
     pathname === "/guides" ||
     pathname.startsWith("/guides/") ||
-    pathname === "/restricted" ||
-    pathname.startsWith("/restricted/")
+    isRestrictedPath(pathname)
   );
 }
 
 function forbiddenApiResponse() {
   const headers = {
     "Cache-Control": "private, no-store, max-age=0",
-    Vary: COUNTRY_HEADERS.join(", "),
   };
 
   return NextResponse.json(
@@ -55,9 +38,22 @@ function forbiddenApiResponse() {
 }
 
 export function proxy(request: NextRequest) {
+  const restrictionEnabled = process.env.CN_ACCESS_MODE !== "off";
+  const mainlandRequest = restrictionEnabled && isMainlandRequest(request);
+
+  if (isRestrictedPath(request.nextUrl.pathname) && !mainlandRequest) {
+    const homeUrl = request.nextUrl.clone();
+    homeUrl.pathname = "/";
+    homeUrl.search = "";
+
+    return NextResponse.redirect(homeUrl, {
+      status: 307,
+      headers: { "Cache-Control": "private, no-store, max-age=0" },
+    });
+  }
+
   if (
-    process.env.CN_ACCESS_MODE === "off" ||
-    !isMainlandRequest(request) ||
+    !mainlandRequest ||
     isMainlandAllowedPath(request.nextUrl.pathname)
   ) {
     return NextResponse.next();
@@ -78,7 +74,6 @@ export function proxy(request: NextRequest) {
     status: 307,
     headers: {
       "Cache-Control": "private, no-store, max-age=0",
-      Vary: COUNTRY_HEADERS.join(", "),
     },
   });
 }
