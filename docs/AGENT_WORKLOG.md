@@ -824,3 +824,47 @@ Commit/push:
 
 Follow-ups:
 - Visually inspect `http://localhost:3002/` and switch to the dark theme if needed.
+### 2026-07-12: Stability Audit And Native Alert Cleanup
+
+Agent:
+- Name/tool: Codex main agent
+
+User request:
+- Perform another full project inspection and implement safe, verifiable improvements.
+
+Files changed:
+- `src/app/globals.css`
+- `src/app/guides/page.tsx`
+- `src/app/profile/page.tsx`
+- `src/components/selection-comment-layer.tsx`
+- `src/components/stations-board.tsx`
+- `src/lib/share-storage.ts`
+- `src/lib/use-back-button-close.ts`
+- `src/lib/use-post-image-upload.tsx`
+- `docs/AGENT_WORKLOG.md`
+
+What changed:
+- Removed every remaining `alert()` / `window.alert()` call from `src/`.
+  - Station deletion, selection comment failures, Share folder debug output, Share admin failures, and post image upload errors now use the existing Toast flow or throw errors back to their UI caller.
+- Removed Share folder creation debug popups from the storage layer; errors are still logged and propagated to callers.
+- Corrected the `stations-board` save callbacks to depend on the full authenticated user object, allowing the React compiler/linter to preserve their memoization.
+- Fixed the Share folder-contributor effect so it derives the active folder inside the effect instead of closing over a newly-created render value; the validated folder id is captured before async work starts.
+- Fixed mobile modal scroll penetration: when `html[data-scroll-locked]` is active, the mobile page scroll shells are now hidden/untouchable while portal dialogs retain their own scroll behavior.
+- Removed unused Profile/Navbar and back-button event parameter code.
+
+Decisions:
+- Native `window.confirm()` calls were left intact for destructive actions because this pass only removed forbidden native alerts; replacing confirmation UX should be a dedicated, tested modal migration.
+- Existing `next/image` lint warnings were not mass-converted because many images are remote/user-generated and Next static export uses unoptimized images. They are performance follow-ups, not compile failures.
+
+Verification:
+- `rg` scan for `alert(` and `window.alert(` in `src/`: no matches.
+- `npm run lint`: 0 errors; remaining warnings are existing image optimization and a small number of pre-existing hook warnings outside this change set.
+- `npm run build`: pass; all App Router routes generated successfully.
+
+Commit/push:
+- Commit: see Git history.
+- Pushed: see remote branch.
+
+Follow-ups:
+- Replace the remaining native `window.confirm()` prompts with a shared accessible confirmation dialog in a separate UI migration.
+- Consider a deliberate remote-image strategy before converting the remaining `<img>` warnings to `next/image`.

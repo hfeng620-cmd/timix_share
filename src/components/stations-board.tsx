@@ -692,12 +692,12 @@ export function StationsBoard() {
     } finally {
       setSaving(false);
     }
-  }, [addToast, canManageStationsDirectly, editingId, editForm, displayName, refreshStations, user?.email]);
+  }, [addToast, canManageStationsDirectly, editingId, editForm, displayName, refreshStations, user]);
 
   const handleDelete = useCallback(
     async (id: string) => {
       if (isStaticStationId(id)) {
-        alert("这是本地兜底数据，还没有进入正式榜单；先保存为正式站点后再删除。");
+        addToast("这是本地兜底数据，还没有进入正式榜单；先保存为正式站点后再删除。", "info");
         return;
       }
       if (!window.confirm("确定要删除这个站点吗？此操作不可撤销。")) return;
@@ -710,10 +710,10 @@ export function StationsBoard() {
           setEditForm({});
         }
       } catch (err) {
-        alert(err instanceof Error ? err.message : "删除失败，请稍后重试。");
+        addToast(err instanceof Error ? err.message : "删除失败，请稍后重试。", "error");
       }
     },
-    [editingId, refreshStations],
+    [addToast, editingId, refreshStations],
   );
 
   const startAdd = useCallback(() => {
@@ -768,7 +768,7 @@ export function StationsBoard() {
     } finally {
       setSaving(false);
     }
-  }, [addToast, canManageStationsDirectly, displayName, editForm, refreshStations, user?.email]);
+  }, [addToast, canManageStationsDirectly, displayName, editForm, refreshStations, user]);
 
   const toggleHistory = useCallback((stationId: string) => {
     setHistoryStationId((prev) => (prev === stationId ? null : stationId));

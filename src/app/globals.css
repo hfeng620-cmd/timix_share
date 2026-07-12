@@ -1398,7 +1398,7 @@ html[data-scroll-locked] body {
   }
 
   html[data-scroll-locked] body {
-    touch-action: pan-y !important;
+    touch-action: none !important;
   }
 
   html[data-scroll-locked] .mobile-tab-scroll,
@@ -1406,10 +1406,8 @@ html[data-scroll-locked] body {
   html[data-scroll-locked] .community-mobile-app,
   html[data-scroll-locked] .stations-mobile-app,
   html[data-scroll-locked] .profile-mobile-app {
-    overflow-x: hidden !important;
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch;
-    touch-action: pan-y !important;
+    overflow: hidden !important;
+    touch-action: none !important;
   }
 }
 

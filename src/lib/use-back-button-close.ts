@@ -12,7 +12,7 @@ export function useBackButtonClose(isOpen: boolean, onClose: () => void) {
 
     window.history.pushState({ modalOpen: true }, "");
 
-    const handlePopState = (_e: PopStateEvent) => {
+    const handlePopState = () => {
       onClose();
     };
 

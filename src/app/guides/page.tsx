@@ -246,6 +246,7 @@ function HotSidebar({ allPosts, onPostClick }: { allPosts: (PostNode & { path: s
 /* ── Page ── */
 
 export default function GuidesPage() {
+  const { addToast } = useToast();
   const [path, setPath] = useState<number[]>([]);
   const [modalPost, setModalPost] = useState<PostNode | null>(null);
 
@@ -281,22 +282,35 @@ export default function GuidesPage() {
 
   const hasRealData = dbFolders !== null && dbPosts !== null && (dbFolders.length > 0 || dbPosts.length > 0);
 
-  // Load creator + contributors when entering a folder
+  // Load creator + contributors when entering a folder.
   useEffect(() => {
-    if (isRoot || !hasRealData || !currentFolder || currentFolder.name === "root") {
+    if (!hasRealData || path.length === 0) {
       setFolderCreator(null);
       setContributors([]);
       return;
     }
-    // Find the matching db folder
-    const dbFolder = (dbFolders ?? []).find((f) => f.name === currentFolder.name);
-    if (!dbFolder) { setFolderCreator(null); setContributors([]); return; }
 
+    const tree = buildTreeFromDb(dbFolders ?? [], dbPosts ?? []);
+    const folder = resolvePath(tree, path);
+    if (!folder || folder.name === "root") {
+      setFolderCreator(null);
+      setContributors([]);
+      return;
+    }
+
+    const dbFolder = (dbFolders ?? []).find((item) => item.name === folder.name);
+    if (!dbFolder) {
+      setFolderCreator(null);
+      setContributors([]);
+      return;
+    }
+
+    const folderId = dbFolder.id;
     let cancelled = false;
     async function load() {
       const [creator, contribs] = await Promise.all([
-        getFolderCreator(dbFolder!.id),
-        getFolderContributors(dbFolder!.id),
+        getFolderCreator(folderId),
+        getFolderContributors(folderId),
       ]);
       if (cancelled) return;
       setFolderCreator(creator);
@@ -304,7 +318,7 @@ export default function GuidesPage() {
     }
     load();
     return () => { cancelled = true; };
-  }, [path, hasRealData, dbFolders]);
+  }, [path, hasRealData, dbFolders, dbPosts]);
 
   // Edit handlers
   function openEditFolder() {
@@ -333,8 +347,8 @@ export default function GuidesPage() {
   }, []);
   const handleToggleHot = useCallback(async (id: string, hot: boolean) => {
     try { await toggleHot(id, hot, hot ? new Date(Date.now()+7*86400000).toISOString() : null); const [f, p] = await Promise.all([loadFolders(), loadAllPosts()]); setDbFolders(f); setDbPosts(p); }
-    catch (e: any) { alert(e?.message || "设置热门失败"); }
-  }, []);
+    catch (error: unknown) { addToast(error instanceof Error ? error.message : "设置热门失败", "error"); }
+  }, [addToast]);
   const handleDeleteFolder = useCallback(async (id: string, name: string) => {
     if (!window.confirm(`确认删除板块「${name}」？\n\n板块必须为空才能删除（无帖子和子板块）。`)) return;
     try {
@@ -342,8 +356,8 @@ export default function GuidesPage() {
       const [folders, posts] = await Promise.all([loadFolders(), loadAllPosts()]);
       setDbFolders(folders); setDbPosts(posts);
     }
-    catch (e: any) { alert(e?.message || "删除失败"); }
-  }, []);
+    catch (error: unknown) { addToast(error instanceof Error ? error.message : "删除失败", "error"); }
+  }, [addToast]);
 
   const rootTree = hasRealData ? buildTreeFromDb(dbFolders!, dbPosts!) : emptyRoot;
   const currentFolder = resolvePath(rootTree, path) ?? rootTree;

@@ -2,6 +2,7 @@
 
 import { useRef, useState, useCallback } from "react";
 import { uploadPostImage } from "@/lib/post-image-upload";
+import { useToast } from "@/lib/toast-context";
 
 /**
  * 帖子图片上传 Hook
@@ -20,6 +21,7 @@ export function usePostImageUpload(
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const { addToast } = useToast();
 
   /** 核心上传 + 插入 */
   const uploadAndInsert = useCallback(
@@ -74,12 +76,12 @@ export function usePostImageUpload(
       try {
         await uploadAndInsert(file);
       } catch (err) {
-        alert(err instanceof Error ? err.message : "图片上传失败，请稍后重试。");
+        addToast(err instanceof Error ? err.message : "图片上传失败，请稍后重试。", "error");
       }
       // 清空 input 以允许重复选择同一文件
       if (fileInputRef.current) fileInputRef.current.value = "";
     },
-    [uploadAndInsert],
+    [addToast, uploadAndInsert],
   );
 
   /** 剪贴板粘贴监听 */
@@ -96,14 +98,14 @@ export function usePostImageUpload(
             try {
               await uploadAndInsert(file);
             } catch (err) {
-              alert(err instanceof Error ? err.message : "粘贴图片上传失败，请稍后重试。");
+              addToast(err instanceof Error ? err.message : "粘贴图片上传失败，请稍后重试。", "error");
             }
           }
           break; // 仅处理第一张图片
         }
       }
     },
-    [uploadAndInsert],
+    [addToast, uploadAndInsert],
   );
 
   /** 隐藏的 <input type="file"> 组件 */

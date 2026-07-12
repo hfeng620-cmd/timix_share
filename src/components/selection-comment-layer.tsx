@@ -3,6 +3,8 @@
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
+import { useToast } from "@/lib/toast-context";
+
 import {
   createSelectionComment,
   loadSelectionComments,
@@ -46,6 +48,7 @@ const BLOCKED_SELECTOR = [
 
 export function SelectionCommentLayer() {
   const pathname = usePathname();
+  const { addToast } = useToast();
   const commentsEnabled = ENABLED_PATHS.has(pathname);
   const [comments, setComments] = useState<SelectionComment[]>(() => loadSelectionComments());
   const [draft, setDraft] = useState<DraftSelection | null>(null);
@@ -187,7 +190,7 @@ export function SelectionCommentLayer() {
       setComments((current) => [...current, created]);
       closeDraft();
     } catch (err: unknown) {
-      alert("评论保存失败: " + (err instanceof Error ? err.message : String(err)));
+      addToast(err instanceof Error ? `评论保存失败：${err.message}` : "评论保存失败，请稍后重试。", "error");
     }
   }
 

@@ -203,14 +203,14 @@ export async function createFolder(name: string, desc: string, parentId: string 
     .from("shared_folders")
     .insert(payload)
     .select("*").single();
-  alert("【Debug·板块】返回: " + JSON.stringify({ hasData: !!data, errorCode: error?.code, errorMsg: error?.message }));
+
   if (error) {
     console.error("[share-storage] createFolder 失败:", error, "payload:", payload);
-    alert("【插入板块失败】" + error.message + " (code:" + error.code + ")");
+
     throw new Error(`创建板块失败: ${error.message} (code: ${error.code})`);
   }
-  if (!data) { alert("【诡异】板块没报错但data为空！"); throw new Error("创建板块失败: 服务器未返回数据。"); }
-  alert("【板块成功】ID: " + data.id);
+  if (!data) throw new Error("创建板块失败: 服务器未返回数据。");
+
   const row = data as Record<string, unknown>;
   return { id: row.id as string, name: row.name as string, description: (row.description as string) ?? "", parentId: (row.parent_id as string) ?? null, creatorId: (row.creator_id as string) ?? null, creatorName: null, creatorAvatar: null, sortOrder: (row.sort_order as number) ?? 0, createdAt: row.created_at as string };
 }

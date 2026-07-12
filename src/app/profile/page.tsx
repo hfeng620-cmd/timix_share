@@ -19,7 +19,7 @@ import {
 import { GlobalInboxModal } from "@/components/global-inbox-modal";
 import { NotificationBell } from "@/components/notification-bell";
 import { MobileThemeToggle } from "@/components/mobile-theme-toggle";
-import { Navbar } from "@/components/navbar";
+
 import {
   getUserLikedPosts,
   getUserPosts,
@@ -129,7 +129,6 @@ export default function ProfilePage() {
   const [newName, setNewName] = useState(displayName ?? "");
   const [nameSaving, setNameSaving] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [avatarUploading, setAvatarUploading] = useState(false);
   const [bio, setBio] = useState("");
   const [newBio, setNewBio] = useState("");
   const [tags, setTags] = useState<string[]>([]);
@@ -226,7 +225,6 @@ export default function ProfilePage() {
       return;
     }
 
-    setAvatarUploading(true);
     try {
       const url = await uploadAvatar(file);
       await updateProfileAvatar(url);
@@ -234,8 +232,6 @@ export default function ProfilePage() {
       addToast("头像已更新。", "success");
     } catch {
       addToast("头像上传失败，请稍后重试。", "error");
-    } finally {
-      setAvatarUploading(false);
     }
   }
 
