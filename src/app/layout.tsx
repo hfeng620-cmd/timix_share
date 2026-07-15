@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 import { AnnouncementModal } from "@/components/announcement-modal";
-import { BackgroundSliderWrapper } from "@/components/background-slider-wrapper";
+import { SiteBackground } from "@/components/site-background";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { RegisterCounter } from "@/components/register-counter";
 import { FloatingQuickPanel } from "@/components/floating-quick-panel";
@@ -55,7 +55,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
       <body className="min-h-screen">
-        <BackgroundSliderWrapper />
+        <SiteBackground />
         <a
           className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-full focus:bg-white focus:px-5 focus:py-3 focus:text-sm focus:font-bold focus:text-black"
           href="#main-content"
